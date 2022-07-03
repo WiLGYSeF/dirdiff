@@ -2,13 +2,15 @@
 
 public class DirMetaSnapshot
 {
-    public ICollection<DirMetaSnapshotEntry> Entries { get; } = new List<DirMetaSnapshotEntry>();
+    public IReadOnlyCollection<DirMetaSnapshotEntry> Entries => _entries;
 
-    public DirMetaSnapshot() { }
+    private readonly List<DirMetaSnapshotEntry> _entries = new();
+
+    internal DirMetaSnapshot() { }
 
     internal void AddEntry(DirMetaSnapshotEntry entry)
     {
-        Entries.Add(entry);
+        _entries.Add(entry);
     }
 
     public DirMetaSnapshotDiff Compare(DirMetaSnapshot snapshot)
@@ -23,20 +25,13 @@ public class DirMetaSnapshot
         var otherHashMap = snapshot.Entries.Where(e => e.HashHex != null)
             .ToDictionary(e => e.HashHex!);
 
-        var createdEntries = new List<DirMetaSnapshotEntry>();
-        var deletedEntries = new List<DirMetaSnapshotEntry>();
-        var modifiedEntries = new List<(DirMetaSnapshotEntry OldEntry, DirMetaSnapshotEntry NewEntry)>();
-        var movedEntries = new List<(DirMetaSnapshotEntry OldEntry, DirMetaSnapshotEntry NewEntry)>();
-        var touchedEntries = new List<(DirMetaSnapshotEntry OldEntry, DirMetaSnapshotEntry NewEntry)>();
-        var unchangedEntries = new List<DirMetaSnapshotEntry>();
-
         foreach (var entry in entriesMap.Values)
         {
             if (otherEntriesMap.TryGetValue(entry.Path, out var otherEntry))
             {
                 // entry exists in older snapshot
 
-                CompareEntries(entry, otherEntry, modifiedEntries, touchedEntries, unchangedEntries);
+                CompareEntries(entry, otherEntry, diff);
             }
             else
             {
@@ -46,14 +41,14 @@ public class DirMetaSnapshot
                 {
                     // entry was moved
 
-                    movedEntries.Add((otherEntry, entry));
-                    CompareEntries(entry, otherEntry, null, touchedEntries, null);
+                    diff.AddMovedEntry(entry, otherEntry);
+                    CompareEntries(entry, otherEntry, diff, checkModified: false, changed: true);
                 }
                 else
                 {
                     // entry was created
 
-                    createdEntries.Add(entry);
+                    diff.AddCreatedEntry(entry);
                 }
             }
         }
@@ -63,7 +58,7 @@ public class DirMetaSnapshot
             if (!entriesMap.TryGetValue(otherEntry.Path, out var entry))
             {
                 // exists in older snapshot but not newer
-                deletedEntries.Add(otherEntry);
+                diff.AddDeletedEntry(otherEntry);
             }
 
             // other cases have already been handled
@@ -75,35 +70,33 @@ public class DirMetaSnapshot
     private void CompareEntries(
         DirMetaSnapshotEntry entry,
         DirMetaSnapshotEntry other,
-        List<(DirMetaSnapshotEntry OldEntry, DirMetaSnapshotEntry NewEntry)>? modifiedEntries,
-        List<(DirMetaSnapshotEntry OldEntry, DirMetaSnapshotEntry NewEntry)> touchedEntries,
-        List<DirMetaSnapshotEntry>? unchangedEntries)
+        DirMetaSnapshotDiff diff,
+        bool changed = false,
+        bool checkModified = false)
     {
-        var changed = false;
-
         if (entry.Type != other.Type)
         {
             throw new NotImplementedException();
         }
 
-        if (modifiedEntries != null
+        if (checkModified
             && (
                 !CheckEntryFileSizesMatch(entry, other).GetValueOrDefault(true)
                 || entry.HashHex != other.HashHex))
         {
-            modifiedEntries.Add((other, entry));
+            diff.AddModifiedEntry(entry, other);
             changed = true;
         }
 
         if (!CheckEntryTimesMatch(entry, other))
         {
-            touchedEntries.Add((other, entry));
+            diff.AddTouchedEntry(entry, other);
             changed = true;
         }
 
-        if (!changed && unchangedEntries != null)
+        if (!changed)
         {
-            unchangedEntries.Add(entry);
+            diff.AddUnchangedEntry(entry);
         }
     }
 

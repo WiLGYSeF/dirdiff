@@ -2,7 +2,7 @@
 
 namespace DirDiff.DirWalkers;
 
-internal class DirWalker
+internal class DirWalker : IDirWalker
 {
     public DirWalkerOptions Options { get; } = new();
 

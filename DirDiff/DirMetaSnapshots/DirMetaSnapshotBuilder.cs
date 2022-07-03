@@ -7,7 +7,18 @@ public class DirMetaSnapshotBuilder
 {
     public DirMetaSnapshotBuilderOptions Options { get; } = new();
 
-    public DirMetaSnapshotBuilder() { }
+    private readonly IDirWalker _walker;
+
+    public DirMetaSnapshotBuilder()
+    {
+        _walker = new DirWalker();
+    }
+
+    internal DirMetaSnapshotBuilder(
+        IDirWalker dirWalker)
+    {
+        _walker = dirWalker;
+    }
 
     public DirMetaSnapshotBuilder Configure(Action<DirMetaSnapshotBuilderOptions> action)
     {
@@ -18,9 +29,8 @@ public class DirMetaSnapshotBuilder
     public DirMetaSnapshot CreateMetaSnapshot(string path)
     {
         var snapshot = new DirMetaSnapshot();
-        var walker = new DirWalker();
 
-        walker.Configure(options =>
+        _walker.Configure(options =>
         {
             options.MinDepthLimit = Options.MinDepthLimit;
             options.MaxDepthLimit = Options.MaxDepthLimit;
@@ -28,7 +38,7 @@ public class DirMetaSnapshotBuilder
             options.ThrowIfNotFound = Options.ThrowIfNotFound;
         });
 
-        foreach (var file in walker.Walk(path))
+        foreach (var file in _walker.Walk(path))
         {
             var entry = new DirMetaSnapshotEntry(file.Path, file.Type);
 
