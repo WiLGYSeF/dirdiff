@@ -2,19 +2,31 @@
 
 public class DirMetaSnapshot
 {
+    public string Prefix { get; }
+
     public IReadOnlyCollection<DirMetaSnapshotEntry> Entries => _entries;
 
     private readonly List<DirMetaSnapshotEntry> _entries = new();
 
-    internal DirMetaSnapshot() { }
+    internal DirMetaSnapshot(string prefix)
+    {
+        Prefix = prefix;
+    }
 
     internal void AddEntry(DirMetaSnapshotEntry entry)
     {
         _entries.Add(entry);
     }
 
-    public DirMetaSnapshotDiff Compare(DirMetaSnapshot snapshot)
+    public DirMetaSnapshotDiff Compare(
+        DirMetaSnapshot snapshot,
+        bool unknownAssumeModified = true,
+        TimeSpan? modifyWindow = null)
     {
+        // TODO: different prefix
+
+        modifyWindow ??= TimeSpan.Zero;
+
         var diff = new DirMetaSnapshotDiff();
 
         var entriesMap = Entries.ToDictionary(e => e.Path);
@@ -33,7 +45,7 @@ public class DirMetaSnapshot
             {
                 // entry exists in older snapshot
 
-                CompareEntries(entry, otherEntry, diff);
+                CompareEntries(entry, otherEntry, diff, false, true, unknownAssumeModified);
             }
             else
             {
@@ -45,7 +57,7 @@ public class DirMetaSnapshot
 
                     diff.AddMovedEntry(entry, otherEntry);
                     otherMovedEntries.Add(otherEntry);
-                    CompareEntries(entry, otherEntry, diff, checkModified: false, changed: true);
+                    CompareEntries(entry, otherEntry, diff, true, false, unknownAssumeModified);
                 }
                 else
                 {
@@ -80,8 +92,9 @@ public class DirMetaSnapshot
         DirMetaSnapshotEntry entry,
         DirMetaSnapshotEntry other,
         DirMetaSnapshotDiff diff,
-        bool changed = false,
-        bool checkModified = true)
+        bool changed,
+        bool checkModified,
+        bool unknownAssumeModified)
     {
         if (entry.Type != other.Type)
         {
@@ -89,16 +102,13 @@ public class DirMetaSnapshot
             throw new NotImplementedException();
         }
 
-        if (checkModified
-            && (
-                !CheckEntryFileSizesMatch(entry, other).GetValueOrDefault(true)
-                || entry.HashHex != other.HashHex))
+        if (checkModified && !CheckEntryContentsMatch(entry, other).GetValueOrDefault(!unknownAssumeModified))
         {
             diff.AddModifiedEntry(entry, other);
             changed = true;
         }
 
-        if (!CheckEntryTimesMatch(entry, other))
+        if (!CheckEntryTimesMatch(entry, other).GetValueOrDefault(!unknownAssumeModified))
         {
             diff.AddTouchedEntry(entry, other);
             changed = true;
@@ -110,15 +120,62 @@ public class DirMetaSnapshot
         }
     }
 
-    private static bool CheckEntryTimesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    private static bool? CheckEntryCreationTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
-        return entry.CreatedTime == other.CreatedTime && entry.LastModifiedTime == other.LastModifiedTime;
+        return entry.CreatedTime.HasValue && other.CreatedTime.HasValue
+            ? entry.CreatedTime.Value == other.CreatedTime.Value
+            : null;
+    }
+
+    private static bool? CheckEntryLastModifiedTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    {
+        return entry.LastModifiedTime.HasValue && other.LastModifiedTime.HasValue
+            ? entry.LastModifiedTime.Value == other.LastModifiedTime.Value
+            : null;
+    }
+
+    private static bool? CheckEntryTimesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    {
+        var creationTimeMatch = CheckEntryCreationTimeMatch(entry, other);
+        if (!creationTimeMatch.HasValue)
+        {
+            return null;
+        }
+
+        var lastModifiedTimeMatch = CheckEntryLastModifiedTimeMatch(entry, other);
+        return lastModifiedTimeMatch.HasValue
+            ? creationTimeMatch.Value && lastModifiedTimeMatch.Value
+            : null;
     }
 
     private static bool? CheckEntryFileSizesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
         return entry.FileSize.HasValue && other.FileSize.HasValue
             ? entry.FileSize.Value == other.FileSize.Value
+            : null;
+    }
+
+    private static bool? CheckEntryHashesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    {
+        return entry.HashHex != null && other.HashHex != null
+            ? entry.HashHex == other.HashHex
+            : null;
+    }
+
+    private static bool? CheckEntryContentsMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    {
+        var hashMatch = CheckEntryHashesMatch(entry, other);
+        if (hashMatch.HasValue)
+        {
+            return hashMatch.Value
+                && CheckEntryFileSizesMatch(entry, other).GetValueOrDefault(true);
+        }
+
+        var sizeMatch = CheckEntryFileSizesMatch(entry, other);
+        var timesMatch = CheckEntryTimesMatch(entry, other);
+
+        return sizeMatch.HasValue && timesMatch.HasValue
+            ? sizeMatch.Value && timesMatch.Value
             : null;
     }
 }
