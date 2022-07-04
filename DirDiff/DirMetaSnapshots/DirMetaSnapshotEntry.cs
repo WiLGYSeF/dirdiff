@@ -17,7 +17,18 @@ public class DirMetaSnapshotEntry
 
     public HashAlgorithm? HashAlgorithm { get; internal set; }
 
-    public byte[]? Hash { get; internal set; }
+    public byte[]? Hash
+    {
+        get => _hash;
+        internal set
+        {
+            if (Type == FileType.Directory)
+            {
+                throw new InvalidOperationException();
+            }
+            _hash = value;
+        }
+    }
 
     public string? HashHex
     {
@@ -32,6 +43,7 @@ public class DirMetaSnapshotEntry
         }
     }
 
+    private byte[]? _hash;
     private string? _hashHex;
 
     internal DirMetaSnapshotEntry(string path, FileType type)

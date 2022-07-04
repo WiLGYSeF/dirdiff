@@ -25,6 +25,8 @@ public class DirMetaSnapshot
         var otherHashMap = snapshot.Entries.Where(e => e.HashHex != null)
             .ToDictionary(e => e.HashHex!);
 
+        var otherMovedEntries = new HashSet<DirMetaSnapshotEntry>();
+
         foreach (var entry in entriesMap.Values)
         {
             if (otherEntriesMap.TryGetValue(entry.Path, out var otherEntry))
@@ -42,6 +44,7 @@ public class DirMetaSnapshot
                     // entry was moved
 
                     diff.AddMovedEntry(entry, otherEntry);
+                    otherMovedEntries.Add(otherEntry);
                     CompareEntries(entry, otherEntry, diff, checkModified: false, changed: true);
                 }
                 else
@@ -57,8 +60,14 @@ public class DirMetaSnapshot
         {
             if (!entriesMap.TryGetValue(otherEntry.Path, out var entry))
             {
-                // exists in older snapshot but not newer
-                diff.AddDeletedEntry(otherEntry);
+                // entry does not exist in newer snapshot
+
+                if (!otherMovedEntries.Contains(otherEntry))
+                {
+                    // entry does not exist in newer snapshot and was not moved
+
+                    diff.AddDeletedEntry(otherEntry);
+                }
             }
 
             // other cases have already been handled
@@ -72,10 +81,11 @@ public class DirMetaSnapshot
         DirMetaSnapshotEntry other,
         DirMetaSnapshotDiff diff,
         bool changed = false,
-        bool checkModified = false)
+        bool checkModified = true)
     {
         if (entry.Type != other.Type)
         {
+            // TODO
             throw new NotImplementedException();
         }
 
