@@ -1,4 +1,5 @@
 ﻿using DirDiff.DirMetaSnapshots;
+using DirDiff.Enums;
 using DirDiff.Tests.Utils;
 
 namespace DirDiff.Tests.DirMetaSnapshotTests;
@@ -207,7 +208,7 @@ public class DirMetaSnapshotTest
         {
             var entry = new DirMetaSnapshotEntryBuilder().Build();
             first.AddEntry(entry);
-            second.AddEntry(entry);
+            second.AddEntry(new DirMetaSnapshotEntryBuilder().From(entry).Build());
             expectedUnchangedEntries.Add(entry);
         }
 
@@ -241,7 +242,7 @@ public class DirMetaSnapshotTest
 
         foreach (var entry in first.Entries.Take(2))
         {
-            second.AddEntry(entry);
+            second.AddEntry(new DirMetaSnapshotEntryBuilder().From(entry).Build());
             expectedUnchangedEntries.Add(entry);
         }
 
@@ -284,7 +285,7 @@ public class DirMetaSnapshotTest
 
         foreach (var entry in first.Entries.Take(2))
         {
-            second.AddEntry(entry);
+            second.AddEntry(new DirMetaSnapshotEntryBuilder().From(entry).Build());
             expectedUnchangedEntries.Add(entry);
         }
 
@@ -327,7 +328,7 @@ public class DirMetaSnapshotTest
 
         foreach (var entry in first.Entries.Take(2))
         {
-            second.AddEntry(entry);
+            second.AddEntry(new DirMetaSnapshotEntryBuilder().From(entry).Build());
             expectedUnchangedEntries.Add(entry);
         }
 
@@ -372,7 +373,7 @@ public class DirMetaSnapshotTest
 
         foreach (var entry in first.Entries.Take(2))
         {
-            second.AddEntry(entry);
+            second.AddEntry(new DirMetaSnapshotEntryBuilder().From(entry).Build());
             expectedUnchangedEntries.Add(entry);
         }
 
@@ -395,6 +396,63 @@ public class DirMetaSnapshotTest
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEquivalentTo(expectedTouchedEntries);
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchangedEntries);
+    }
+
+    [Fact]
+    public void Compare_Type_Entries()
+    {
+        var first = new DirMetaSnapshot(SnapshotPrefix);
+        var second = new DirMetaSnapshot(SnapshotPrefix);
+
+        var expectedCreatedEntries = new List<DirMetaSnapshotEntry>();
+        var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 2; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithFileType(FileType.File)
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        for (var i = 0; i < 2; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithFileType(FileType.Directory)
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries)
+        {
+            var oppositeType = entry.Type switch
+            {
+                FileType.Directory => FileType.File,
+                _ => FileType.Directory,
+            };
+            var builder = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithFileType(oppositeType);
+
+            if (oppositeType == FileType.Directory)
+            {
+                builder = builder.WithNoHash();
+            }
+
+            var entryCopy = builder.Build();
+
+            second.AddEntry(entryCopy);
+            expectedCreatedEntries.Add(entryCopy);
+            expectedDeletedEntries.Add(entry);
+        }
+
+        var diff = second.Compare(first);
+
+        diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
+        diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
+        diff.ModifiedEntries.ShouldBeEmpty();
+        diff.MovedEntries.ShouldBeEmpty();
+        diff.TouchedEntries.ShouldBeEmpty();
+        diff.UnchangedEntries.ShouldBeEmpty();
     }
 
     #region Null Checks
@@ -425,7 +483,7 @@ public class DirMetaSnapshotTest
                 .WithRandomFileSize()
                 .WithRandomCreatedTime()
                 .WithRandomLastModifiedTime()
-                .WithRandomHash(Enums.HashAlgorithm.SHA256)
+                .WithRandomHash(HashAlgorithm.SHA256)
                 .Build();
             second.AddEntry(entryCopy);
             expectedModifiedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy));
@@ -596,7 +654,7 @@ public class DirMetaSnapshotTest
         foreach (var entry in first.Entries)
         {
             var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
-                .WithRandomHash(Enums.HashAlgorithm.SHA256)
+                .WithRandomHash(HashAlgorithm.SHA256)
                 .Build();
             second.AddEntry(entryCopy);
             expectedEntries.Add(entryCopy);
@@ -637,7 +695,7 @@ public class DirMetaSnapshotTest
         {
             var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
                 .WithRandomFileSize()
-                .WithRandomHash(Enums.HashAlgorithm.SHA256)
+                .WithRandomHash(HashAlgorithm.SHA256)
                 .Build();
             second.AddEntry(entryCopy);
             expectedEntries.Add(entryCopy);

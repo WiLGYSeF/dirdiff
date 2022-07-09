@@ -98,8 +98,9 @@ public class DirMetaSnapshot
     {
         if (entry.Type != other.Type)
         {
-            // TODO
-            throw new NotImplementedException();
+            diff.AddCreatedEntry(entry);
+            diff.AddDeletedEntry(other);
+            changed = true;
         }
 
         if (checkModified && !CheckEntryContentsMatch(entry, other).GetValueOrDefault(!unknownAssumeModified))

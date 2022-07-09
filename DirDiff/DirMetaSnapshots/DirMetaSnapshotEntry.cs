@@ -22,9 +22,9 @@ public class DirMetaSnapshotEntry
         get => _hash;
         internal set
         {
-            if (Type == FileType.Directory)
+            if (Type == FileType.Directory && value != null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Cannot set a hash for a file directory.");
             }
             _hash = value;
         }

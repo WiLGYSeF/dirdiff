@@ -99,16 +99,24 @@ internal class DirMetaSnapshotEntryBuilder
 
     public DirMetaSnapshotEntry Build()
     {
-        HashAlgorithm? hashAlgorithm = _hashAlgorithmNull ? null : _hashAlgorithm ?? Enums.HashAlgorithm.SHA256;
+        HashAlgorithm? hashAlgorithm = _hashAlgorithmNull
+            ? null
+            : _hashAlgorithm ?? (Type != FileType.Directory
+                ? Enums.HashAlgorithm.SHA256
+                : null);
+        byte[]? hash = hashAlgorithm.HasValue && !_hashNull
+            ? _hash ?? TestUtils.RandomHash(hashAlgorithm.Value)
+            : null;
+
         return new DirMetaSnapshotEntry(
             Path ?? RandomPath(),
             Type)
         {
             FileSize = _fileSizeNull ? null : _fileSize ?? RandomFileSize(),
-            CreatedTime = _createdTimeNull ? null : _createdTime ?? RandomLastModifiedTime(),
-            LastModifiedTime = _lastModifiedTimeNull ? null : _lastModifiedTime ?? TestUtils.RandomFileTimestamp(),
+            CreatedTime = _createdTimeNull ? null : _createdTime ?? RandomCreatedTime(),
+            LastModifiedTime = _lastModifiedTimeNull ? null : _lastModifiedTime ?? RandomLastModifiedTime(),
             HashAlgorithm = hashAlgorithm,
-            Hash = _hashNull ? null : _hash ?? TestUtils.RandomHash(hashAlgorithm!.Value),
+            Hash = hash,
         };
     }
 
