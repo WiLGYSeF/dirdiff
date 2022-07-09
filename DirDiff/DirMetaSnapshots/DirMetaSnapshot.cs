@@ -10,9 +10,9 @@ public class DirMetaSnapshot
     /// <summary>
     /// File entries in snapshot.
     /// </summary>
-    public IReadOnlyCollection<DirMetaSnapshotEntry> Entries => _entries;
+    public IReadOnlyCollection<DirMetaSnapshotEntry> Entries => _entries.Values;
 
-    private readonly List<DirMetaSnapshotEntry> _entries = new();
+    private readonly Dictionary<string, DirMetaSnapshotEntry> _entries = new();
 
     internal DirMetaSnapshot(string prefix)
     {
@@ -21,7 +21,7 @@ public class DirMetaSnapshot
 
     internal void AddEntry(DirMetaSnapshotEntry entry)
     {
-        _entries.Add(entry);
+        _entries.Add(entry.Path, entry);
     }
 
     /// <summary>
@@ -53,6 +53,8 @@ public class DirMetaSnapshot
             .ToDictionary(e => e.HashHex!);
         var otherHashMap = snapshot.Entries.Where(e => e.HashHex != null)
             .ToDictionary(e => e.HashHex!);
+
+        var otherSizeMap = CreateSizeMap(snapshot.Entries);
 
         var otherMovedEntries = new HashSet<DirMetaSnapshotEntry>();
 
@@ -94,9 +96,36 @@ public class DirMetaSnapshot
                 }
                 else
                 {
-                    // entry was created
+                    var moved = false;
+                    if (sizeAndTimeMatch
+                        && entry.Hash == null
+                        && entry.FileSize.HasValue
+                        && entry.LastModifiedTime.HasValue)
+                    {
+                        // check if an entry was moved by the size and last modified time
 
-                    diff.AddCreatedEntry(entry);
+                        var movedEntry = GetMovedEntryFromSizeMap(
+                            otherSizeMap,
+                            _entries,
+                            entry.FileSize.Value,
+                            entry.LastModifiedTime.Value,
+                            window.Value);
+                        if (movedEntry != null)
+                        {
+                            // entry was moved based on size and last modified time
+
+                            diff.AddMovedEntry(entry, movedEntry);
+                            otherMovedEntries.Add(movedEntry);
+                            moved = true;
+                        }
+                    }
+
+                    if (!moved)
+                    {
+                        // entry was created
+
+                        diff.AddCreatedEntry(entry);
+                    }
                 }
             }
         }
@@ -226,5 +255,46 @@ public class DirMetaSnapshot
         }
 
         return sizeAndTimeMatch ? true : null;
+    }
+
+    private static Dictionary<long, List<DirMetaSnapshotEntry>> CreateSizeMap(IEnumerable<DirMetaSnapshotEntry> entries)
+    {
+        var dict = new Dictionary<long, List<DirMetaSnapshotEntry>>();
+
+        foreach (var entry in entries)
+        {
+            if (!entry.FileSize.HasValue)
+            {
+                continue;
+            }
+
+            if (!dict.TryGetValue(entry.FileSize.Value, out var dictEntries))
+            {
+                dictEntries = new List<DirMetaSnapshotEntry>();
+                dict.Add(entry.FileSize.Value, dictEntries);
+            }
+            dictEntries.Add(entry);
+        }
+
+        return dict;
+    }
+
+    private static DirMetaSnapshotEntry? GetMovedEntryFromSizeMap(
+        IReadOnlyDictionary<long, List<DirMetaSnapshotEntry>> sizeMap,
+        IReadOnlyDictionary<string, DirMetaSnapshotEntry> entries,
+        long fileSize,
+        DateTime lastModifiedTime,
+        TimeSpan window)
+    {
+        if (!sizeMap.TryGetValue(fileSize, out var sizeEntries))
+        {
+            return null;
+        }
+
+        var possibleEntries = sizeEntries.Where(entry =>
+            entry.LastModifiedTime.HasValue
+            && (entry.LastModifiedTime.Value - lastModifiedTime).Duration() <= window
+            && !entries.ContainsKey(entry.Path)).ToList();
+        return possibleEntries.Count == 1 ? possibleEntries.First() : null;
     }
 }

@@ -222,6 +222,63 @@ public class DirMetaSnapshotTest
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchangedEntries);
     }
 
+    [Fact]
+    public void Compare_Type_Entries()
+    {
+        var first = new DirMetaSnapshot(SnapshotPrefix);
+        var second = new DirMetaSnapshot(SnapshotPrefix);
+
+        var expectedCreatedEntries = new List<DirMetaSnapshotEntry>();
+        var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 2; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithFileType(FileType.File)
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        for (var i = 0; i < 2; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithFileType(FileType.Directory)
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries)
+        {
+            var oppositeType = entry.Type switch
+            {
+                FileType.Directory => FileType.File,
+                _ => FileType.Directory,
+            };
+            var builder = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithFileType(oppositeType);
+
+            if (oppositeType == FileType.Directory)
+            {
+                builder = builder.WithNoHash();
+            }
+
+            var entryCopy = builder.Build();
+
+            second.AddEntry(entryCopy);
+            expectedCreatedEntries.Add(entryCopy);
+            expectedDeletedEntries.Add(entry);
+        }
+
+        var diff = second.Compare(first);
+
+        diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
+        diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
+        diff.ModifiedEntries.ShouldBeEmpty();
+        diff.MovedEntries.ShouldBeEmpty();
+        diff.TouchedEntries.ShouldBeEmpty();
+        diff.UnchangedEntries.ShouldBeEmpty();
+    }
+
     #endregion
 
     [Fact]
@@ -334,12 +391,9 @@ public class DirMetaSnapshotTest
 
         foreach (var entry in first.Entries.Skip(2))
         {
-            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
-                .WithRandomPath()
-                .WithRandomHash()
-                .Build();
-            second.AddEntry(entryCopy);
-            expectedCreatedEntries.Add(entryCopy);
+            var otherEntry = new DirMetaSnapshotEntryBuilder().Build();
+            second.AddEntry(otherEntry);
+            expectedCreatedEntries.Add(otherEntry);
             expectedDeletedEntries.Add(entry);
         }
 
@@ -396,63 +450,6 @@ public class DirMetaSnapshotTest
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEquivalentTo(expectedTouchedEntries);
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchangedEntries);
-    }
-
-    [Fact]
-    public void Compare_Type_Entries()
-    {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
-
-        var expectedCreatedEntries = new List<DirMetaSnapshotEntry>();
-        var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
-
-        for (var i = 0; i < 2; i++)
-        {
-            var entry = new DirMetaSnapshotEntryBuilder()
-                .WithFileType(FileType.File)
-                .Build();
-            first.AddEntry(entry);
-        }
-
-        for (var i = 0; i < 2; i++)
-        {
-            var entry = new DirMetaSnapshotEntryBuilder()
-                .WithFileType(FileType.Directory)
-                .Build();
-            first.AddEntry(entry);
-        }
-
-        foreach (var entry in first.Entries)
-        {
-            var oppositeType = entry.Type switch
-            {
-                FileType.Directory => FileType.File,
-                _ => FileType.Directory,
-            };
-            var builder = new DirMetaSnapshotEntryBuilder().From(entry)
-                .WithFileType(oppositeType);
-
-            if (oppositeType == FileType.Directory)
-            {
-                builder = builder.WithNoHash();
-            }
-
-            var entryCopy = builder.Build();
-
-            second.AddEntry(entryCopy);
-            expectedCreatedEntries.Add(entryCopy);
-            expectedDeletedEntries.Add(entry);
-        }
-
-        var diff = second.Compare(first);
-
-        diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
-        diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
-        diff.ModifiedEntries.ShouldBeEmpty();
-        diff.MovedEntries.ShouldBeEmpty();
-        diff.TouchedEntries.ShouldBeEmpty();
-        diff.UnchangedEntries.ShouldBeEmpty();
     }
 
     [Theory]
@@ -549,6 +546,78 @@ public class DirMetaSnapshotTest
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.Count.ShouldBe(expectedUnchangedEntries.Count);
+    }
+
+    [Fact]
+    public void Compare_Moved_Entries_Size_Time()
+    {
+        var first = new DirMetaSnapshot(SnapshotPrefix);
+        var second = new DirMetaSnapshot(SnapshotPrefix);
+
+        var expectedMovedEntries = new List<DirMetaSnapshotDiffEntryPair>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithNoHash()
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries)
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithRandomPath()
+                .WithNoHash()
+                .Build();
+            second.AddEntry(entryCopy);
+            expectedMovedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy));
+        }
+
+        var diff = second.Compare(first, sizeAndTimeMatch: true);
+
+        diff.CreatedEntries.ShouldBeEmpty();
+        diff.DeletedEntries.ShouldBeEmpty();
+        diff.ModifiedEntries.ShouldBeEmpty();
+        diff.MovedEntries.ShouldBeEquivalentTo(expectedMovedEntries);
+        diff.TouchedEntries.ShouldBeEmpty();
+        diff.UnchangedEntries.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Compare_Moved_Entries_Size_Time_Different_Hash()
+    {
+        var first = new DirMetaSnapshot(SnapshotPrefix);
+        var second = new DirMetaSnapshot(SnapshotPrefix);
+
+        var expectedCreatedEntries = new List<DirMetaSnapshotEntry>();
+        var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder().Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries)
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithRandomPath()
+                .WithRandomHash()
+                .Build();
+            second.AddEntry(entryCopy);
+            expectedCreatedEntries.Add(entryCopy);
+            expectedDeletedEntries.Add(entry);
+        }
+
+        var diff = second.Compare(first, sizeAndTimeMatch: true);
+
+        diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
+        diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
+        diff.ModifiedEntries.ShouldBeEmpty();
+        diff.MovedEntries.ShouldBeEmpty();
+        diff.TouchedEntries.ShouldBeEmpty();
+        diff.UnchangedEntries.ShouldBeEmpty();
     }
 
     #region Null Checks
