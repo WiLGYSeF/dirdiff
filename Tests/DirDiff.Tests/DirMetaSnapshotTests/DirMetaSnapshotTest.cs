@@ -388,7 +388,7 @@ public class DirMetaSnapshotTest
             expectedTouchedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy));
         }
 
-        var diff = second.Compare(first);
+        var diff = second.Compare(first, sizeAndTimeMatch: true);
 
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
@@ -453,6 +453,57 @@ public class DirMetaSnapshotTest
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Compare_Size_Time_Match_Entries(bool sizeAndTimeMatch)
+    {
+        var first = new DirMetaSnapshot(SnapshotPrefix);
+        var second = new DirMetaSnapshot(SnapshotPrefix);
+
+        var expectedEntries = new List<DirMetaSnapshotEntry>();
+        var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithNoHash()
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries)
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithNoHash()
+                .Build();
+            second.AddEntry(entryCopy);
+            expectedEntries.Add(entry);
+            expectedEntryPairs.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy));
+        }
+
+        var diff = second.Compare(
+            first,
+            sizeAndTimeMatch: sizeAndTimeMatch,
+            unknownAssumeModified: true);
+
+        diff.CreatedEntries.ShouldBeEmpty();
+        diff.DeletedEntries.ShouldBeEmpty();
+        diff.MovedEntries.ShouldBeEmpty();
+        diff.TouchedEntries.ShouldBeEmpty();
+
+        if (sizeAndTimeMatch)
+        {
+            diff.ModifiedEntries.ShouldBeEmpty();
+            diff.UnchangedEntries.ShouldBeEquivalentTo(expectedEntries);
+        }
+        else
+        {
+            diff.ModifiedEntries.ShouldBeEquivalentTo(expectedEntryPairs);
+            diff.UnchangedEntries.ShouldBeEmpty();
+        }
     }
 
     #region Null Checks
