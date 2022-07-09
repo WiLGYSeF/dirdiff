@@ -26,7 +26,7 @@ public class DirMetaSnapshotBuilder
         return this;
     }
 
-    public DirMetaSnapshot CreateMetaSnapshot(string path)
+    public DirMetaSnapshot CreateSnapshot(string path)
     {
         var snapshot = new DirMetaSnapshot(path);
 
