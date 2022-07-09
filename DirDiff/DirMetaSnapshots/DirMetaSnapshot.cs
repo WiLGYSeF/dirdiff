@@ -32,18 +32,17 @@ public class DirMetaSnapshot
     /// Indicates if matching entry last modified times and file sizes can be considered a match if there are no entry hashes.
     /// Otherwise, they are considered unknown.</param>
     /// <param name="unknownAssumeModified">Inidcates if unknown entry comparisons should be treated as modifications.</param>
-    /// <param name="modifyWindow">Maximum difference in last modified times before entries are considered different. Defaults to zero.</param>
+    /// <param name="window">Maximum difference in times before entries are considered different. Defaults to zero.</param>
     /// <returns>Snapshot diff.</returns>
     public DirMetaSnapshotDiff Compare(
         DirMetaSnapshot snapshot,
         bool sizeAndTimeMatch = true,
         bool unknownAssumeModified = true,
-        TimeSpan? modifyWindow = null)
+        TimeSpan? window = null)
     {
-        // TODO: modify window
         // TODO: different prefix
 
-        modifyWindow ??= TimeSpan.Zero;
+        window ??= TimeSpan.Zero;
 
         var diff = new DirMetaSnapshotDiff();
 
@@ -69,6 +68,7 @@ public class DirMetaSnapshot
                     diff,
                     false,
                     true,
+                    window.Value,
                     sizeAndTimeMatch,
                     unknownAssumeModified);
             }
@@ -88,6 +88,7 @@ public class DirMetaSnapshot
                         diff,
                         true,
                         false,
+                        window.Value,
                         sizeAndTimeMatch,
                         unknownAssumeModified);
                 }
@@ -126,6 +127,7 @@ public class DirMetaSnapshot
         DirMetaSnapshotDiff diff,
         bool changed,
         bool checkModified,
+        TimeSpan window,
         bool sizeAndTimeMatch,
         bool unknownAssumeModified)
     {
@@ -137,14 +139,14 @@ public class DirMetaSnapshot
         }
 
         if (checkModified
-            && !CheckEntryContentsMatch(entry, other, sizeAndTimeMatch)
+            && !CheckEntryContentsMatch(entry, other, window, sizeAndTimeMatch)
                 .GetValueOrDefault(!unknownAssumeModified))
         {
             diff.AddModifiedEntry(entry, other);
             changed = true;
         }
 
-        if (!CheckEntryTimesMatch(entry, other).GetValueOrDefault(!unknownAssumeModified))
+        if (!CheckEntryTimesMatch(entry, other, window).GetValueOrDefault(!unknownAssumeModified))
         {
             diff.AddTouchedEntry(entry, other);
             changed = true;
@@ -156,29 +158,29 @@ public class DirMetaSnapshot
         }
     }
 
-    private static bool? CheckEntryCreationTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    private static bool? CheckEntryCreationTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
         return entry.CreatedTime.HasValue && other.CreatedTime.HasValue
-            ? entry.CreatedTime.Value == other.CreatedTime.Value
+            ? (entry.CreatedTime.Value - other.CreatedTime.Value).Duration() <= window
             : null;
     }
 
-    private static bool? CheckEntryLastModifiedTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    private static bool? CheckEntryLastModifiedTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
         return entry.LastModifiedTime.HasValue && other.LastModifiedTime.HasValue
-            ? entry.LastModifiedTime.Value == other.LastModifiedTime.Value
+            ? (entry.LastModifiedTime.Value - other.LastModifiedTime.Value).Duration() <= window
             : null;
     }
 
-    private static bool? CheckEntryTimesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    private static bool? CheckEntryTimesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
-        var creationTimeMatch = CheckEntryCreationTimeMatch(entry, other);
+        var creationTimeMatch = CheckEntryCreationTimeMatch(entry, other, window);
         if (!creationTimeMatch.HasValue)
         {
             return null;
         }
 
-        var lastModifiedTimeMatch = CheckEntryLastModifiedTimeMatch(entry, other);
+        var lastModifiedTimeMatch = CheckEntryLastModifiedTimeMatch(entry, other, window);
         return lastModifiedTimeMatch.HasValue
             ? creationTimeMatch.Value && lastModifiedTimeMatch.Value
             : null;
@@ -201,6 +203,7 @@ public class DirMetaSnapshot
     private static bool? CheckEntryContentsMatch(
         DirMetaSnapshotEntry entry,
         DirMetaSnapshotEntry other,
+        TimeSpan window,
         bool sizeAndTimeMatch)
     {
         var hashMatch = CheckEntryHashesMatch(entry, other);
@@ -211,7 +214,7 @@ public class DirMetaSnapshot
         }
 
         var sizeMatch = CheckEntryFileSizesMatch(entry, other);
-        var timesMatch = CheckEntryTimesMatch(entry, other);
+        var timesMatch = CheckEntryTimesMatch(entry, other, window);
 
         if (!sizeMatch.HasValue || !timesMatch.HasValue)
         {

@@ -506,6 +506,51 @@ public class DirMetaSnapshotTest
         }
     }
 
+    [Fact]
+    public void Compare_Time_Entries_Window()
+    {
+        var first = new DirMetaSnapshot(SnapshotPrefix);
+        var second = new DirMetaSnapshot(SnapshotPrefix);
+
+        var expectedUnchangedEntries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithNoHash()
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries.Take(2))
+        {
+            second.AddEntry(new DirMetaSnapshotEntryBuilder().From(entry).Build());
+            expectedUnchangedEntries.Add(entry);
+        }
+
+        foreach (var entry in first.Entries.Skip(2))
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithNoHash()
+                .WithLastModifiedTime(entry.LastModifiedTime + new TimeSpan(0, 0, 5))
+                .Build();
+            second.AddEntry(entryCopy);
+            expectedUnchangedEntries.Add(entry);
+        }
+
+        var diff = second.Compare(
+            first,
+            sizeAndTimeMatch: true,
+            window: new TimeSpan(0, 1, 0));
+
+        diff.CreatedEntries.ShouldBeEmpty();
+        diff.DeletedEntries.ShouldBeEmpty();
+        diff.ModifiedEntries.ShouldBeEmpty();
+        diff.MovedEntries.ShouldBeEmpty();
+        diff.TouchedEntries.ShouldBeEmpty();
+        diff.UnchangedEntries.Count.ShouldBe(expectedUnchangedEntries.Count);
+    }
+
     #region Null Checks
 
     [Fact]
