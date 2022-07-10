@@ -65,6 +65,7 @@ public class DirMetaSnapshotBuilder
 
             if (Options.HashAlgorithm.HasValue)
             {
+                entry.HashAlgorithm = Options.HashAlgorithm.Value;
                 entry.Hash = Hasher.HashStream(Options.HashAlgorithm.Value, File.OpenRead(file.Path));
             }
 

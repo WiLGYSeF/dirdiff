@@ -14,6 +14,11 @@ public class DirMetaSnapshot
 
     private readonly Dictionary<string, DirMetaSnapshotEntry> _entries = new();
 
+    public DirMetaSnapshot()
+    {
+        Prefix = "";
+    }
+
     internal DirMetaSnapshot(string prefix)
     {
         Prefix = prefix;
