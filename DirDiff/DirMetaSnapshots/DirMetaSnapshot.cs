@@ -30,8 +30,9 @@ public class DirMetaSnapshot
     /// <param name="snapshot">Snapshot to compare, considered less recent than the calling snapshot.</param>
     /// <param name="sizeAndTimeMatch">
     /// Indicates if matching entry last modified times and file sizes can be considered a match if there are no entry hashes.
-    /// Otherwise, they are considered unknown.</param>
-    /// <param name="unknownAssumeModified">Inidcates if unknown entry comparisons should be treated as modifications.</param>
+    /// Otherwise, they are considered unknown.
+    /// </param>
+    /// <param name="unknownAssumeModified">Indicates if unknown entry comparisons should be treated as modifications.</param>
     /// <param name="window">Maximum difference in times before entries are considered different. Defaults to zero.</param>
     /// <returns>Snapshot diff.</returns>
     public DirMetaSnapshotDiff Compare(
@@ -150,6 +151,20 @@ public class DirMetaSnapshot
         return diff;
     }
 
+    /// <summary>
+    /// Compare entries and add them to the diff.
+    /// </summary>
+    /// <param name="entry">Entry, more recent.</param>
+    /// <param name="other">Other entry, less recent.</param>
+    /// <param name="diff">Diff.</param>
+    /// <param name="changed">Indicates if the entry was marked as changed.</param>
+    /// <param name="checkModified">Indicates if it should bother checking if entries have been modified.</param>
+    /// <param name="window">Maximum difference in times before entries are considered different. Defaults to zero.</param>
+    /// <param name="sizeAndTimeMatch">
+    /// Indicates if matching entry last modified times and file sizes can be considered a match if there are no entry hashes.
+    /// Otherwise, they are considered unknown.
+    /// </param>
+    /// <param name="unknownAssumeModified">Indicates if unknown entry comparisons should be treated as modifications.</param>
     private void CompareEntries(
         DirMetaSnapshotEntry entry,
         DirMetaSnapshotEntry other,
@@ -187,6 +202,13 @@ public class DirMetaSnapshot
         }
     }
 
+    /// <summary>
+    /// Check if the entry creation times match.
+    /// </summary>
+    /// <param name="entry">Entry, more recent.</param>
+    /// <param name="other">Other entry, less recent.</param>
+    /// <param name="window">Maximum difference in times before entries are considered different. Defaults to zero.</param>
+    /// <returns>Returns true if entry creation times match, false otherwise. If entry creation times are not present, return null.</returns>
     private static bool? CheckEntryCreationTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
         return entry.CreatedTime.HasValue && other.CreatedTime.HasValue
@@ -194,6 +216,13 @@ public class DirMetaSnapshot
             : null;
     }
 
+    /// <summary>
+    /// Check if the entry last modified times match.
+    /// </summary>
+    /// <param name="entry">Entry, more recent.</param>
+    /// <param name="other">Other entry, less recent.</param>
+    /// <param name="window">Maximum difference in times before entries are considered different. Defaults to zero.</param>
+    /// <returns>Returns true if entry last modified times match, false otherwise. If entry last modified times are not present, return null.</returns>
     private static bool? CheckEntryLastModifiedTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
         return entry.LastModifiedTime.HasValue && other.LastModifiedTime.HasValue
@@ -201,6 +230,13 @@ public class DirMetaSnapshot
             : null;
     }
 
+    /// <summary>
+    /// Check if the entry creation and last modified times match.
+    /// </summary>
+    /// <param name="entry">Entry, more recent.</param>
+    /// <param name="other">Other entry, less recent.</param>
+    /// <param name="window">Maximum difference in times before entries are considered different. Defaults to zero.</param>
+    /// <returns>Returns true if entry times match, false otherwise. If entry times are not present, return null.</returns>
     private static bool? CheckEntryTimesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
         var creationTimeMatch = CheckEntryCreationTimeMatch(entry, other, window);
@@ -215,6 +251,12 @@ public class DirMetaSnapshot
             : null;
     }
 
+    /// <summary>
+    /// Check if the entry file sizes match.
+    /// </summary>
+    /// <param name="entry">Entry, more recent.</param>
+    /// <param name="other">Other entry, less recent.</param>
+    /// <returns>Returns true if entry file sizes match, false otherwise. If entry file sizes are not present, return null.</returns>
     private static bool? CheckEntryFileSizesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
         return entry.FileSize.HasValue && other.FileSize.HasValue
@@ -222,6 +264,12 @@ public class DirMetaSnapshot
             : null;
     }
 
+    /// <summary>
+    /// Check if the entry hashes match.
+    /// </summary>
+    /// <param name="entry">Entry, more recent.</param>
+    /// <param name="other">Other entry, less recent.</param>
+    /// <returns>Returns true if entry hashes match, false otherwise. If entry hashes are not present, return null.</returns>
     private static bool? CheckEntryHashesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
         return entry.HashHex != null && other.HashHex != null
@@ -229,6 +277,17 @@ public class DirMetaSnapshot
             : null;
     }
 
+    /// <summary>
+    /// Check if entry contents match. Checks entry hashes, or the file sizes and entry times match if enabled.
+    /// </summary>
+    /// <param name="entry">Entry, more recent.</param>
+    /// <param name="other">Other entry, less recent.</param>
+    /// <param name="window">Maximum difference in times before entries are considered different. Defaults to zero.</param>
+    /// <param name="sizeAndTimeMatch">
+    /// Indicates if matching entry last modified times and file sizes can be considered a match if there are no entry hashes.
+    /// Otherwise, they are considered unknown.
+    /// </param>
+    /// <returns>Returns true if the entry contents match, false otherwise. If entry contents are not present, return null.</returns>
     private static bool? CheckEntryContentsMatch(
         DirMetaSnapshotEntry entry,
         DirMetaSnapshotEntry other,
@@ -279,6 +338,15 @@ public class DirMetaSnapshot
         return dict;
     }
 
+    /// <summary>
+    /// Gets the moved entry by the file size and last modified time if it does not exist in the recent snapshot entries.
+    /// </summary>
+    /// <param name="sizeMap"></param>
+    /// <param name="entries"></param>
+    /// <param name="fileSize"></param>
+    /// <param name="lastModifiedTime"></param>
+    /// <param name="window"></param>
+    /// <returns></returns>
     private static DirMetaSnapshotEntry? GetMovedEntryFromSizeMap(
         IReadOnlyDictionary<long, List<DirMetaSnapshotEntry>> sizeMap,
         IReadOnlyDictionary<string, DirMetaSnapshotEntry> entries,
