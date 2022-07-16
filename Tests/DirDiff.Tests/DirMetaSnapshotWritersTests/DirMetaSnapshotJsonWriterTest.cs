@@ -144,16 +144,23 @@ public class DirMetaSnapshotJsonWriterTest
 
     private static SnapshotDeserialized DeserializeSnapshot(string text)
     {
-        return JsonSerializer.Deserialize<SnapshotDeserialized>(
+        var result = JsonSerializer.Deserialize<SnapshotDeserialized>(
             text,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
             });
+
+        if (result == null)
+        {
+            throw new ArgumentException("Text could not be deserialized to snapshot.", nameof(text));
+        }
+
+        return result;
     }
 
     private class SnapshotDeserialized
     {
-        public List<Dictionary<string, JsonElement>> Entries { get; set; }
+        public List<Dictionary<string, JsonElement>>? Entries { get; set; }
     }
 }
