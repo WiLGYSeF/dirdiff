@@ -51,7 +51,7 @@ public class DirMetaSnapshotTextWriterTest
             var expected = new string[]
             {
                 entry.HashHex!,
-                entry.HashAlgorithm!.ToEnumMemberValue(),
+                entry.HashAlgorithm!.Value.ToEnumMemberValue(),
                 Math.Floor(entry.CreatedTime!.Value.ToUnixTimestamp()).ToString(),
                 Math.Floor(entry.LastModifiedTime!.Value.ToUnixTimestamp()).ToString(),
                 entry.FileSize!.Value.ToString(),
