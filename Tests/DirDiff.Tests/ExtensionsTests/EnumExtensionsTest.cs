@@ -1,9 +1,9 @@
 ﻿using DirDiff.Extensions;
 using System.Runtime.Serialization;
 
-namespace DirDiff.Tests.ExtensionsTests.EnumExtensionsTests;
+namespace DirDiff.Tests.ExtensionsTests;
 
-public class ToEnumMemberValueTest
+public class EnumExtensionsTest
 {
     [Fact]
     public void Gets_Enum_Member_Values()
