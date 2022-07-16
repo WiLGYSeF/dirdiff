@@ -18,6 +18,19 @@ internal static class Hasher
         return hash;
     }
 
+    public static int GetHashBytes(Enums.HashAlgorithm algorithm)
+    {
+        return algorithm switch
+        {
+            Enums.HashAlgorithm.MD5 => 16,
+            Enums.HashAlgorithm.SHA1 => 20,
+            Enums.HashAlgorithm.SHA256 => 32,
+            Enums.HashAlgorithm.SHA384 => 48,
+            Enums.HashAlgorithm.SHA512 => 64,
+            _ => throw new NotImplementedException(),
+        };
+    }
+
     private static byte[] HashStreamMd5(Stream stream)
     {
         return HashStream(MD5.Create(), stream);
