@@ -1,5 +1,6 @@
 ﻿using DirDiff.DirMetaSnapshotReaders;
 using DirDiff.DirMetaSnapshots;
+using DirDiff.Enums;
 using DirDiff.Extensions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -28,7 +29,9 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
     {
         var json = new DirMetaSnapshotJsonSchema
         {
-            Entries = snapshot.Entries.Select(e => SerializeEntry(e)),
+            Entries = snapshot.Entries
+                .Where(e => e.Type != FileType.Directory)
+                .Select(e => SerializeEntry(e)),
         };
 
         var options = new JsonSerializerOptions
