@@ -10,7 +10,7 @@ namespace DirDiff.Tests.DirMetaSnapshotWritersTests;
 public class DirMetaSnapshotJsonWriterTest
 {
     [Fact]
-    public void Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize()
+    public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize()
     {
         var stream = new MemoryStream();
 
@@ -35,12 +35,12 @@ public class DirMetaSnapshotJsonWriterTest
                 options.UseUnixTimestamp = false;
             });
 
-        writer.Write(stream, snapshot);
+        await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
 
-        result.Entries.Count.ShouldBe(entries.Count);
+        result.Entries!.Count.ShouldBe(entries.Count);
 
         foreach (var entry in entries)
         {
@@ -55,7 +55,7 @@ public class DirMetaSnapshotJsonWriterTest
     }
 
     [Fact]
-    public void Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize_NoValue()
+    public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize_NoValue()
     {
         var stream = new MemoryStream();
 
@@ -85,12 +85,12 @@ public class DirMetaSnapshotJsonWriterTest
                 options.UseUnixTimestamp = false;
             });
 
-        writer.Write(stream, snapshot);
+        await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
 
-        result.Entries.Count.ShouldBe(entries.Count);
+        result.Entries!.Count.ShouldBe(entries.Count);
 
         foreach (var entry in entries)
         {
@@ -101,7 +101,7 @@ public class DirMetaSnapshotJsonWriterTest
     }
 
     [Fact]
-    public void Write_Hash_LastModifiedTime_FileSize()
+    public async Task Write_Hash_LastModifiedTime_FileSize()
     {
         var stream = new MemoryStream();
 
@@ -125,12 +125,12 @@ public class DirMetaSnapshotJsonWriterTest
                 options.UseUnixTimestamp = false;
             });
 
-        writer.Write(stream, snapshot);
+        await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
 
-        result.Entries.Count.ShouldBe(entries.Count);
+        result.Entries!.Count.ShouldBe(entries.Count);
 
         foreach (var entry in entries)
         {

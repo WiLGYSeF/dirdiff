@@ -15,7 +15,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 
     }
 
-    public async Task<DirMetaSnapshot> Read(Stream stream)
+    public async Task<DirMetaSnapshot> ReadAsync(Stream stream)
     {
         var snapshot = new DirMetaSnapshot();
         var reader = new StreamReader(stream);

@@ -6,7 +6,7 @@ namespace DirDiff.DirMetaSnapshotDiffWriters;
 
 public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
 {
-    public async Task Write(Stream stream, DirMetaSnapshotDiff diff)
+    public async Task WriteAsync(Stream stream, DirMetaSnapshotDiff diff)
     {
         var json = new
         {

@@ -25,11 +25,11 @@ public class DirMetaSnapshotJsonReader : IDirMetaSnapshotReader
         return this;
     }
 
-    public async Task<DirMetaSnapshot> Read(Stream stream)
+    public async Task<DirMetaSnapshot> ReadAsync(Stream stream)
     {
         var snapshot = new DirMetaSnapshot();
 
-        var result = await DeserializeSnapshot(stream);
+        var result = await DeserializeSnapshotAsync(stream);
 
         foreach (var resultEntry in result.Entries!)
         {
@@ -40,7 +40,7 @@ public class DirMetaSnapshotJsonReader : IDirMetaSnapshotReader
         return snapshot;
     }
 
-    private static async Task<DirMetaSnapshotJsonSchema> DeserializeSnapshot(Stream stream)
+    private static async Task<DirMetaSnapshotJsonSchema> DeserializeSnapshotAsync(Stream stream)
     {
         var result = await JsonSerializer.DeserializeAsync<DirMetaSnapshotJsonSchema>(
             stream,

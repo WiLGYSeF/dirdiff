@@ -33,7 +33,7 @@ public class DirMetaSnapshotTextWriterTest
                 options.WriteFileSize = true;
             });
 
-        writer.Write(stream, snapshot);
+        writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var content = Encoding.UTF8.GetString(stream.ToArray());
@@ -92,7 +92,7 @@ public class DirMetaSnapshotTextWriterTest
                 options.WriteFileSize = true;
             });
 
-        writer.Write(stream, snapshot);
+        writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var content = Encoding.UTF8.GetString(stream.ToArray());
@@ -145,7 +145,7 @@ public class DirMetaSnapshotTextWriterTest
                 options.WriteFileSize = true;
             });
 
-        writer.Write(stream, snapshot);
+        writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var content = Encoding.UTF8.GetString(stream.ToArray());

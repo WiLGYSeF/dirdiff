@@ -8,5 +8,5 @@ public interface IDirMetaSnapshotReader
 
     IDirMetaSnapshotReader Configure(Action<DirMetaSnapshotReaderOptions> action);
 
-    Task<DirMetaSnapshot> Read(Stream stream);
+    Task<DirMetaSnapshot> ReadAsync(Stream stream);
 }

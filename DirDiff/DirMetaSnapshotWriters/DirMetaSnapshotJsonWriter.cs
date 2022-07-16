@@ -24,7 +24,7 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
         return this;
     }
 
-    public async Task Write(Stream stream, DirMetaSnapshot snapshot)
+    public async Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
     {
         var json = new DirMetaSnapshotJsonSchema
         {
