@@ -10,7 +10,7 @@ public class ToEnumMemberValueTest
     {
         TestValue.Value1.ToEnumMemberValue().ShouldBe(Value1Value);
         TestValue.Value2.ToEnumMemberValue().ShouldBe(Value2Value);
-        TestValue.Value3.ToEnumMemberValue().ShouldBe("Value3");
+        TestValue.Value3.ToEnumMemberValue().ShouldBe(TestValue.Value3.ToString());
         TestValue.Value4.ToEnumMemberValue().ShouldBe(Value4Value);
     }
 

@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace DirDiff.Extensions;
 
-public static class EnumExtensions
+internal static class EnumExtensions
 {
     private static readonly ConcurrentDictionary<string, string?> _enumMemberValues = new();
 

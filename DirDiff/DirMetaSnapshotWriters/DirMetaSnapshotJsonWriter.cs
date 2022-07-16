@@ -1,4 +1,5 @@
-﻿using DirDiff.DirMetaSnapshots;
+﻿using DirDiff.DirMetaSnapshotReaders;
+using DirDiff.DirMetaSnapshots;
 using DirDiff.Extensions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -25,7 +26,7 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
     public async Task Write(Stream stream, DirMetaSnapshot snapshot)
     {
-        var json = new
+        var json = new DirMetaSnapshotJsonSchema
         {
             Entries = snapshot.Entries.Select(e => SerializeEntry(e)),
         };
