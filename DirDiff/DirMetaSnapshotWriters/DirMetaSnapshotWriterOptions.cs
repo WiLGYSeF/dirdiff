@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DirDiff.DirMetaSnapshotWriters;
+﻿namespace DirDiff.DirMetaSnapshotWriters;
 
 public class DirMetaSnapshotWriterOptions
 {
@@ -17,8 +11,4 @@ public class DirMetaSnapshotWriterOptions
     public bool WriteLastModifiedTime { get; set; } = true;
 
     public bool WriteFileSize { get; set; } = true;
-
-    public string Separator { get; set; } = "  ";
-
-    public string NoneValue { get; set; } = "-";
 }

@@ -12,7 +12,7 @@ internal static class EnumExtensions
         var stringValue = @enum.ToString();
         var type = @enum.GetType();
         var cacheName = $"{type.FullName}:{stringValue}";
-        
+
         if (!_enumMemberValues.TryGetValue(cacheName, out var value))
         {
             value = type.GetMember(stringValue)

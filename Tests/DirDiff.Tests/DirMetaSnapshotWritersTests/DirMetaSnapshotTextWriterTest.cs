@@ -9,7 +9,7 @@ namespace DirDiff.Tests.DirMetaSnapshotWritersTests;
 public class DirMetaSnapshotTextWriterTest
 {
     [Fact]
-    public void Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize()
+    public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize()
     {
         var stream = new MemoryStream();
 
@@ -24,7 +24,7 @@ public class DirMetaSnapshotTextWriterTest
         }
 
         var writer = new DirMetaSnapshotTextWriter()
-            .Configure(options =>
+            .Configure((DirMetaSnapshotTextWriterOptions options) =>
             {
                 options.WriteHash = true;
                 options.WriteHashAlgorithm = true;
@@ -33,7 +33,7 @@ public class DirMetaSnapshotTextWriterTest
                 options.WriteFileSize = true;
             });
 
-        writer.WriteAsync(stream, snapshot);
+        await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var content = Encoding.UTF8.GetString(stream.ToArray());
@@ -56,14 +56,14 @@ public class DirMetaSnapshotTextWriterTest
                 Math.Floor(entry.LastModifiedTime!.Value.ToUnixTimestamp()).ToString(),
                 entry.FileSize!.Value.ToString(),
                 entry.Path,
-            }.JoinAsString(writer.Options.Separator);
+            }.JoinAsString(writer.TextWriterOptions.Separator);
 
             linesEnumerator.Current.ShouldBe(expected);
         }
     }
 
     [Fact]
-    public void Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize_NoValue()
+    public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize_NoValue()
     {
         var stream = new MemoryStream();
 
@@ -83,7 +83,7 @@ public class DirMetaSnapshotTextWriterTest
         }
 
         var writer = new DirMetaSnapshotTextWriter()
-            .Configure(options =>
+            .Configure((DirMetaSnapshotTextWriterOptions options) =>
             {
                 options.WriteHash = true;
                 options.WriteHashAlgorithm = true;
@@ -92,7 +92,7 @@ public class DirMetaSnapshotTextWriterTest
                 options.WriteFileSize = true;
             });
 
-        writer.WriteAsync(stream, snapshot);
+        await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var content = Encoding.UTF8.GetString(stream.ToArray());
@@ -109,20 +109,20 @@ public class DirMetaSnapshotTextWriterTest
 
             var expected = new string[]
             {
-                writer.Options.NoneValue,
-                writer.Options.NoneValue,
-                writer.Options.NoneValue,
-                writer.Options.NoneValue,
-                writer.Options.NoneValue,
+                writer.TextWriterOptions.NoneValue,
+                writer.TextWriterOptions.NoneValue,
+                writer.TextWriterOptions.NoneValue,
+                writer.TextWriterOptions.NoneValue,
+                writer.TextWriterOptions.NoneValue,
                 entry.Path,
-            }.JoinAsString(writer.Options.Separator);
+            }.JoinAsString(writer.TextWriterOptions.Separator);
 
             linesEnumerator.Current.ShouldBe(expected);
         }
     }
 
     [Fact]
-    public void Write_Hash_LastModifiedTime_FileSize()
+    public async Task Write_Hash_LastModifiedTime_FileSize()
     {
         var stream = new MemoryStream();
 
@@ -138,14 +138,14 @@ public class DirMetaSnapshotTextWriterTest
         }
 
         var writer = new DirMetaSnapshotTextWriter()
-            .Configure(options =>
+            .Configure((DirMetaSnapshotTextWriterOptions options) =>
             {
                 options.WriteHash = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
             });
 
-        writer.WriteAsync(stream, snapshot);
+        await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var content = Encoding.UTF8.GetString(stream.ToArray());
@@ -166,7 +166,7 @@ public class DirMetaSnapshotTextWriterTest
                 Math.Floor(entry.LastModifiedTime!.Value.ToUnixTimestamp()).ToString(),
                 entry.FileSize!.Value.ToString(),
                 entry.Path,
-            }.JoinAsString(writer.Options.Separator);
+            }.JoinAsString(writer.TextWriterOptions.Separator);
 
             linesEnumerator.Current.ShouldBe(expected);
         }

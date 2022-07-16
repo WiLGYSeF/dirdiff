@@ -1,5 +1,4 @@
-﻿using DirDiff.DirMetaSnapshotReaders;
-using DirDiff.DirMetaSnapshots;
+﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.Enums;
 using DirDiff.Extensions;
 using System.Text.Json;
@@ -13,7 +12,7 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
     public DirMetaSnapshotWriterOptions Options => JsonWriterOptions;
 
-    public IDirMetaSnapshotWriter Configure(Action<DirMetaSnapshotJsonWriterOptions> action)
+    public DirMetaSnapshotJsonWriter Configure(Action<DirMetaSnapshotJsonWriterOptions> action)
     {
         action(JsonWriterOptions);
         return this;

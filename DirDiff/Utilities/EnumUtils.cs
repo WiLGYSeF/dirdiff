@@ -44,7 +44,7 @@ internal static class EnumUtils
         {
             throw new ArgumentException("Value does not match any EnumMember value", nameof(value));
         }
-        
+
         return Enum.Parse<T>(enumMemberValue ?? value, ignoreCase);
     }
 }

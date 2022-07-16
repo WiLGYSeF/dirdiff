@@ -7,11 +7,19 @@ namespace DirDiff.DirMetaSnapshotWriters;
 
 public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
 {
-    public DirMetaSnapshotWriterOptions Options { get; } = new();
+    public DirMetaSnapshotTextWriterOptions TextWriterOptions { get; } = new();
+
+    public DirMetaSnapshotWriterOptions Options => TextWriterOptions;
+
+    public DirMetaSnapshotTextWriter Configure(Action<DirMetaSnapshotTextWriterOptions> action)
+    {
+        action(TextWriterOptions);
+        return this;
+    }
 
     public IDirMetaSnapshotWriter Configure(Action<DirMetaSnapshotWriterOptions> action)
     {
-        action(Options);
+        action(TextWriterOptions);
         return this;
     }
 
@@ -30,13 +38,13 @@ public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
 
             if (Options.WriteHash)
             {
-                builder.Append(entry.Hash != null ? entry.HashHex : Options.NoneValue);
-                builder.Append(Options.Separator);
+                builder.Append(entry.Hash != null ? entry.HashHex : TextWriterOptions.NoneValue);
+                builder.Append(TextWriterOptions.Separator);
 
                 if (Options.WriteHashAlgorithm)
                 {
-                    builder.Append(entry.HashAlgorithm.HasValue ? entry.HashAlgorithm.ToEnumMemberValue() : Options.NoneValue);
-                    builder.Append(Options.Separator);
+                    builder.Append(entry.HashAlgorithm.HasValue ? entry.HashAlgorithm.ToEnumMemberValue() : TextWriterOptions.NoneValue);
+                    builder.Append(TextWriterOptions.Separator);
                 }
             }
 
@@ -44,22 +52,22 @@ public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
             {
                 builder.Append(entry.CreatedTime.HasValue
                     ? Math.Floor(entry.CreatedTime.Value.ToUnixTimestamp()).ToString()
-                    : Options.NoneValue);
-                builder.Append(Options.Separator);
+                    : TextWriterOptions.NoneValue);
+                builder.Append(TextWriterOptions.Separator);
             }
 
             if (Options.WriteLastModifiedTime)
             {
                 builder.Append(entry.LastModifiedTime.HasValue
                     ? Math.Floor(entry.LastModifiedTime.Value.ToUnixTimestamp()).ToString()
-                    : Options.NoneValue);
-                builder.Append(Options.Separator);
+                    : TextWriterOptions.NoneValue);
+                builder.Append(TextWriterOptions.Separator);
             }
 
             if (Options.WriteFileSize)
             {
-                builder.Append(entry.FileSize != null ? entry.FileSize.ToString() : Options.NoneValue);
-                builder.Append(Options.Separator);
+                builder.Append(entry.FileSize != null ? entry.FileSize.ToString() : TextWriterOptions.NoneValue);
+                builder.Append(TextWriterOptions.Separator);
             }
 
             builder.AppendLine(entry.Path);
