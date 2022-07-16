@@ -3,7 +3,7 @@
 public static class DateTimeExtensions
 {
     /// <summary>
-    /// Convert to UNIX timestamp.
+    /// Converts to UNIX timestamp.
     /// </summary>
     /// <param name="dateTime">DateTime.</param>
     /// <returns>UNIX timestamp in seconds.</returns>
