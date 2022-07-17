@@ -1,4 +1,6 @@
 ﻿using DirDiff.Enums;
+using DirDiff.Extensions;
+using System.Text;
 
 namespace DirDiff.DirMetaSnapshots;
 
@@ -7,7 +9,20 @@ public class DirMetaSnapshot
     /// <summary>
     /// Common path prefix.
     /// </summary>
-    public string Prefix { get; }
+    public string? Prefix
+    {
+        get => _prefix;
+        private set
+        {
+            _prefix = value;
+            _prefixParts = _prefix != null ? GetDirectoryParts(_prefix) : null;
+        }
+    }
+
+    /// <summary>
+    /// Directory separator.
+    /// </summary>
+    public char DirectorySeparator { get; }
 
     /// <summary>
     /// File entries in snapshot.
@@ -16,19 +31,32 @@ public class DirMetaSnapshot
 
     private readonly Dictionary<string, DirMetaSnapshotEntry> _entries = new();
 
-    public DirMetaSnapshot()
-    {
-        Prefix = "";
-    }
+    private string? _prefix;
+    private string[]? _prefixParts;
 
-    internal DirMetaSnapshot(string prefix)
+    public DirMetaSnapshot() : this(null) { }
+
+    internal DirMetaSnapshot(string? prefix)
     {
         Prefix = prefix;
+        DirectorySeparator = Path.DirectorySeparatorChar;
+    }
+
+    internal DirMetaSnapshot(char directorySeparator)
+    {
+        DirectorySeparator = directorySeparator;
+    }
+
+    internal DirMetaSnapshot(string? prefix, char directorySeparator)
+    {
+        Prefix = prefix;
+        DirectorySeparator = directorySeparator;
     }
 
     internal void AddEntry(DirMetaSnapshotEntry entry)
     {
         _entries.Add(entry.Path, entry);
+        Prefix = GetCommonPrefix(entry.Path);
     }
 
     /// <summary>
@@ -48,14 +76,12 @@ public class DirMetaSnapshot
         bool unknownAssumeModified = true,
         TimeSpan? window = null)
     {
-        // TODO: different prefix
-
         window ??= TimeSpan.Zero;
 
-        var diff = new DirMetaSnapshotDiff();
+        var diff = new DirMetaSnapshotDiff(snapshot, this);
 
-        var entriesMap = Entries.ToDictionary(e => e.Path);
-        var otherEntriesMap = snapshot.Entries.ToDictionary(e => e.Path);
+        var entriesMap = Entries.ToDictionary(e => PathWithoutPrefix(e.Path));
+        var otherEntriesMap = snapshot.Entries.ToDictionary(e => snapshot.PathWithoutPrefix(e.Path));
 
         var otherHashMap = CreateHashMap(snapshot.Entries);
 
@@ -65,7 +91,9 @@ public class DirMetaSnapshot
 
         foreach (var entry in entriesMap.Values)
         {
-            if (otherEntriesMap.TryGetValue(entry.Path, out var otherEntry))
+            var entryPathWithoutPrefix = PathWithoutPrefix(entry.Path);
+
+            if (otherEntriesMap.TryGetValue(entryPathWithoutPrefix, out var otherEntry))
             {
                 // entry exists in older snapshot
 
@@ -92,11 +120,11 @@ public class DirMetaSnapshot
                     otherEntry = otherHashEntries.FirstOrDefault(e => e.LastModifiedTime == entry.LastModifiedTime);
                     if (otherEntry != null)
                     {
-                        moved = !entriesMap.ContainsKey(otherEntry.Path) && !otherMovedEntries.Contains(otherEntry);
+                        moved = !entriesMap.ContainsKey(snapshot.PathWithoutPrefix(otherEntry.Path)) && !otherMovedEntries.Contains(otherEntry);
                     }
                     else
                     {
-                        otherEntry = otherHashEntries.FirstOrDefault(e => !entriesMap.ContainsKey(e.Path) && !otherMovedEntries.Contains(e));
+                        otherEntry = otherHashEntries.FirstOrDefault(e => !entriesMap.ContainsKey(snapshot.PathWithoutPrefix(e.Path)) && !otherMovedEntries.Contains(e));
                         if (otherEntry != null)
                         {
                             moved = true;
@@ -169,7 +197,7 @@ public class DirMetaSnapshot
 
         foreach (var otherEntry in otherEntriesMap.Values)
         {
-            if (!entriesMap.TryGetValue(otherEntry.Path, out var entry))
+            if (!entriesMap.TryGetValue(snapshot.PathWithoutPrefix(otherEntry.Path), out var entry))
             {
                 // entry does not exist in newer snapshot
 
@@ -185,6 +213,20 @@ public class DirMetaSnapshot
         }
 
         return diff;
+    }
+
+    public string PathWithoutPrefix(string path)
+    {
+        if (Prefix == null || Prefix.Length == 0)
+        {
+            return path;
+        }
+
+        if (!path.StartsWith(Prefix))
+        {
+            throw new ArgumentException("Path does not start with expected prefix.", nameof(path));
+        }
+        return path[Prefix.Length..];
     }
 
     /// <summary>
@@ -407,7 +449,7 @@ public class DirMetaSnapshot
     /// <param name="lastModifiedTime"></param>
     /// <param name="window"></param>
     /// <returns></returns>
-    private static DirMetaSnapshotEntry? GetMovedEntryFromSizeMap(
+    private DirMetaSnapshotEntry? GetMovedEntryFromSizeMap(
         IReadOnlyDictionary<long, List<DirMetaSnapshotEntry>> sizeMap,
         IReadOnlyDictionary<string, DirMetaSnapshotEntry> entries,
         long fileSize,
@@ -423,8 +465,43 @@ public class DirMetaSnapshot
             .Where(entry => entry.Type != FileType.Directory
                 && entry.LastModifiedTime.HasValue
                 && (entry.LastModifiedTime.Value - lastModifiedTime).Duration() <= window
-                && !entries.ContainsKey(entry.Path))
+                && !entries.ContainsKey(PathWithoutPrefix(entry.Path)))
             .ToList();
         return possibleEntries.Count == 1 ? possibleEntries[0] : null;
+    }
+
+    private string GetCommonPrefix(string path)
+    {
+        if (Prefix == null)
+        {
+            return GetDirectoryParts(path)[..^1].Join(DirectorySeparator);
+        }
+
+        if (Prefix.Length == 0 || path.StartsWith(Prefix))
+        {
+            return Prefix;
+        }
+
+        var pathParts = GetDirectoryParts(path);
+
+        var builder = new StringBuilder();
+        var length = Math.Min(_prefixParts!.Length, pathParts.Length);
+        var index = 0;
+        for (; index < length; index++)
+        {
+            if (_prefixParts[index] != pathParts[index])
+            {
+                break;
+            }
+            builder.Append(_prefixParts[index]);
+            builder.Append(DirectorySeparator);
+        }
+
+        return builder.ToString();
+    }
+
+    private string[] GetDirectoryParts(string path)
+    {
+        return path.Split(DirectorySeparator);
     }
 }

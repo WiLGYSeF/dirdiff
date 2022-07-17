@@ -28,7 +28,7 @@ public class DirMetaSnapshotBuilder
 
     public DirMetaSnapshot CreateSnapshot(string path)
     {
-        var snapshot = new DirMetaSnapshot(path);
+        var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);
 
         _walker.Configure(options =>
         {
