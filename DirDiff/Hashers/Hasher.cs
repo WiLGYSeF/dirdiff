@@ -11,6 +11,8 @@ internal static class Hasher
             Enums.HashAlgorithm.MD5 => HashStreamMd5(stream),
             Enums.HashAlgorithm.SHA1 => HashStreamSha1(stream),
             Enums.HashAlgorithm.SHA256 => HashStreamSha256(stream),
+            Enums.HashAlgorithm.SHA384 => HashStreamSha384(stream),
+            Enums.HashAlgorithm.SHA512 => HashStreamSha512(stream),
             _ => throw new NotImplementedException(),
         };
         return hash;
@@ -29,6 +31,16 @@ internal static class Hasher
     private static byte[] HashStreamSha256(Stream stream)
     {
         return HashStream(SHA256.Create(), stream);
+    }
+
+    private static byte[] HashStreamSha384(Stream stream)
+    {
+        return HashStream(SHA384.Create(), stream);
+    }
+
+    private static byte[] HashStreamSha512(Stream stream)
+    {
+        return HashStream(SHA512.Create(), stream);
     }
 
     private static byte[] HashStream(HashAlgorithm algorithm, Stream stream)

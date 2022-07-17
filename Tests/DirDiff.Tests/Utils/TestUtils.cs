@@ -5,7 +5,9 @@ namespace DirDiff.Tests.Utils;
 
 internal static class TestUtils
 {
-    private static readonly Random _random = new Random();
+    private static readonly Random _random = new();
+
+    private static readonly char[] RandomStringDefaultCharset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
 
     #region Random
 
@@ -61,6 +63,12 @@ internal static class TestUtils
         return bytes;
     }
 
+    public static byte[] RandomBytes(byte[] bytes)
+    {
+        _random.NextBytes(bytes);
+        return bytes;
+    }
+
     public static byte[] RandomHash(HashAlgorithm algorithm)
     {
         return RandomBytes(algorithm switch
@@ -68,14 +76,15 @@ internal static class TestUtils
             HashAlgorithm.MD5 => 16,
             HashAlgorithm.SHA1 => 20,
             HashAlgorithm.SHA256 => 32,
+            HashAlgorithm.SHA384 => 48,
+            HashAlgorithm.SHA512 => 64,
             _ => throw new NotImplementedException(),
         });
     }
 
     public static string RandomString(int length)
     {
-        var charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
-        return RandomString(length, charset);
+        return RandomString(length, RandomStringDefaultCharset);
     }
 
     public static string RandomString(int length, char[] charset)
