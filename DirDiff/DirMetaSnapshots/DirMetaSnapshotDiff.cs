@@ -2,18 +2,39 @@
 
 public class DirMetaSnapshotDiff
 {
+    /// <summary>
+    /// Created entries.
+    /// </summary>
     public IReadOnlyCollection<DirMetaSnapshotEntry> CreatedEntries => _createdEntries;
 
+    /// <summary>
+    /// Deleted entries.
+    /// </summary>
     public IReadOnlyCollection<DirMetaSnapshotEntry> DeletedEntries => _deletedEntries;
 
+    /// <summary>
+    /// Modified entries.
+    /// </summary>
     public IReadOnlyCollection<DirMetaSnapshotDiffEntryPair> ModifiedEntries => _modifiedEntries;
 
+    /// <summary>
+    /// Copied entries.
+    /// </summary>
     public IReadOnlyCollection<DirMetaSnapshotDiffEntryPair> CopiedEntries => _copiedEntries;
 
+    /// <summary>
+    /// Moved entries.
+    /// </summary>
     public IReadOnlyCollection<DirMetaSnapshotDiffEntryPair> MovedEntries => _movedEntries;
 
+    /// <summary>
+    /// Touched entries.
+    /// </summary>
     public IReadOnlyCollection<DirMetaSnapshotDiffEntryPair> TouchedEntries => _touchedEntries;
 
+    /// <summary>
+    /// Unchanged entries.
+    /// </summary>
     public IReadOnlyCollection<DirMetaSnapshotEntry> UnchangedEntries => _unchangedEntries;
 
     private readonly List<DirMetaSnapshotEntry> _createdEntries = new();
@@ -33,6 +54,12 @@ public class DirMetaSnapshotDiff
         _secondSnapshot = secondSnapshot;
     }
 
+    /// <summary>
+    /// Gets the entry path without its prefix.
+    /// </summary>
+    /// <param name="entry">Entry.</param>
+    /// <returns>Entry path without prefix.</returns>
+    /// <exception cref="ArgumentException">Entry does not belong to snapshot diff.</exception>
     public string GetEntryPathWithoutPrefix(DirMetaSnapshotEntry entry)
     {
         if (_firstSnapshot.Entries.Contains(entry))

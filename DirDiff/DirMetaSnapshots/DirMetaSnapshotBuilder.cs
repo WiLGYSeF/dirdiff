@@ -5,6 +5,9 @@ namespace DirDiff.DirMetaSnapshots;
 
 public class DirMetaSnapshotBuilder
 {
+    /// <summary>
+    /// Snapshot builder options.
+    /// </summary>
     public DirMetaSnapshotBuilderOptions Options { get; } = new();
 
     private readonly IDirWalker _walker;
@@ -20,12 +23,22 @@ public class DirMetaSnapshotBuilder
         _walker = dirWalker;
     }
 
+    /// <summary>
+    /// Configures snapshot builder.
+    /// </summary>
+    /// <param name="action">Configure aciton.</param>
+    /// <returns></returns>
     public DirMetaSnapshotBuilder Configure(Action<DirMetaSnapshotBuilderOptions> action)
     {
         action(Options);
         return this;
     }
 
+    /// <summary>
+    /// Creates a snapshot from the given path.
+    /// </summary>
+    /// <param name="path">Path.</param>
+    /// <returns>Snapshot.</returns>
     public DirMetaSnapshot CreateSnapshot(string path)
     {
         var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);

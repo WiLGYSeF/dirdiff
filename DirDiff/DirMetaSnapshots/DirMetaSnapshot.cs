@@ -396,6 +396,11 @@ public class DirMetaSnapshot
         return sizeAndTimeMatch ? true : null;
     }
 
+    /// <summary>
+    /// Creates a map of file sizes to entries.
+    /// </summary>
+    /// <param name="entries">Entries.</param>
+    /// <returns>File size map.</returns>
     private static Dictionary<long, List<DirMetaSnapshotEntry>> CreateSizeMap(IEnumerable<DirMetaSnapshotEntry> entries)
     {
         var dict = new Dictionary<long, List<DirMetaSnapshotEntry>>();
@@ -418,6 +423,11 @@ public class DirMetaSnapshot
         return dict;
     }
 
+    /// <summary>
+    /// Creates a map of file hashes to entries.
+    /// </summary>
+    /// <param name="entries">Entries.</param>
+    /// <returns>File hash map.</returns>
     private static Dictionary<string, List<DirMetaSnapshotEntry>> CreateHashMap(IEnumerable<DirMetaSnapshotEntry> entries)
     {
         var dict = new Dictionary<string, List<DirMetaSnapshotEntry>>();
