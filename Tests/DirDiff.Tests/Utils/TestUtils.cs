@@ -121,7 +121,8 @@ internal static class TestUtils
 
     public static DateTime RandomFileTimestamp()
     {
-        return RandomDateTime(new DateTime(2000, 1, 1), new DateTime(2100, 1, 1), DateTimePrecision.Milliseconds);
+        return RandomDateTime(new DateTime(2000, 1, 1), new DateTime(2100, 1, 1), DateTimePrecision.Milliseconds)
+            .ToUniversalTime();
     }
 
     public static DateTime RandomDateTime(DateTime start, DateTime end, DateTimePrecision precision)

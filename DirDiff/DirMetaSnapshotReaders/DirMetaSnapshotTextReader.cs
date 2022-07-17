@@ -1,17 +1,34 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.Enums;
 using DirDiff.Extensions;
+using DirDiff.Utilities;
 
 namespace DirDiff.DirMetaSnapshotReaders;
 
-public class DirMetaSnapshotTextReader
+public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 {
-    private static string SplitString = "  ";
+    public DirMetaSnapshotTextReaderOptions TextReaderOptions { get; } = new();
 
-    public async Task<DirMetaSnapshot> Read(Stream stream)
+    public DirMetaSnapshotReaderOptions Options => TextReaderOptions;
+
+    public DirMetaSnapshotTextReader Configure(Action<DirMetaSnapshotTextReaderOptions> action)
+    {
+        action(TextReaderOptions);
+        return this;
+    }
+
+    public IDirMetaSnapshotReader Configure(Action<DirMetaSnapshotReaderOptions> action)
+    {
+        action(TextReaderOptions);
+        return this;
+    }
+
+    public async Task<DirMetaSnapshot> ReadAsync(Stream stream)
     {
         var snapshot = new DirMetaSnapshot();
         var reader = new StreamReader(stream);
+
+        var minColumns = MinimumExpectedColumnCount();
 
         string? line;
 
@@ -22,22 +39,215 @@ public class DirMetaSnapshotTextReader
                 continue;
             }
 
-            var split = line.Split(SplitString);
-            var hash = split[0];
-            var lastModified = DateTime.UnixEpoch + TimeSpan.FromSeconds(long.Parse(split[1]));
-            var fileSize = long.Parse(split[2]);
-            var path = split[3..].JoinAsString(SplitString);
-
-            var entry = new DirMetaSnapshotEntry(path, FileType.File)
-            {
-                FileSize = fileSize,
-                LastModifiedTime = lastModified,
-                Hash = Convert.FromHexString(hash),
-            };
+            var entry = TextReaderOptions.ReadGuess
+                ? ParseLineGuess(line)
+                : ParseLine(line, minColumns);
 
             snapshot.AddEntry(entry);
         }
 
         return snapshot;
+    }
+
+    private DirMetaSnapshotEntry ParseLineGuess(string line)
+    {
+        var split = line.Split(TextReaderOptions.Separator);
+
+        byte[]? hash = null;
+        HashAlgorithm? hashAlgorithm = null;
+        DateTime? createdTime = null;
+        DateTime? lastModifiedTime = null;
+        long? fileSize = null;
+
+        var column = 0;
+
+        if (column < split.Length - 1 && IsHexNumeric(split[column]) && split[column].Length >= 16)
+        {
+            hash = Convert.FromHexString(split[column++]);
+
+            if (column < split.Length - 1 && EnumUtils.TryParseEnumMemberValue<HashAlgorithm>(split[column], out var result))
+            {
+                hashAlgorithm = result;
+                column++;
+            }
+        }
+
+        if (column < split.Length - 1 && IsNumeric(split[column]))
+        {
+            if (column + 1 < split.Length - 1 && IsNumeric(split[column + 1]))
+            {
+                if (column + 2 < split.Length - 1 && IsNumeric(split[column + 2]))
+                {
+                    createdTime = UnixTimeSecondsToDateTime(long.Parse(split[column]));
+                    lastModifiedTime = UnixTimeSecondsToDateTime(long.Parse(split[column + 1]));
+                    fileSize = Convert.ToInt64(split[column + 2]);
+                    column += 3;
+                }
+                else
+                {
+                    lastModifiedTime = UnixTimeSecondsToDateTime(long.Parse(split[column]));
+                    fileSize = Convert.ToInt64(split[column + 1]);
+                    column += 2;
+                }
+            }
+            else
+            {
+                fileSize = Convert.ToInt64(split[column]);
+                column++;
+            }
+        }
+
+        var path = split[column..].Join(TextReaderOptions.Separator);
+
+        return new DirMetaSnapshotEntry(path, FileType.File)
+        {
+            FileSize = fileSize,
+            CreatedTime = createdTime,
+            LastModifiedTime = lastModifiedTime,
+            Hash = hash,
+            HashAlgorithm = hashAlgorithm,
+        };
+    }
+
+    private DirMetaSnapshotEntry ParseLine(string line, int minColumns)
+    {
+        var split = line.Split(TextReaderOptions.Separator);
+        if (split.Length < minColumns)
+        {
+            throw new ArgumentException("Line does not have expected minimum values.", nameof(line));
+        }
+
+        byte[]? hash = null;
+        HashAlgorithm? hashAlgorithm = null;
+        DateTime? createdTime = null;
+        DateTime? lastModifiedTime = null;
+        long? fileSize = null;
+
+        var column = 0;
+
+        if (TextReaderOptions.ReadHash)
+        {
+            hash = Convert.FromHexString(split[column++]);
+        }
+        if (TextReaderOptions.ReadHashAlgorithm)
+        {
+            hashAlgorithm = EnumUtils.ParseEnumMemberValue<HashAlgorithm>(split[column++]);
+        }
+        if (TextReaderOptions.ReadCreatedTime)
+        {
+            createdTime = UnixTimeSecondsToDateTime(long.Parse(split[column++]));
+        }
+        if (TextReaderOptions.ReadLastModifiedTime)
+        {
+            lastModifiedTime = UnixTimeSecondsToDateTime(long.Parse(split[column++]));
+        }
+        if (TextReaderOptions.ReadFileSize)
+        {
+            fileSize = Convert.ToInt64(split[column++]);
+        }
+
+        var path = split[column..].Join(TextReaderOptions.Separator);
+
+        return new DirMetaSnapshotEntry(path, FileType.File)
+        {
+            FileSize = fileSize,
+            CreatedTime = createdTime,
+            LastModifiedTime = lastModifiedTime,
+            Hash = hash,
+            HashAlgorithm = hashAlgorithm,
+        };
+    }
+
+    private DateTime UnixTimeSecondsToDateTime(long seconds)
+    {
+        return DateTimeOffset.FromUnixTimeSeconds(seconds).DateTime;
+    }
+
+    private int MinimumExpectedColumnCount()
+    {
+        if (TextReaderOptions.ReadGuess)
+        {
+            return 1;
+        }
+
+        var bools = new[]
+        {
+            TextReaderOptions.ReadHash,
+            TextReaderOptions.ReadHashAlgorithm,
+            TextReaderOptions.ReadCreatedTime,
+            TextReaderOptions.ReadLastModifiedTime,
+            TextReaderOptions.ReadFileSize,
+        };
+        var columnCount = 1;
+
+        foreach (var b in bools)
+        {
+            if (b)
+            {
+                columnCount++;
+            }
+        }
+
+        return columnCount;
+    }
+
+    private bool IsHexNumeric(string str)
+    {
+        for (var i = 0; i < str.Length; i++)
+        {
+            switch (str[i])
+            {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                case 'a':
+                case 'b':
+                case 'c':
+                case 'd':
+                case 'e':
+                case 'f':
+                case 'A':
+                case 'B':
+                case 'C':
+                case 'D':
+                case 'E':
+                case 'F':
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private bool IsNumeric(string str)
+    {
+        for (var i = 0; i < str.Length; i++)
+        {
+            switch (str[i])
+            {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return true;
     }
 }

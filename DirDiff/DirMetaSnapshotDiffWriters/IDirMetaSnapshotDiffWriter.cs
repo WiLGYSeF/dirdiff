@@ -4,5 +4,5 @@ namespace DirDiff.DirMetaSnapshotDiffWriters;
 
 public interface IDirMetaSnapshotDiffWriter
 {
-    Task Write(Stream stream, DirMetaSnapshotDiff diff);
+    Task WriteAsync(Stream stream, DirMetaSnapshotDiff diff);
 }

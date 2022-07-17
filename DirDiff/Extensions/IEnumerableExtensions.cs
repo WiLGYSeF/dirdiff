@@ -2,19 +2,19 @@
 
 namespace DirDiff.Extensions;
 
-public static class IEnumerableExtensions
+internal static class IEnumerableExtensions
 {
-    public static string JoinAsString(this IEnumerable<string> strings, string concat)
+    public static string Join(this IEnumerable<string> strings, string separator)
     {
         var builder = new StringBuilder();
 
         foreach (var str in strings)
         {
             builder.Append(str);
-            builder.Append(concat);
+            builder.Append(separator);
         }
 
-        builder.Remove(builder.Length - concat.Length, concat.Length);
+        builder.Remove(builder.Length - separator.Length, separator.Length);
         return builder.ToString();
     }
 }

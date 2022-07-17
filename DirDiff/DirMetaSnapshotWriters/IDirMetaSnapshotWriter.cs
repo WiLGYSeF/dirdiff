@@ -8,5 +8,5 @@ public interface IDirMetaSnapshotWriter
 
     IDirMetaSnapshotWriter Configure(Action<DirMetaSnapshotWriterOptions> action);
 
-    Task Write(Stream stream, DirMetaSnapshot snapshot);
+    Task WriteAsync(Stream stream, DirMetaSnapshot snapshot);
 }

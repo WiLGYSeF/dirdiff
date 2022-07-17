@@ -1,4 +1,5 @@
 ﻿using DirDiff.DirMetaSnapshots;
+using DirDiff.Enums;
 using DirDiff.Extensions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,7 +12,7 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
     public DirMetaSnapshotWriterOptions Options => JsonWriterOptions;
 
-    public IDirMetaSnapshotWriter Configure(Action<DirMetaSnapshotJsonWriterOptions> action)
+    public DirMetaSnapshotJsonWriter Configure(Action<DirMetaSnapshotJsonWriterOptions> action)
     {
         action(JsonWriterOptions);
         return this;
@@ -23,11 +24,13 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
         return this;
     }
 
-    public async Task Write(Stream stream, DirMetaSnapshot snapshot)
+    public async Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
     {
-        var json = new
+        var json = new DirMetaSnapshotJsonSchema
         {
-            Entries = snapshot.Entries.Select(e => SerializeEntry(e)),
+            Entries = snapshot.Entries
+                .Where(e => e.Type != FileType.Directory)
+                .Select(e => SerializeEntry(e)),
         };
 
         var options = new JsonSerializerOptions
@@ -61,14 +64,14 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
         if (Options.WriteCreatedTime && entry.CreatedTime.HasValue)
         {
             dictionary["createdTime"] = JsonWriterOptions.UseUnixTimestamp
-                ? entry.CreatedTime.Value.ToUnixTimestamp()
+                ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
                 : entry.CreatedTime.Value;
         }
 
         if (Options.WriteLastModifiedTime && entry.LastModifiedTime.HasValue)
         {
             dictionary["lastModifiedTime"] = JsonWriterOptions.UseUnixTimestamp
-                ? entry.LastModifiedTime.Value.ToUnixTimestamp()
+                ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
                 : entry.LastModifiedTime.Value;
         }
 

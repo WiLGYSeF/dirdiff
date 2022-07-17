@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace DirDiff.Extensions;
 
-public static class EnumExtensions
+internal static class EnumExtensions
 {
     private static readonly ConcurrentDictionary<string, string?> _enumMemberValues = new();
 
@@ -12,7 +12,7 @@ public static class EnumExtensions
         var stringValue = @enum.ToString();
         var type = @enum.GetType();
         var cacheName = $"{type.FullName}:{stringValue}";
-        
+
         if (!_enumMemberValues.TryGetValue(cacheName, out var value))
         {
             value = type.GetMember(stringValue)

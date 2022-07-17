@@ -1,5 +1,6 @@
 ﻿using DirDiff.Enums;
 using DirDiff.Extensions;
+using DirDiff.Hashers;
 
 namespace DirDiff.DirMetaSnapshots;
 
@@ -15,7 +16,21 @@ public class DirMetaSnapshotEntry
 
     public DateTime? LastModifiedTime { get; internal set; }
 
-    public HashAlgorithm? HashAlgorithm { get; internal set; }
+    public HashAlgorithm? HashAlgorithm
+    {
+        get => _hashAlgorithm;
+        internal set
+        {
+            if (value != null
+                && Hash != null
+                && Hash.Length != Hasher.GetHashBytes(value.Value))
+            {
+                throw new InvalidOperationException("Hash byte count does not match expected byte count from hash algorithm.");
+            }
+
+            _hashAlgorithm = value;
+        }
+    }
 
     public byte[]? Hash
     {
@@ -26,6 +41,13 @@ public class DirMetaSnapshotEntry
             {
                 throw new InvalidOperationException("Cannot set a hash for a file directory.");
             }
+            if (value != null
+                && HashAlgorithm.HasValue
+                && value.Length != Hasher.GetHashBytes(HashAlgorithm.Value))
+            {
+                throw new InvalidOperationException("Hash byte count does not match expected byte count from hash algorithm.");
+            }
+
             _hash = value;
         }
     }
@@ -43,6 +65,7 @@ public class DirMetaSnapshotEntry
         }
     }
 
+    private HashAlgorithm? _hashAlgorithm;
     private byte[]? _hash;
     private string? _hashHex;
 
