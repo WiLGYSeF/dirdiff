@@ -2,7 +2,6 @@
 using DirDiff.DirMetaSnapshots;
 using DirDiff.DirMetaSnapshotWriters;
 using DirDiff.Tests.Utils;
-using System.Text;
 
 namespace DirDiff.Tests.DirMetaSnapshotReadersTests;
 
