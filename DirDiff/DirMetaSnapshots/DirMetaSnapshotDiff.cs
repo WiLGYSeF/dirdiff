@@ -47,6 +47,20 @@ public class DirMetaSnapshotDiff
         throw new ArgumentException("Entry does not belong to snapshot diff.", nameof(entry));
     }
 
+    public string GetEntryPathWithOtherSnapshotPrefix(DirMetaSnapshotEntry entry)
+    {
+        if (_firstSnapshot.Entries.Contains(entry))
+        {
+            return _secondSnapshot.Prefix + _firstSnapshot.PathWithoutPrefix(entry.Path);
+        }
+        if (_secondSnapshot.Entries.Contains(entry))
+        {
+            return _secondSnapshot.PathWithoutPrefix(entry.Path);
+        }
+
+        throw new ArgumentException("Entry does not belong to snapshot diff.", nameof(entry));
+    }
+
     internal void AddCreatedEntry(DirMetaSnapshotEntry entry)
     {
         _createdEntries.Add(entry);
