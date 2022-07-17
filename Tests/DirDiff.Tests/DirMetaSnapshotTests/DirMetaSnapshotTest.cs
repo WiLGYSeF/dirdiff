@@ -1,20 +1,19 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.Enums;
+using DirDiff.Extensions;
 using DirDiff.Tests.Utils;
 
 namespace DirDiff.Tests.DirMetaSnapshotTests;
 
 public class DirMetaSnapshotTest
 {
-    private string SnapshotPrefix = "";
-
     #region Basic Tests
 
     [Fact]
     public void Compare_Create_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedCreatedEntries = new List<DirMetaSnapshotEntry>();
 
@@ -39,8 +38,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Delete_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
 
@@ -65,8 +64,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Modified_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedModifiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
 
@@ -100,8 +99,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Copied_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedCopiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
         var expectedUnchagedEntries = new List<DirMetaSnapshotEntry>();
@@ -144,8 +143,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Modified_Entries_Changed_FileSize()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedModifiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
 
@@ -179,8 +178,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Moved_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedMovedEntries = new List<DirMetaSnapshotDiffEntryPair>();
 
@@ -214,8 +213,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Touched_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedTouchedEntries = new List<DirMetaSnapshotDiffEntryPair>();
 
@@ -249,8 +248,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Unchanged_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedUnchangedEntries = new List<DirMetaSnapshotEntry>();
 
@@ -276,8 +275,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Type_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedCreatedEntries = new List<DirMetaSnapshotEntry>();
         var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
@@ -336,8 +335,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Moved_Touched_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedMovedEntries = new List<DirMetaSnapshotDiffEntryPair>();
         var expectedTouchedEntries = new List<DirMetaSnapshotDiffEntryPair>();
@@ -380,8 +379,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Modified_Touched_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedModifiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
         var expectedTouchedEntries = new List<DirMetaSnapshotDiffEntryPair>();
@@ -422,16 +421,17 @@ public class DirMetaSnapshotTest
     }
 
     [Fact]
-    public void Compare_Create_Delete_Modified_And_Moved_Entries()
+    public void Compare_Create_Delete_Modified_Moved_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedCreatedEntries = new List<DirMetaSnapshotEntry>();
         var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
+        var expectedModifiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
         var expectedUnchangedEntries = new List<DirMetaSnapshotEntry>();
 
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 8; i++)
         {
             var entry = new DirMetaSnapshotEntryBuilder().Build();
             first.AddEntry(entry);
@@ -443,7 +443,16 @@ public class DirMetaSnapshotTest
             expectedUnchangedEntries.Add(entry);
         }
 
-        foreach (var entry in first.Entries.Skip(2))
+        foreach (var entry in first.Entries.Skip(2).Take(2))
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithRandomHash()
+                .Build();
+            second.AddEntry(entryCopy);
+            expectedModifiedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy));
+        }
+
+        foreach (var entry in first.Entries.Skip(4))
         {
             var otherEntry = new DirMetaSnapshotEntryBuilder().Build();
             second.AddEntry(otherEntry);
@@ -455,7 +464,7 @@ public class DirMetaSnapshotTest
 
         diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
         diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
-        diff.ModifiedEntries.ShouldBeEmpty();
+        diff.ModifiedEntries.ShouldBeEquivalentTo(expectedModifiedEntries);
         diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
@@ -465,8 +474,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Copied_Moved_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedCopiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
         var expectedMovedEntries = new List<DirMetaSnapshotDiffEntryPair>();
@@ -532,8 +541,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Copied_Moved_Deleted_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
         var expectedCopiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
@@ -604,11 +613,13 @@ public class DirMetaSnapshotTest
         }
     }
 
+    #region Size and Time Checks
+
     [Fact]
     public void Compare_Size_Time_Entries()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedModifiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
         var expectedTouchedEntries = new List<DirMetaSnapshotDiffEntryPair>();
@@ -655,8 +666,8 @@ public class DirMetaSnapshotTest
     [InlineData(false)]
     public void Compare_Size_Time_Match_Entries(bool sizeAndTimeMatch)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -705,8 +716,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Time_Entries_Window()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedUnchangedEntries = new List<DirMetaSnapshotEntry>();
 
@@ -751,8 +762,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Moved_Entries_Size_Time()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedMovedEntries = new List<DirMetaSnapshotDiffEntryPair>();
 
@@ -788,8 +799,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_Moved_Entries_Size_Time_Different_Hash()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedCreatedEntries = new List<DirMetaSnapshotEntry>();
         var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
@@ -822,13 +833,15 @@ public class DirMetaSnapshotTest
         diff.UnchangedEntries.ShouldBeEmpty();
     }
 
+    #endregion
+    
     #region Null Checks
 
     [Fact]
     public void Compare_Old_Null()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedModifiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
         var expectedTouchedEntries = new List<DirMetaSnapshotDiffEntryPair>();
@@ -871,8 +884,8 @@ public class DirMetaSnapshotTest
     [Fact]
     public void Compare_New_Null()
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedModifiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
         var expectedTouchedEntries = new List<DirMetaSnapshotDiffEntryPair>();
@@ -912,8 +925,8 @@ public class DirMetaSnapshotTest
     [InlineData(true)]
     public void Compare_Old_New_Null(bool unknownAssumeModified)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -968,8 +981,8 @@ public class DirMetaSnapshotTest
     [InlineData(true)]
     public void Compare_Old_FileSize_Null(bool unknownAssumeModified)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -1008,8 +1021,8 @@ public class DirMetaSnapshotTest
     [InlineData(true)]
     public void Compare_Old_Hash_Null(bool unknownAssumeModified)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -1048,8 +1061,8 @@ public class DirMetaSnapshotTest
     [InlineData(true)]
     public void Compare_Old_FileSize_Hash_Null(bool unknownAssumeModified)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -1099,8 +1112,8 @@ public class DirMetaSnapshotTest
     [InlineData(true)]
     public void Compare_New_FileSize_Null(bool unknownAssumeModified)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -1137,8 +1150,8 @@ public class DirMetaSnapshotTest
     [InlineData(true)]
     public void Compare_New_Hash_Null(bool unknownAssumeModified)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -1175,8 +1188,8 @@ public class DirMetaSnapshotTest
     [InlineData(true)]
     public void Compare_New_FileSize_Hash_Null(bool unknownAssumeModified)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -1223,8 +1236,8 @@ public class DirMetaSnapshotTest
     [InlineData(true)]
     public void Compare_Old_Time_Null(bool unknownAssumeModified)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -1274,8 +1287,8 @@ public class DirMetaSnapshotTest
     [InlineData(true)]
     public void Compare_New_Time_Null(bool unknownAssumeModified)
     {
-        var first = new DirMetaSnapshot(SnapshotPrefix);
-        var second = new DirMetaSnapshot(SnapshotPrefix);
+        var first = new DirMetaSnapshot();
+        var second = new DirMetaSnapshot();
 
         var expectedEntries = new List<DirMetaSnapshotEntry>();
         var expectedEntryPairs = new List<DirMetaSnapshotDiffEntryPair>();
@@ -1318,4 +1331,94 @@ public class DirMetaSnapshotTest
     }
 
     #endregion
+
+    [Fact]
+    public void Sets_Prefix()
+    {
+        var directorySeparator = '/';
+        var snapshot = new DirMetaSnapshot(directorySeparator);
+
+        var prefix = "abc/test/";
+
+        snapshot.AddEntry(new DirMetaSnapshotEntryBuilder()
+            .WithPath(prefix + TestUtils.RandomPath(3))
+            .Build());
+        snapshot.Prefix.ShouldBe(
+            snapshot.Entries.First().Path
+                .Split(directorySeparator)[..^1]
+                .Join(directorySeparator));
+
+        snapshot.AddEntry(new DirMetaSnapshotEntryBuilder()
+            .WithPath(prefix + TestUtils.RandomPath(3))
+            .Build());
+        snapshot.Prefix.ShouldBe(prefix);
+
+        snapshot.AddEntry(new DirMetaSnapshotEntryBuilder()
+            .WithPath(prefix + TestUtils.RandomPath(3))
+            .Build());
+        snapshot.Prefix.ShouldBe(prefix);
+    }
+
+    [Fact]
+    public void Compare_Create_Delete_Modified_Moved_Entries_Different_Prefixes()
+    {
+        var directorySeparator = '/';
+        var first = new DirMetaSnapshot(directorySeparator);
+        var second = new DirMetaSnapshot(directorySeparator);
+
+        var firstPrefix = "abc/test/";
+        var secondPrefix = "def/anothertest/";
+
+        var expectedCreatedEntries = new List<DirMetaSnapshotEntry>();
+        var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
+        var expectedModifiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
+        var expectedUnchangedEntries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 8; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithPath(firstPrefix + TestUtils.RandomPath(3))
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries.Take(2))
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithPath(secondPrefix + entry.Path[firstPrefix.Length..])
+                .Build();
+            second.AddEntry(entryCopy);
+            expectedUnchangedEntries.Add(entryCopy);
+        }
+
+        foreach (var entry in first.Entries.Skip(2).Take(2))
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithPath(secondPrefix + entry.Path[firstPrefix.Length..])
+                .WithRandomHash()
+                .Build();
+            second.AddEntry(entryCopy);
+            expectedModifiedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy));
+        }
+
+        foreach (var entry in first.Entries.Skip(4))
+        {
+            var otherEntry = new DirMetaSnapshotEntryBuilder()
+                .WithPath(secondPrefix + TestUtils.RandomPath(3))
+                .Build();
+            second.AddEntry(otherEntry);
+            expectedCreatedEntries.Add(otherEntry);
+            expectedDeletedEntries.Add(entry);
+        }
+
+        var diff = second.Compare(first);
+
+        diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
+        diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
+        diff.ModifiedEntries.ShouldBeEquivalentTo(expectedModifiedEntries);
+        diff.CopiedEntries.ShouldBeEmpty();
+        diff.MovedEntries.ShouldBeEmpty();
+        diff.TouchedEntries.ShouldBeEmpty();
+        diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchangedEntries);
+    }
 }
