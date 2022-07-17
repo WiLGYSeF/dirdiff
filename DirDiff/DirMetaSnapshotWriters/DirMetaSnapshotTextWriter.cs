@@ -7,10 +7,18 @@ namespace DirDiff.DirMetaSnapshotWriters;
 
 public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
 {
+    /// <summary>
+    /// Snapshot text writer options.
+    /// </summary>
     public DirMetaSnapshotTextWriterOptions TextWriterOptions { get; } = new();
 
     public DirMetaSnapshotWriterOptions Options => TextWriterOptions;
 
+    /// <summary>
+    /// Configures snapshot writer options.
+    /// </summary>
+    /// <param name="action">Configure action.</param>
+    /// <returns></returns>
     public DirMetaSnapshotTextWriter Configure(Action<DirMetaSnapshotTextWriterOptions> action)
     {
         action(TextWriterOptions);
