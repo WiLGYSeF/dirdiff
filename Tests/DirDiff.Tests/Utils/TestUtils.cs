@@ -89,12 +89,12 @@ internal static class TestUtils
 
     public static string RandomString(int length, char[] charset)
     {
-        var sbuilder = new StringBuilder(length);
+        var builder = new StringBuilder(length);
         for (var i = 0; i < length; i++)
         {
-            sbuilder.Append(charset[RandomInt(charset.Length)]);
+            builder.Append(charset[RandomInt(charset.Length)]);
         }
-        return sbuilder.ToString();
+        return builder.ToString();
     }
 
     public static string RandomPath(int parts, string separator = "/")
@@ -102,16 +102,16 @@ internal static class TestUtils
         var minPartLength = 4;
         var maxPartLength = 24;
 
-        var sbuilder = new StringBuilder();
+        var builder = new StringBuilder();
         for (var i = 0; i < parts; i++)
         {
-            sbuilder.Append(RandomString(RandomInt(minPartLength, maxPartLength)));
+            builder.Append(RandomString(RandomInt(minPartLength, maxPartLength)));
             if (i < parts - 1)
             {
-                sbuilder.Append(separator);
+                builder.Append(separator);
             }
         }
-        return sbuilder.ToString();
+        return builder.ToString();
     }
 
     public static string RandomExtension()

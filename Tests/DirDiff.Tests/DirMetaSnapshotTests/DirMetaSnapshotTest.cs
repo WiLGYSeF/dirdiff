@@ -30,6 +30,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -55,6 +56,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -89,9 +91,54 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEquivalentTo(expectedModifiedEntries);
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Compare_Copied_Entries()
+    {
+        var first = new DirMetaSnapshot(SnapshotPrefix);
+        var second = new DirMetaSnapshot(SnapshotPrefix);
+
+        var expectedCopiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
+        var expectedUnchagedEntries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries)
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .Build();
+            second.AddEntry(entryCopy);
+            expectedUnchagedEntries.Add(entry);
+        }
+
+        foreach (var entry in first.Entries)
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithRandomPath()
+                .Build();
+            second.AddEntry(entryCopy);
+            expectedCopiedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy));
+        }
+
+        var diff = second.Compare(first);
+
+        diff.CreatedEntries.ShouldBeEmpty();
+        diff.DeletedEntries.ShouldBeEmpty();
+        diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEquivalentTo(expectedCopiedEntries);
+        diff.MovedEntries.ShouldBeEmpty();
+        diff.TouchedEntries.ShouldBeEmpty();
+        diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchagedEntries);
     }
 
     [Fact]
@@ -123,6 +170,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEquivalentTo(expectedModifiedEntries);
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -157,6 +205,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEquivalentTo(expectedMovedEntries);
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -191,6 +240,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEquivalentTo(expectedTouchedEntries);
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -217,6 +267,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchangedEntries);
@@ -274,6 +325,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
         diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -319,6 +371,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEquivalentTo(expectedMovedEntries);
         diff.TouchedEntries.ShouldBeEquivalentTo(expectedTouchedEntries);
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchangedEntries);
@@ -362,6 +415,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEquivalentTo(expectedModifiedEntries);
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEquivalentTo(expectedTouchedEntries);
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchangedEntries);
@@ -402,9 +456,152 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
         diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchangedEntries);
+    }
+
+    [Fact]
+    public void Compare_Copied_Moved_Entries()
+    {
+        var first = new DirMetaSnapshot(SnapshotPrefix);
+        var second = new DirMetaSnapshot(SnapshotPrefix);
+
+        var expectedCopiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
+        var expectedMovedEntries = new List<DirMetaSnapshotDiffEntryPair>();
+        var expectedUnchagedEntries = new List<DirMetaSnapshotEntry>();
+
+        var hashAlgorithm = HashAlgorithm.SHA256;
+        var hash = TestUtils.RandomHash(hashAlgorithm);
+        var fileSize = TestUtils.RandomLong(1024 * 1024);
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithHash(hashAlgorithm, hash)
+                .WithFileSize(fileSize)
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries.Take(2))
+        {
+            var builder = new DirMetaSnapshotEntryBuilder().From(entry);
+            var entryCopy1 = builder.Build();
+            var entryCopy2 = builder.WithRandomPath().Build();
+            second.AddEntry(entryCopy1);
+            second.AddEntry(entryCopy2);
+            expectedCopiedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy2));
+            expectedUnchagedEntries.Add(entry);
+        }
+
+        foreach (var entry in first.Entries.Skip(2))
+        {
+            var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithRandomPath()
+                .Build();
+            second.AddEntry(entryCopy);
+
+            expectedMovedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy));
+        }
+
+        var diff = second.Compare(first);
+
+        diff.CreatedEntries.ShouldBeEmpty();
+        diff.DeletedEntries.ShouldBeEmpty();
+        diff.ModifiedEntries.ShouldBeEmpty();
+        diff.TouchedEntries.ShouldBeEmpty();
+        diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchagedEntries);
+
+        diff.CopiedEntries.Count.ShouldBe(expectedCopiedEntries.Count);
+        foreach (var copiedEntry in expectedCopiedEntries)
+        {
+            diff.CopiedEntries.ShouldContain(p => p.First.HashHex == copiedEntry.First.HashHex);
+            diff.CopiedEntries.ShouldContain(p => p.Second == copiedEntry.Second);
+        }
+
+        diff.MovedEntries.Count.ShouldBe(expectedMovedEntries.Count);
+        foreach (var movedEntry in expectedMovedEntries)
+        {
+            diff.MovedEntries.ShouldContain(p => p.First == movedEntry.First);
+            diff.MovedEntries.ShouldContain(p => p.Second == movedEntry.Second);
+        }
+    }
+
+    [Fact]
+    public void Compare_Copied_Moved_Deleted_Entries()
+    {
+        var first = new DirMetaSnapshot(SnapshotPrefix);
+        var second = new DirMetaSnapshot(SnapshotPrefix);
+
+        var expectedDeletedEntries = new List<DirMetaSnapshotEntry>();
+        var expectedCopiedEntries = new List<DirMetaSnapshotDiffEntryPair>();
+        var expectedMovedEntries = new List<DirMetaSnapshotDiffEntryPair>();
+        var expectedUnchagedEntries = new List<DirMetaSnapshotEntry>();
+
+        var hashAlgorithm = HashAlgorithm.SHA256;
+        var hash = TestUtils.RandomHash(hashAlgorithm);
+        var fileSize = TestUtils.RandomLong(1024 * 1024);
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithHash(hashAlgorithm, hash)
+                .WithFileSize(fileSize)
+                .Build();
+            first.AddEntry(entry);
+        }
+
+        foreach (var entry in first.Entries.Take(2))
+        {
+            var builder = new DirMetaSnapshotEntryBuilder().From(entry);
+            var entryCopy1 = builder.Build();
+            var entryCopy2 = builder.WithRandomPath().Build();
+            second.AddEntry(entryCopy1);
+            second.AddEntry(entryCopy2);
+            expectedCopiedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy2));
+            expectedUnchagedEntries.Add(entry);
+        }
+
+        foreach (var entry in first.Entries.Skip(2))
+        {
+            if (expectedMovedEntries.Count == 0)
+            {
+                var entryCopy = new DirMetaSnapshotEntryBuilder().From(entry)
+                    .WithRandomPath()
+                    .Build();
+                second.AddEntry(entryCopy);
+
+                expectedMovedEntries.Add(new DirMetaSnapshotDiffEntryPair(entry, entryCopy));
+            }
+            else
+            {
+                expectedDeletedEntries.Add(entry);
+            }
+        }
+
+        var diff = second.Compare(first);
+
+        diff.CreatedEntries.ShouldBeEmpty();
+        diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
+        diff.ModifiedEntries.ShouldBeEmpty();
+        diff.TouchedEntries.ShouldBeEmpty();
+        diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchagedEntries);
+
+        diff.CopiedEntries.Count.ShouldBe(expectedCopiedEntries.Count);
+        foreach (var copiedEntry in expectedCopiedEntries)
+        {
+            diff.CopiedEntries.ShouldContain(p => p.First.HashHex == copiedEntry.First.HashHex);
+            diff.CopiedEntries.ShouldContain(p => p.Second == copiedEntry.Second);
+        }
+
+        diff.MovedEntries.Count.ShouldBe(expectedMovedEntries.Count);
+        foreach (var movedEntry in expectedMovedEntries)
+        {
+            diff.MovedEntries.ShouldContain(p => p.First == movedEntry.First);
+            diff.MovedEntries.ShouldContain(p => p.Second == movedEntry.Second);
+        }
     }
 
     [Fact]
@@ -447,6 +644,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEquivalentTo(expectedModifiedEntries);
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEquivalentTo(expectedTouchedEntries);
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedUnchangedEntries);
@@ -488,6 +686,7 @@ public class DirMetaSnapshotTest
 
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
 
@@ -543,6 +742,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.Count.ShouldBe(expectedUnchangedEntries.Count);
@@ -579,6 +779,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEquivalentTo(expectedMovedEntries);
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -615,6 +816,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEquivalentTo(expectedCreatedEntries);
         diff.DeletedEntries.ShouldBeEquivalentTo(expectedDeletedEntries);
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -660,6 +862,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEquivalentTo(expectedModifiedEntries);
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEquivalentTo(expectedTouchedEntries);
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -698,6 +901,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEquivalentTo(expectedModifiedEntries);
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEquivalentTo(expectedTouchedEntries);
         diff.UnchangedEntries.ShouldBeEmpty();
@@ -742,6 +946,7 @@ public class DirMetaSnapshotTest
 
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
 
         if (unknownAssumeModified)
@@ -792,6 +997,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedEntries);
@@ -831,6 +1037,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedEntries);
@@ -871,6 +1078,7 @@ public class DirMetaSnapshotTest
 
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
 
@@ -918,6 +1126,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedEntries);
@@ -955,6 +1164,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
         diff.UnchangedEntries.ShouldBeEquivalentTo(expectedEntries);
@@ -992,6 +1202,7 @@ public class DirMetaSnapshotTest
 
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
         diff.TouchedEntries.ShouldBeEmpty();
 
@@ -1043,6 +1254,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
 
         if (unknownAssumeModified)
@@ -1090,6 +1302,7 @@ public class DirMetaSnapshotTest
         diff.CreatedEntries.ShouldBeEmpty();
         diff.DeletedEntries.ShouldBeEmpty();
         diff.ModifiedEntries.ShouldBeEmpty();
+        diff.CopiedEntries.ShouldBeEmpty();
         diff.MovedEntries.ShouldBeEmpty();
 
         if (unknownAssumeModified)

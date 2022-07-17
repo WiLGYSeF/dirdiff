@@ -13,6 +13,7 @@ public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
             Created = diff.CreatedEntries,
             Deleted = diff.DeletedEntries,
             Modified = diff.ModifiedEntries,
+            Copied = diff.CopiedEntries,
             Moved = diff.MovedEntries,
             Touched = diff.TouchedEntries,
             Unchanged = diff.UnchangedEntries,
