@@ -4,7 +4,7 @@ namespace DirDiff.Extensions;
 
 internal static class IEnumerableExtensions
 {
-    public static string JoinAsString(this IEnumerable<string> strings, string separator)
+    public static string Join(this IEnumerable<string> strings, string separator)
     {
         var builder = new StringBuilder();
 

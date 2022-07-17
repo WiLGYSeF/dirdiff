@@ -7,6 +7,30 @@ internal static class EnumUtils
 {
     private static readonly ConcurrentDictionary<Type, Dictionary<string, string>> _enumMemberValuesMap = new();
 
+    public static T Parse<T>(string value, bool ignoreCase = true) where T : struct, IConvertible
+    {
+        var result = Enum.Parse<T>(value, ignoreCase);
+        if (!Enum.IsDefined(typeof(T), result))
+        {
+            throw new ArgumentException("Value is not a valid enum value.", nameof(value));
+        }
+        return result;
+    }
+
+    public static bool TryParse<T>(string value, out T result, bool ignoreCase = true) where T : struct, IConvertible
+    {
+        try
+        {
+            result = Parse<T>(value, ignoreCase);
+            return true;
+        }
+        catch
+        {
+            result = default;
+            return false;
+        }
+    }
+
     public static T ParseEnumMemberValue<T>(
         string value,
         bool ignoreCase = true,
@@ -45,6 +69,24 @@ internal static class EnumUtils
             throw new ArgumentException("Value does not match any EnumMember value", nameof(value));
         }
 
-        return Enum.Parse<T>(enumMemberValue ?? value, ignoreCase);
+        return Parse<T>(enumMemberValue ?? value, ignoreCase);
+    }
+
+    public static bool TryParseEnumMemberValue<T>(
+        string value,
+        out T result,
+        bool ignoreCase = true,
+        bool enumMemberValueRequired = false) where T : struct, IConvertible
+    {
+        try
+        {
+            result = ParseEnumMemberValue<T>(value, ignoreCase, enumMemberValueRequired);
+            return true;
+        }
+        catch
+        {
+            result = default;
+            return false;
+        }
     }
 }

@@ -52,11 +52,11 @@ public class DirMetaSnapshotTextWriterTest
             {
                 entry.HashHex!,
                 entry.HashAlgorithm!.Value.ToEnumMemberValue(),
-                Math.Floor(entry.CreatedTime!.Value.ToUnixTimestamp()).ToString(),
-                Math.Floor(entry.LastModifiedTime!.Value.ToUnixTimestamp()).ToString(),
+                ((DateTimeOffset)entry.CreatedTime!.Value).ToUnixTimeSeconds().ToString(),
+                ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
                 entry.FileSize!.Value.ToString(),
                 entry.Path,
-            }.JoinAsString(writer.TextWriterOptions.Separator);
+            }.Join(writer.TextWriterOptions.Separator);
 
             linesEnumerator.Current.ShouldBe(expected);
         }
@@ -115,7 +115,7 @@ public class DirMetaSnapshotTextWriterTest
                 writer.TextWriterOptions.NoneValue,
                 writer.TextWriterOptions.NoneValue,
                 entry.Path,
-            }.JoinAsString(writer.TextWriterOptions.Separator);
+            }.Join(writer.TextWriterOptions.Separator);
 
             linesEnumerator.Current.ShouldBe(expected);
         }
@@ -163,10 +163,10 @@ public class DirMetaSnapshotTextWriterTest
             var expected = new string[]
             {
                 entry.HashHex!,
-                Math.Floor(entry.LastModifiedTime!.Value.ToUnixTimestamp()).ToString(),
+                ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
                 entry.FileSize!.Value.ToString(),
                 entry.Path,
-            }.JoinAsString(writer.TextWriterOptions.Separator);
+            }.Join(writer.TextWriterOptions.Separator);
 
             linesEnumerator.Current.ShouldBe(expected);
         }

@@ -66,7 +66,7 @@ public class DirMetaSnapshotJsonReader : IDirMetaSnapshotReader
             throw new InvalidOperationException($"Entry does not have \"{TypeKey}\" value.");
         }
 
-        var entry = new DirMetaSnapshotEntry(path.ToString()!, Enum.Parse<FileType>(type.ToString()!));
+        var entry = new DirMetaSnapshotEntry(path.ToString()!, EnumUtils.Parse<FileType>(type.ToString()!));
 
         if (dictionary.TryGetValueAs(FileSizeKey, out JsonElement fileSize))
         {

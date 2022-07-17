@@ -64,14 +64,14 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
         if (Options.WriteCreatedTime && entry.CreatedTime.HasValue)
         {
             dictionary["createdTime"] = JsonWriterOptions.UseUnixTimestamp
-                ? entry.CreatedTime.Value.ToUnixTimestamp()
+                ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
                 : entry.CreatedTime.Value;
         }
 
         if (Options.WriteLastModifiedTime && entry.LastModifiedTime.HasValue)
         {
             dictionary["lastModifiedTime"] = JsonWriterOptions.UseUnixTimestamp
-                ? entry.LastModifiedTime.Value.ToUnixTimestamp()
+                ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
                 : entry.LastModifiedTime.Value;
         }
 

@@ -51,7 +51,7 @@ public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
             if (Options.WriteCreatedTime)
             {
                 builder.Append(entry.CreatedTime.HasValue
-                    ? Math.Floor(entry.CreatedTime.Value.ToUnixTimestamp()).ToString()
+                    ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
                     : TextWriterOptions.NoneValue);
                 builder.Append(TextWriterOptions.Separator);
             }
@@ -59,7 +59,7 @@ public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
             if (Options.WriteLastModifiedTime)
             {
                 builder.Append(entry.LastModifiedTime.HasValue
-                    ? Math.Floor(entry.LastModifiedTime.Value.ToUnixTimestamp()).ToString()
+                    ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
                     : TextWriterOptions.NoneValue);
                 builder.Append(TextWriterOptions.Separator);
             }
