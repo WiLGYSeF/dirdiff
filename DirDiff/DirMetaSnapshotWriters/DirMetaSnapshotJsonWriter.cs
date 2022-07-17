@@ -8,10 +8,18 @@ namespace DirDiff.DirMetaSnapshotWriters;
 
 public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 {
+    /// <summary>
+    /// Snapshot writer options.
+    /// </summary>
     public DirMetaSnapshotJsonWriterOptions JsonWriterOptions { get; } = new();
 
     public DirMetaSnapshotWriterOptions Options => JsonWriterOptions;
 
+    /// <summary>
+    /// Configures snapshot writer options.
+    /// </summary>
+    /// <param name="action">Configure action.</param>
+    /// <returns></returns>
     public DirMetaSnapshotJsonWriter Configure(Action<DirMetaSnapshotJsonWriterOptions> action)
     {
         action(JsonWriterOptions);

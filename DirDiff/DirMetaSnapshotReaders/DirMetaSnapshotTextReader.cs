@@ -7,10 +7,18 @@ namespace DirDiff.DirMetaSnapshotReaders;
 
 public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 {
+    /// <summary>
+    /// Snapshot text reader options.
+    /// </summary>
     public DirMetaSnapshotTextReaderOptions TextReaderOptions { get; } = new();
 
     public DirMetaSnapshotReaderOptions Options => TextReaderOptions;
 
+    /// <summary>
+    /// Configure snapshot reader options.
+    /// </summary>
+    /// <param name="action">Configure action.</param>
+    /// <returns></returns>
     public DirMetaSnapshotTextReader Configure(Action<DirMetaSnapshotTextReaderOptions> action)
     {
         action(TextReaderOptions);
@@ -158,7 +166,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         };
     }
 
-    private DateTime UnixTimeSecondsToDateTime(long seconds)
+    private static DateTime UnixTimeSecondsToDateTime(long seconds)
     {
         return DateTimeOffset.FromUnixTimeSeconds(seconds).DateTime;
     }
@@ -191,7 +199,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         return columnCount;
     }
 
-    private bool IsHexNumeric(string str)
+    private static bool IsHexNumeric(string str)
     {
         for (var i = 0; i < str.Length; i++)
         {
@@ -227,7 +235,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         return true;
     }
 
-    private bool IsNumeric(string str)
+    private static bool IsNumeric(string str)
     {
         for (var i = 0; i < str.Length; i++)
         {
