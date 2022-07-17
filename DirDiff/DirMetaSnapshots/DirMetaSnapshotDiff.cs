@@ -8,6 +8,8 @@ public class DirMetaSnapshotDiff
 
     public IReadOnlyCollection<DirMetaSnapshotDiffEntryPair> ModifiedEntries => _modifiedEntries;
 
+    public IReadOnlyCollection<DirMetaSnapshotDiffEntryPair> CopiedEntries => _copiedEntries;
+
     public IReadOnlyCollection<DirMetaSnapshotDiffEntryPair> MovedEntries => _movedEntries;
 
     public IReadOnlyCollection<DirMetaSnapshotDiffEntryPair> TouchedEntries => _touchedEntries;
@@ -17,6 +19,7 @@ public class DirMetaSnapshotDiff
     private readonly List<DirMetaSnapshotEntry> _createdEntries = new();
     private readonly List<DirMetaSnapshotEntry> _deletedEntries = new();
     private readonly List<DirMetaSnapshotDiffEntryPair> _modifiedEntries = new();
+    private readonly List<DirMetaSnapshotDiffEntryPair> _copiedEntries = new();
     private readonly List<DirMetaSnapshotDiffEntryPair> _movedEntries = new();
     private readonly List<DirMetaSnapshotDiffEntryPair> _touchedEntries = new();
     private readonly List<DirMetaSnapshotEntry> _unchangedEntries = new();
@@ -34,6 +37,11 @@ public class DirMetaSnapshotDiff
     internal void AddModifiedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
         _modifiedEntries.Add(new DirMetaSnapshotDiffEntryPair(other, entry));
+    }
+
+    internal void AddCopiedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    {
+        _copiedEntries.Add(new DirMetaSnapshotDiffEntryPair(other, entry));
     }
 
     internal void AddMovedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)

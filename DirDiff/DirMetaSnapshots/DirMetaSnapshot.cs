@@ -1,4 +1,6 @@
-﻿namespace DirDiff.DirMetaSnapshots;
+﻿using DirDiff.Enums;
+
+namespace DirDiff.DirMetaSnapshots;
 
 public class DirMetaSnapshot
 {
@@ -55,10 +57,7 @@ public class DirMetaSnapshot
         var entriesMap = Entries.ToDictionary(e => e.Path);
         var otherEntriesMap = snapshot.Entries.ToDictionary(e => e.Path);
 
-        var hashMap = Entries.Where(e => e.HashHex != null)
-            .ToDictionary(e => e.HashHex!);
-        var otherHashMap = snapshot.Entries.Where(e => e.HashHex != null)
-            .ToDictionary(e => e.HashHex!);
+        var otherHashMap = CreateHashMap(snapshot.Entries);
 
         var otherSizeMap = CreateSizeMap(snapshot.Entries);
 
@@ -84,12 +83,44 @@ public class DirMetaSnapshot
             {
                 // entry does not exist in older snapshot
 
-                if (entry.HashHex != null && otherHashMap.TryGetValue(entry.HashHex, out otherEntry))
+                if (entry.HashHex != null && otherHashMap.TryGetValue(entry.HashHex, out var otherHashEntries))
                 {
-                    // entry was moved
+                    // entry matches hash of otherEntry
 
-                    diff.AddMovedEntry(entry, otherEntry);
-                    otherMovedEntries.Add(otherEntry);
+                    var moved = false;
+
+                    otherEntry = otherHashEntries.FirstOrDefault(e => e.LastModifiedTime == entry.LastModifiedTime);
+                    if (otherEntry != null)
+                    {
+                        moved = !entriesMap.ContainsKey(otherEntry.Path) && !otherMovedEntries.Contains(otherEntry);
+                    }
+                    else
+                    {
+                        otherEntry = otherHashEntries.FirstOrDefault(e => !entriesMap.ContainsKey(e.Path) && !otherMovedEntries.Contains(e));
+                        if (otherEntry != null)
+                        {
+                            moved = true;
+                        }
+                        else
+                        {
+                            otherEntry = otherHashEntries[0];
+                        }
+                    }
+
+                    if (moved)
+                    {
+                        // entry was moved
+
+                        diff.AddMovedEntry(entry, otherEntry);
+                        otherMovedEntries.Add(otherEntry);
+                    }
+                    else
+                    {
+                        // entry was copied
+
+                        diff.AddCopiedEntry(entry, otherEntry);
+                    }
+
                     CompareEntries(
                         entry,
                         otherEntry,
@@ -195,7 +226,8 @@ public class DirMetaSnapshot
             changed = true;
         }
 
-        if (!CheckEntryTimesMatch(entry, other, window).GetValueOrDefault(!unknownAssumeModified))
+        // don't care about created times
+        if (!CheckEntryLastModifiedTimeMatch(entry, other, window).GetValueOrDefault(!unknownAssumeModified))
         {
             diff.AddTouchedEntry(entry, other);
             changed = true;
@@ -307,7 +339,8 @@ public class DirMetaSnapshot
         }
 
         var sizeMatch = CheckEntryFileSizesMatch(entry, other);
-        var timesMatch = CheckEntryTimesMatch(entry, other, window);
+        // don't care about created times
+        var timesMatch = CheckEntryLastModifiedTimeMatch(entry, other, window);
 
         if (!sizeMatch.HasValue || !timesMatch.HasValue)
         {
@@ -343,6 +376,28 @@ public class DirMetaSnapshot
         return dict;
     }
 
+    private static Dictionary<string, List<DirMetaSnapshotEntry>> CreateHashMap(IEnumerable<DirMetaSnapshotEntry> entries)
+    {
+        var dict = new Dictionary<string, List<DirMetaSnapshotEntry>>();
+
+        foreach (var entry in entries)
+        {
+            if (entry.HashHex == null)
+            {
+                continue;
+            }
+
+            if (!dict.TryGetValue(entry.HashHex, out var hashEntries))
+            {
+                hashEntries = new List<DirMetaSnapshotEntry>();
+                dict[entry.HashHex] = hashEntries;
+            }
+            hashEntries.Add(entry);
+        }
+
+        return dict;
+    }
+
     /// <summary>
     /// Gets the moved entry by the file size and last modified time if it does not exist in the recent snapshot entries.
     /// </summary>
@@ -364,10 +419,12 @@ public class DirMetaSnapshot
             return null;
         }
 
-        var possibleEntries = sizeEntries.Where(entry =>
-            entry.LastModifiedTime.HasValue
-            && (entry.LastModifiedTime.Value - lastModifiedTime).Duration() <= window
-            && !entries.ContainsKey(entry.Path)).ToList();
-        return possibleEntries.Count == 1 ? possibleEntries.First() : null;
+        var possibleEntries = sizeEntries
+            .Where(entry => entry.Type != FileType.Directory
+                && entry.LastModifiedTime.HasValue
+                && (entry.LastModifiedTime.Value - lastModifiedTime).Duration() <= window
+                && !entries.ContainsKey(entry.Path))
+            .ToList();
+        return possibleEntries.Count == 1 ? possibleEntries[0] : null;
     }
 }
