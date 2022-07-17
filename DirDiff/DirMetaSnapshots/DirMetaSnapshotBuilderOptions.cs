@@ -4,6 +4,8 @@ namespace DirDiff.DirMetaSnapshots;
 
 public class DirMetaSnapshotBuilderOptions
 {
+    public char DirectorySeparator { get; set; } = Path.DirectorySeparatorChar;
+
     public bool UseFileSize { get; set; }
 
     public bool UseCreatedTime { get; set; }

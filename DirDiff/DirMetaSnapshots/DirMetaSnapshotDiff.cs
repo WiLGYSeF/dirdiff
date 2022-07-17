@@ -24,6 +24,29 @@ public class DirMetaSnapshotDiff
     private readonly List<DirMetaSnapshotDiffEntryPair> _touchedEntries = new();
     private readonly List<DirMetaSnapshotEntry> _unchangedEntries = new();
 
+    private readonly DirMetaSnapshot _firstSnapshot;
+    private readonly DirMetaSnapshot _secondSnapshot;
+
+    internal DirMetaSnapshotDiff(DirMetaSnapshot firstSnapshot, DirMetaSnapshot secondSnapshot)
+    {
+        _firstSnapshot = firstSnapshot;
+        _secondSnapshot = secondSnapshot;
+    }
+
+    public string GetEntryPathWithoutPrefix(DirMetaSnapshotEntry entry)
+    {
+        if (_firstSnapshot.Entries.Contains(entry))
+        {
+            return _firstSnapshot.PathWithoutPrefix(entry.Path);
+        }
+        if (_secondSnapshot.Entries.Contains(entry))
+        {
+            return _secondSnapshot.PathWithoutPrefix(entry.Path);
+        }
+
+        throw new ArgumentException("Entry does not belong to snapshot diff.", nameof(entry));
+    }
+
     internal void AddCreatedEntry(DirMetaSnapshotEntry entry)
     {
         _createdEntries.Add(entry);
