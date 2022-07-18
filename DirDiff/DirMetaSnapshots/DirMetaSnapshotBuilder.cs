@@ -10,6 +10,13 @@ public class DirMetaSnapshotBuilder
     /// </summary>
     public DirMetaSnapshotBuilderOptions Options { get; } = new();
 
+    /// <summary>
+    /// Paths that will be traversed for the snapshot.
+    /// </summary>
+    public IReadOnlyList<string> SnapshotPaths => _snapshotPaths;
+
+    private readonly List<string> _snapshotPaths = new();
+
     private readonly IDirWalker _walker;
 
     public DirMetaSnapshotBuilder()
@@ -35,11 +42,21 @@ public class DirMetaSnapshotBuilder
     }
 
     /// <summary>
-    /// Creates a snapshot from the given path.
+    /// Adds path that will be traversed in snapshot.
     /// </summary>
     /// <param name="path">Path.</param>
+    /// <returns></returns>
+    public DirMetaSnapshotBuilder AddPath(string path)
+    {
+        _snapshotPaths.Add(path);
+        return this;
+    }
+
+    /// <summary>
+    /// Traverses paths and creates snapshot.
+    /// </summary>
     /// <returns>Snapshot.</returns>
-    public DirMetaSnapshot CreateSnapshot(string path)
+    public DirMetaSnapshot CreateSnapshot()
     {
         var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);
 
@@ -51,6 +68,16 @@ public class DirMetaSnapshotBuilder
             options.ThrowIfNotFound = Options.ThrowIfNotFound;
         });
 
+        foreach (var path in _snapshotPaths)
+        {
+            AddToSnapshot(snapshot, path);
+        }
+
+        return snapshot;
+    }
+
+    private void AddToSnapshot(DirMetaSnapshot snapshot, string path)
+    {
         foreach (var file in _walker.Walk(path))
         {
             var entry = new DirMetaSnapshotEntry(file.Path, file.Type);
@@ -84,7 +111,5 @@ public class DirMetaSnapshotBuilder
 
             snapshot.AddEntry(entry);
         }
-
-        return snapshot;
     }
 }
