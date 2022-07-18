@@ -135,23 +135,38 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 
         if (TextReaderOptions.ReadHash)
         {
-            hash = Convert.FromHexString(split[column++]);
+            hash = split[column] != TextReaderOptions.NoneValue
+                ? Convert.FromHexString(split[column])
+                : null;
+            column++;
         }
         if (TextReaderOptions.ReadHashAlgorithm)
         {
-            hashAlgorithm = EnumUtils.ParseEnumMemberValue<HashAlgorithm>(split[column++]);
+            hashAlgorithm = split[column] != TextReaderOptions.NoneValue
+                ? EnumUtils.ParseEnumMemberValue<HashAlgorithm>(split[column])
+                : null;
+            column++;
         }
         if (TextReaderOptions.ReadCreatedTime)
         {
-            createdTime = UnixTimeSecondsToDateTime(long.Parse(split[column++]));
+            createdTime = split[column] != TextReaderOptions.NoneValue
+                ? UnixTimeSecondsToDateTime(long.Parse(split[column]))
+                : null;
+            column++;
         }
         if (TextReaderOptions.ReadLastModifiedTime)
         {
-            lastModifiedTime = UnixTimeSecondsToDateTime(long.Parse(split[column++]));
+            lastModifiedTime = split[column] != TextReaderOptions.NoneValue
+                ? UnixTimeSecondsToDateTime(long.Parse(split[column]))
+                : null;
+            column++;
         }
         if (TextReaderOptions.ReadFileSize)
         {
-            fileSize = Convert.ToInt64(split[column++]);
+            fileSize = split[column] != TextReaderOptions.NoneValue
+                ? Convert.ToInt64(split[column])
+                : null;
+            column++;
         }
 
         var path = split[column..].Join(TextReaderOptions.Separator);
@@ -164,6 +179,13 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
             Hash = hash,
             HashAlgorithm = hashAlgorithm,
         };
+    }
+
+    private T? GetValue<T>(string value, Func<string, T> convert)
+    {
+        return value != TextReaderOptions.NoneValue
+            ? convert(value)
+            : default;
     }
 
     private static DateTime UnixTimeSecondsToDateTime(long seconds)
