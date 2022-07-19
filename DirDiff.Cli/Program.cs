@@ -78,6 +78,7 @@ static async Task<int> CreateSnapshot(SnapshotOptions opts)
 
         snapshotWriter.Configure(options =>
         {
+            options.WritePrefix = !opts.RemovePrefix;
             options.WriteHash = opts.UseHash;
             options.WriteHashAlgorithm = false;
             options.WriteCreatedTime = false;
@@ -140,7 +141,14 @@ static async Task<int> DiffSnapshots(DiffOptions opts)
 
     IDirMetaSnapshotDiffWriter? diffWriter = opts.DiffFormat?.ToLower() switch
     {
-        "json" => new DirMetaSnapshotDiffJsonWriter(),
+        "json" => new DirMetaSnapshotDiffJsonWriter().Configure(options =>
+        {
+            options.FirstPrefix = opts.FirstPrefix;
+            options.SecondPrefix = opts.SecondPrefix;
+
+            options.UseUnixTimestamp = false;
+            options.WriteIndented = true;
+        }),
         _ => null,
     };
 
@@ -161,11 +169,7 @@ static async Task<DirMetaSnapshot> ReadSnapshot(string path, DiffOptions opts)
     var snapshotTextReader = new DirMetaSnapshotTextReader();
     snapshotTextReader.Configure(options =>
     {
-        options.ReadHash = opts.UseHash;
-        options.ReadHashAlgorithm = false;
-        options.ReadCreatedTime = false;
-        options.ReadLastModifiedTime = opts.UseLastModifiedTime;
-        options.ReadFileSize = opts.UseFileSize;
+        options.ReadGuess = true;
 
         options.Separator = "  ";
         options.NoneValue = "-";

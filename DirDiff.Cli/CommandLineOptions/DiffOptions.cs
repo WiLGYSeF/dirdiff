@@ -17,6 +17,12 @@ internal class DiffOptions
     [Option("modify-window", HelpText = "Maximum difference in times before entries are considered different (seconds)")]
     public double? ModifyWindow { get; set; }
 
+    [Option("first-prefix", MetaValue = "PREFIX", HelpText = "Replace first snapshot prefix with string")]
+    public string? FirstPrefix { get; set; }
+
+    [Option("second-prefix", MetaValue = "PREFIX", HelpText = "Replace second snapshot prefix with string")]
+    public string? SecondPrefix { get; set; }
+
     [Option("hash", HelpText = "Indicates the text snapshot has file hashes")]
     public bool UseHash { get; set; }
 

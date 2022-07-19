@@ -3,6 +3,11 @@
 public class DirMetaSnapshotWriterOptions
 {
     /// <summary>
+    /// Whether to write snapshot file prefixes.
+    /// </summary>
+    public bool WritePrefix { get; set; } = true;
+
+    /// <summary>
     /// Whether to write file hashes.
     /// </summary>
     public bool WriteHash { get; set; } = true;

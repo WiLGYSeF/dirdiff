@@ -59,6 +59,8 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 
     private DirMetaSnapshotEntry ParseLineGuess(string line)
     {
+        // TODO: handle NoneValue
+
         var split = line.Split(TextReaderOptions.Separator);
 
         byte[]? hash = null;

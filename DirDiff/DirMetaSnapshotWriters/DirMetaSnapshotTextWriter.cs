@@ -78,7 +78,7 @@ public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
                 builder.Append(TextWriterOptions.Separator);
             }
 
-            builder.AppendLine(entry.Path);
+            builder.AppendLine(Options.WritePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path));
 
             await stream.WriteAsync(Encoding.UTF8.GetBytes(builder.ToString()));
         }

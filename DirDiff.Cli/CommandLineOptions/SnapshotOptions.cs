@@ -20,6 +20,9 @@ internal class SnapshotOptions
     [Option("file-size", HelpText = "Get file sizes")]
     public bool UseFileSize { get; set; }
 
+    [Option("remove-prefix", HelpText = "Remove snapshot file prefixes when writing")]
+    public bool RemovePrefix { get; set; }
+
     [Value(0)]
     public IEnumerable<string> Arguments { get; set; } = Array.Empty<string>();
 }
