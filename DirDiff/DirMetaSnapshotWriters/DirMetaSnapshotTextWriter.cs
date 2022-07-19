@@ -7,10 +7,18 @@ namespace DirDiff.DirMetaSnapshotWriters;
 
 public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
 {
+    /// <summary>
+    /// Snapshot text writer options.
+    /// </summary>
     public DirMetaSnapshotTextWriterOptions TextWriterOptions { get; } = new();
 
     public DirMetaSnapshotWriterOptions Options => TextWriterOptions;
 
+    /// <summary>
+    /// Configures snapshot writer options.
+    /// </summary>
+    /// <param name="action">Configure action.</param>
+    /// <returns></returns>
     public DirMetaSnapshotTextWriter Configure(Action<DirMetaSnapshotTextWriterOptions> action)
     {
         action(TextWriterOptions);
@@ -70,7 +78,7 @@ public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
                 builder.Append(TextWriterOptions.Separator);
             }
 
-            builder.AppendLine(entry.Path);
+            builder.AppendLine(Options.WritePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path));
 
             await stream.WriteAsync(Encoding.UTF8.GetBytes(builder.ToString()));
         }

@@ -7,10 +7,18 @@ namespace DirDiff.DirMetaSnapshotReaders;
 
 public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 {
+    /// <summary>
+    /// Snapshot text reader options.
+    /// </summary>
     public DirMetaSnapshotTextReaderOptions TextReaderOptions { get; } = new();
 
     public DirMetaSnapshotReaderOptions Options => TextReaderOptions;
 
+    /// <summary>
+    /// Configure snapshot reader options.
+    /// </summary>
+    /// <param name="action">Configure action.</param>
+    /// <returns></returns>
     public DirMetaSnapshotTextReader Configure(Action<DirMetaSnapshotTextReaderOptions> action)
     {
         action(TextReaderOptions);
@@ -51,6 +59,8 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 
     private DirMetaSnapshotEntry ParseLineGuess(string line)
     {
+        // TODO: handle NoneValue
+
         var split = line.Split(TextReaderOptions.Separator);
 
         byte[]? hash = null;
@@ -127,23 +137,38 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 
         if (TextReaderOptions.ReadHash)
         {
-            hash = Convert.FromHexString(split[column++]);
+            hash = split[column] != TextReaderOptions.NoneValue
+                ? Convert.FromHexString(split[column])
+                : null;
+            column++;
         }
         if (TextReaderOptions.ReadHashAlgorithm)
         {
-            hashAlgorithm = EnumUtils.ParseEnumMemberValue<HashAlgorithm>(split[column++]);
+            hashAlgorithm = split[column] != TextReaderOptions.NoneValue
+                ? EnumUtils.ParseEnumMemberValue<HashAlgorithm>(split[column])
+                : null;
+            column++;
         }
         if (TextReaderOptions.ReadCreatedTime)
         {
-            createdTime = UnixTimeSecondsToDateTime(long.Parse(split[column++]));
+            createdTime = split[column] != TextReaderOptions.NoneValue
+                ? UnixTimeSecondsToDateTime(long.Parse(split[column]))
+                : null;
+            column++;
         }
         if (TextReaderOptions.ReadLastModifiedTime)
         {
-            lastModifiedTime = UnixTimeSecondsToDateTime(long.Parse(split[column++]));
+            lastModifiedTime = split[column] != TextReaderOptions.NoneValue
+                ? UnixTimeSecondsToDateTime(long.Parse(split[column]))
+                : null;
+            column++;
         }
         if (TextReaderOptions.ReadFileSize)
         {
-            fileSize = Convert.ToInt64(split[column++]);
+            fileSize = split[column] != TextReaderOptions.NoneValue
+                ? Convert.ToInt64(split[column])
+                : null;
+            column++;
         }
 
         var path = split[column..].Join(TextReaderOptions.Separator);
@@ -158,7 +183,14 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         };
     }
 
-    private DateTime UnixTimeSecondsToDateTime(long seconds)
+    private T? GetValue<T>(string value, Func<string, T> convert)
+    {
+        return value != TextReaderOptions.NoneValue
+            ? convert(value)
+            : default;
+    }
+
+    private static DateTime UnixTimeSecondsToDateTime(long seconds)
     {
         return DateTimeOffset.FromUnixTimeSeconds(seconds).DateTime;
     }
@@ -191,7 +223,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         return columnCount;
     }
 
-    private bool IsHexNumeric(string str)
+    private static bool IsHexNumeric(string str)
     {
         for (var i = 0; i < str.Length; i++)
         {
@@ -227,7 +259,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         return true;
     }
 
-    private bool IsNumeric(string str)
+    private static bool IsNumeric(string str)
     {
         for (var i = 0; i < str.Length; i++)
         {

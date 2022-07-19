@@ -1,6 +1,6 @@
-﻿namespace DirDiff.DirMetaSnapshotWriters;
+﻿namespace DirDiff.DirMetaSnapshotDiffWriters;
 
-public class DirMetaSnapshotJsonWriterOptions : DirMetaSnapshotWriterOptions
+public class DirMetaSnapshotDiffJsonWriterOptions : DirMetaSnapshotDiffWriterOptions
 {
     /// <summary>
     /// Whether to use unix timestamps or ISO8601 for file created times and last modified times.

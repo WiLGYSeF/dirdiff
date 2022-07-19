@@ -1,4 +1,5 @@
 ﻿using DirDiff.DirMetaSnapshots;
+using DirDiff.Extensions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -6,11 +7,19 @@ namespace DirDiff.DirMetaSnapshotDiffWriters;
 
 public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
 {
-    public DirMetaSnapshotDiffWriterOptions Options { get; } = new();
+    public DirMetaSnapshotDiffJsonWriterOptions JsonWriterOptions { get; } = new();
+    
+    public DirMetaSnapshotDiffWriterOptions Options => JsonWriterOptions;
+
+    public DirMetaSnapshotDiffJsonWriter Configure(Action<DirMetaSnapshotDiffJsonWriterOptions> action)
+    {
+        action(JsonWriterOptions);
+        return this;
+    }
 
     public IDirMetaSnapshotDiffWriter Configure(Action<DirMetaSnapshotDiffWriterOptions> action)
     {
-        action(Options);
+        action(JsonWriterOptions);
         return this;
     }
 
@@ -18,43 +27,69 @@ public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
     {
         var json = new
         {
-            Created = diff.CreatedEntries.Select(e => MapEntry(diff, e)),
-            Deleted = diff.DeletedEntries.Select(e => MapEntry(diff, e)),
-            Modified = diff.ModifiedEntries.Select(p => MapEntryPair(diff, p)),
-            Copied = diff.CopiedEntries.Select(p => MapEntryPair(diff, p)),
-            Moved = diff.MovedEntries.Select(p => MapEntryPair(diff, p)),
-            Touched = diff.TouchedEntries.Select(p => MapEntryPair(diff, p)),
-            Unchanged = diff.UnchangedEntries.Select(e => MapEntry(diff, e)),
+            Created = diff.CreatedEntries.Select(e => SerializeEntry(diff, e, Options.SecondPrefix)),
+            Deleted = diff.DeletedEntries.Select(e => SerializeEntry(diff, e, Options.FirstPrefix)),
+            Modified = diff.ModifiedEntries.Select(p => SerializeEntryPair(diff, p)),
+            Copied = diff.CopiedEntries.Select(p => SerializeEntryPair(diff, p)),
+            Moved = diff.MovedEntries.Select(p => SerializeEntryPair(diff, p)),
+            Touched = diff.TouchedEntries.Select(p => SerializeEntryPair(diff, p)),
+            Unchanged = diff.UnchangedEntries.Select(e => SerializeEntry(diff, e, Options.SecondPrefix)),
         };
 
         var options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = JsonWriterOptions.WriteIndented,
         };
         options.Converters.Add(new JsonStringEnumConverter());
         await stream.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(json, options));
     }
-
-    private object MapEntry(DirMetaSnapshotDiff diff, DirMetaSnapshotEntry entry)
+    private object SerializeEntryPair(DirMetaSnapshotDiff diff, DirMetaSnapshotDiffEntryPair pair)
     {
         return new
         {
-            Path = Options.WritePrefix ? diff.GetEntryPathWithoutPrefix(entry) : entry.Path,
-            entry.Type,
-            entry.FileSize,
-            entry.CreatedTime,
-            entry.LastModifiedTime,
-            entry.HashAlgorithm,
-            Hash = entry.HashHex,
+            First = SerializeEntry(diff, pair.First, Options.FirstPrefix),
+            Second = SerializeEntry(diff, pair.Second, Options.SecondPrefix),
         };
     }
 
-    private object MapEntryPair(DirMetaSnapshotDiff diff, DirMetaSnapshotDiffEntryPair pair)
+    private Dictionary<string, object> SerializeEntry(DirMetaSnapshotDiff diff, DirMetaSnapshotEntry entry, string? prefix)
     {
-        return new
+        var dictionary = new Dictionary<string, object>
         {
-            First = MapEntry(diff, pair.First),
-            Second = MapEntry(diff, pair.Second),
+            { "path", prefix != null ? prefix + diff.GetEntryPathWithoutPrefix(entry) : entry.Path },
+            { "type", entry.Type },
         };
+
+        if ( entry.Hash != null)
+        {
+            dictionary["hash"] = entry.HashHex!;
+
+            if (entry.HashAlgorithm.HasValue)
+            {
+                dictionary["hashAlgorithm"] = entry.HashAlgorithm.Value.ToEnumMemberValue();
+            }
+        }
+
+        if (entry.CreatedTime.HasValue)
+        {
+            dictionary["createdTime"] = JsonWriterOptions.UseUnixTimestamp
+                ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
+                : entry.CreatedTime.Value;
+        }
+
+        if (entry.LastModifiedTime.HasValue)
+        {
+            dictionary["lastModifiedTime"] = JsonWriterOptions.UseUnixTimestamp
+                ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
+                : entry.LastModifiedTime.Value;
+        }
+
+        if (entry.FileSize.HasValue)
+        {
+            dictionary["fileSize"] = entry.FileSize.Value;
+        }
+
+        return dictionary;
     }
 }

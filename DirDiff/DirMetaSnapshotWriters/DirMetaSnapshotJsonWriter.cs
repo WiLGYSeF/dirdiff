@@ -8,10 +8,18 @@ namespace DirDiff.DirMetaSnapshotWriters;
 
 public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 {
+    /// <summary>
+    /// Snapshot writer options.
+    /// </summary>
     public DirMetaSnapshotJsonWriterOptions JsonWriterOptions { get; } = new();
 
     public DirMetaSnapshotWriterOptions Options => JsonWriterOptions;
 
+    /// <summary>
+    /// Configures snapshot writer options.
+    /// </summary>
+    /// <param name="action">Configure action.</param>
+    /// <returns></returns>
     public DirMetaSnapshotJsonWriter Configure(Action<DirMetaSnapshotJsonWriterOptions> action)
     {
         action(JsonWriterOptions);
@@ -30,7 +38,7 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
         {
             Entries = snapshot.Entries
                 .Where(e => e.Type != FileType.Directory)
-                .Select(e => SerializeEntry(e)),
+                .Select(e => SerializeEntry(snapshot, e)),
         };
 
         var options = new JsonSerializerOptions
@@ -43,11 +51,11 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
         await stream.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(json, options));
     }
 
-    private Dictionary<string, object> SerializeEntry(DirMetaSnapshotEntry entry)
+    private Dictionary<string, object> SerializeEntry(DirMetaSnapshot snapshot, DirMetaSnapshotEntry entry)
     {
         var dictionary = new Dictionary<string, object>
         {
-            { "path", entry.Path },
+            { "path", Options.WritePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path) },
             { "type", entry.Type },
         };
 
