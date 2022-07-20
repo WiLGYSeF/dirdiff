@@ -10,8 +10,6 @@ public class DirMetaSnapshotDiffBashWriterTest
     [Fact]
     public async Task Write_Diff()
     {
-        var stream = new MemoryStream();
-
         var directorySeparator = '/';
         var firstPrefix = "test/";
         var secondPrefix = "abc/";
@@ -74,6 +72,7 @@ public class DirMetaSnapshotDiffBashWriterTest
         var diff = secondSnapshot.Compare(firstSnapshot);
 
         var diffWriter = new DirMetaSnapshotDiffBashWriter();
+        var stream = new MemoryStream();
         await diffWriter.WriteAsync(stream, diff);
         stream.Position = 0;
 
@@ -81,12 +80,42 @@ public class DirMetaSnapshotDiffBashWriterTest
 
         var lines = result.Split(Environment.NewLine);
 
+        lines.Length.ShouldBe(7);
         ShouldBeCreateCommand(lines[0], createdEntry, firstSnapshot, secondSnapshot);
         ShouldBeModifyCommand(lines[1], firstModifiedEntry, secondModifiedEntry);
         ShouldBeCopyCommand(lines[2], firstCopiedEntry, secondCopiedEntryCopy, firstSnapshot, secondSnapshot);
         ShouldBeMoveCommand(lines[3], firstMovedEntry, secondMovedEntry, firstSnapshot, secondSnapshot);
         ShouldBeTouchCommand(lines[4], firstTouchedEntry, secondTouchedEntry);
         ShouldBeDeleteCommand(lines[5], deletedEntry);
+    }
+
+    [Theory]
+    [InlineData("abc def", "'abc def'")]
+    [InlineData("\"abc def\"", "'\"abc def\"'")]
+    [InlineData("apos' test", "'apos'\\'' test'")]
+    [InlineData("abcd\\ef", "'abcd\\ef'")]
+    public async Task Write_Escaped_Paths(string path, string expected)
+    {
+        var firstSnapshot = new DirMetaSnapshot();
+        var secondSnapshot = new DirMetaSnapshot();
+
+        firstSnapshot.AddEntry(new DirMetaSnapshotEntryBuilder()
+            .WithPath(path)
+            .Build());
+
+        var diff = secondSnapshot.Compare(firstSnapshot);
+
+        var diffWriter = new DirMetaSnapshotDiffBashWriter();
+        var stream = new MemoryStream();
+        await diffWriter.WriteAsync(stream, diff);
+        stream.Position = 0;
+
+        var result = Encoding.UTF8.GetString(stream.ToArray());
+
+        var lines = result.Split(Environment.NewLine);
+
+        lines.Length.ShouldBe(2);
+        lines[0].EndsWith(expected).ShouldBeTrue($"Line does not end with '{expected}': {lines[0]}");
     }
 
     private static void ShouldBeCreateCommand(string command, DirMetaSnapshotEntry entry, DirMetaSnapshot firstSnapshot, DirMetaSnapshot secondSnapshot)
