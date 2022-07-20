@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace DirDiff.Cli.CommandLineOptions;
+namespace DirDiff.Cli.CommandVerbs;
 
 [Verb("snapshot", isDefault: true, HelpText = "Creates a file metadata snapshot.")]
 internal class SnapshotOptions

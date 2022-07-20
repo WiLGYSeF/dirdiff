@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "DirDiff.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "",
+      "workingDirectory": ""
+    }
+  }
+}

@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace DirDiff.Cli.CommandLineOptions;
+namespace DirDiff.Cli.CommandVerbs;
 
 [Verb("diff")]
 internal class DiffOptions
