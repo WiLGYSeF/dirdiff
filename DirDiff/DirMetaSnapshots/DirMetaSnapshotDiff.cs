@@ -2,6 +2,10 @@
 
 public class DirMetaSnapshotDiff
 {
+    internal DirMetaSnapshot FirstSnapshot => _firstSnapshot;
+
+    internal DirMetaSnapshot SecondSnapshot => _secondSnapshot;
+
     /// <summary>
     /// Created entries.
     /// </summary>

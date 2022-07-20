@@ -141,11 +141,9 @@ static async Task<int> DiffSnapshots(DiffOptions opts)
 
     IDirMetaSnapshotDiffWriter? diffWriter = opts.DiffFormat?.ToLower() switch
     {
+        "bash" => new DirMetaSnapshotDiffBashWriter(),
         "json" => new DirMetaSnapshotDiffJsonWriter().Configure(options =>
         {
-            options.FirstPrefix = opts.FirstPrefix;
-            options.SecondPrefix = opts.SecondPrefix;
-
             options.UseUnixTimestamp = false;
             options.WriteIndented = true;
         }),
@@ -157,6 +155,12 @@ static async Task<int> DiffSnapshots(DiffOptions opts)
         WriteError("unknown diff format");
         return 1;
     }
+
+    diffWriter.Configure(options =>
+    {
+        options.FirstPrefix = opts.FirstPrefix;
+        options.SecondPrefix = opts.SecondPrefix;
+    });
 
     await diffWriter.WriteAsync(Console.OpenStandardOutput(), diff);
     return 0;

@@ -44,7 +44,6 @@ public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
         options.Converters.Add(new JsonStringEnumConverter());
         await stream.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(json, options));
     }
-
     private object SerializeEntryPair(DirMetaSnapshotDiff diff, DirMetaSnapshotDiffEntryPair pair)
     {
         return new
@@ -58,7 +57,11 @@ public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
     {
         var dictionary = new Dictionary<string, object>
         {
-            { "path", prefix != null ? prefix + diff.GetEntryPathWithoutPrefix(entry) : entry.Path },
+            {
+                "path",
+                prefix != null
+                    ? prefix + diff.GetEntryPathWithoutPrefix(entry)
+                    : Options.WritePrefix ? entry.Path : diff.GetEntryPathWithoutPrefix(entry) },
             { "type", entry.Type },
         };
 
