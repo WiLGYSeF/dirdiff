@@ -3,7 +3,7 @@
 namespace DirDiff.Cli.CommandVerbs;
 
 [Verb("snapshot", isDefault: true, HelpText = "Creates a file metadata snapshot.")]
-internal class SnapshotOptions
+internal class SnapshotOptions : ISnapshotReadOptions
 {
     [Option("format", Default = "text", HelpText = "Snapshot format (text, json)")]
     public string? SnapshotFormat { get; set; }
@@ -22,6 +22,18 @@ internal class SnapshotOptions
 
     [Option("remove-prefix", HelpText = "Remove snapshot file prefixes when writing")]
     public bool RemovePrefix { get; set; }
+
+    [Option("update", MetaValue = "SNAPSHOT", HelpText = "Use snapshot to create an updated snapshot")]
+    public string? UpdateSnapshot { get; set; }
+
+    [Option("read-hash", HelpText = "Indicates the text snapshot has file hashes")]
+    public bool ReadHash { get; set; }
+
+    [Option("read-last-modified-time", HelpText = "Indicates the text snapshot has file last modified times")]
+    public bool ReadLastModifiedTime { get; set; }
+
+    [Option("read-file-size", HelpText = "Indicates the text snapshot has file sizes")]
+    public bool ReadFileSize { get; set; }
 
     [Value(0)]
     public IEnumerable<string> Arguments { get; set; } = Array.Empty<string>();

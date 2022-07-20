@@ -6,7 +6,7 @@ internal class DirWalker : IDirWalker
 {
     public DirWalkerOptions Options { get; } = new();
 
-    public DirWalker Configure(Action<DirWalkerOptions> action)
+    public IDirWalker Configure(Action<DirWalkerOptions> action)
     {
         action(Options);
         return this;

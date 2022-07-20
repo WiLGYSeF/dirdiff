@@ -98,4 +98,39 @@ public class DirMetaSnapshotEntry
         Path = path;
         Type = type;
     }
+
+    public bool IsDifferentFrom(DirMetaSnapshotEntry entry)
+    {
+        return Type != entry.Type
+            || Path != entry.Path
+            || (FileSize.HasValue && entry.FileSize.HasValue && FileSize.Value != entry.FileSize.Value)
+            || (CreatedTime.HasValue && entry.CreatedTime.HasValue && CreatedTime.Value != entry.CreatedTime.Value)
+            || (LastModifiedTime.HasValue && entry.LastModifiedTime.HasValue)
+            || (HashAlgorithm.HasValue && entry.HashAlgorithm.HasValue && HashAlgorithm.Value != entry.HashAlgorithm.Value)
+            || (Hash != null && entry.Hash != null && !Hash.SequenceEqual(entry.Hash));
+    }
+
+    public void CopyKnownPropertiesFrom(DirMetaSnapshotEntry entry)
+    {
+        if (!FileSize.HasValue && entry.FileSize.HasValue)
+        {
+            FileSize = entry.FileSize;
+        }
+        if (!CreatedTime.HasValue && entry.CreatedTime.HasValue)
+        {
+            CreatedTime = entry.CreatedTime;
+        }
+        if (!LastModifiedTime.HasValue && entry.LastModifiedTime.HasValue)
+        {
+            LastModifiedTime = entry.LastModifiedTime;
+        }
+        if (!HashAlgorithm.HasValue && entry.HashAlgorithm.HasValue)
+        {
+            HashAlgorithm = entry.HashAlgorithm;
+        }
+        if (Hash == null && entry.Hash != null)
+        {
+            Hash = entry.Hash;
+        }
+    }
 }

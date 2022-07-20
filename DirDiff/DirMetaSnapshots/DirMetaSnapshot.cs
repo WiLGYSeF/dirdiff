@@ -1,5 +1,6 @@
 ﻿using DirDiff.Enums;
 using DirDiff.Extensions;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace DirDiff.DirMetaSnapshots;
@@ -53,10 +54,36 @@ public class DirMetaSnapshot
         DirectorySeparator = directorySeparator;
     }
 
+    /// <summary>
+    /// Checks if the snapshot contains the entry path.
+    /// </summary>
+    /// <param name="path">Entry path.</param>
+    /// <returns><see langword="true"/> if the entry path is in the snapshot, otherwise <see langword="false"/>.</returns>
+    public bool ContainsPath(string path)
+    {
+        return _entries.ContainsKey(path);
+    }
+
     internal void AddEntry(DirMetaSnapshotEntry entry)
     {
         _entries.Add(entry.Path, entry);
         Prefix = GetCommonPrefix(entry.Path);
+    }
+
+    internal DirMetaSnapshotEntry GetEntry(string path)
+    {
+        return _entries[path];
+    }
+
+    internal bool TryGetEntry(string path, [MaybeNullWhen(false)] out DirMetaSnapshotEntry entry)
+    {
+        if (_entries.TryGetValue(path, out entry))
+        {
+            return true;
+        }
+
+        entry = default;
+        return false;
     }
 
     /// <summary>
@@ -351,8 +378,8 @@ public class DirMetaSnapshot
     /// <returns>Returns true if entry hashes match, false otherwise. If entry hashes are not present, return null.</returns>
     private static bool? CheckEntryHashesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
-        return entry.HashHex != null && other.HashHex != null
-            ? entry.HashHex == other.HashHex
+        return entry.Hash != null && other.Hash != null
+            ? entry.Hash.SequenceEqual(other.Hash)
             : null;
     }
 

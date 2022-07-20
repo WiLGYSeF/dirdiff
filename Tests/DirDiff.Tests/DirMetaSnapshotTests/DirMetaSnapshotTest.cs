@@ -526,7 +526,7 @@ public class DirMetaSnapshotTest
         diff.CopiedEntries.Count.ShouldBe(expectedCopiedEntries.Count);
         foreach (var copiedEntry in expectedCopiedEntries)
         {
-            diff.CopiedEntries.ShouldContain(p => p.First.HashHex == copiedEntry.First.HashHex);
+            diff.CopiedEntries.ShouldContain(p => p.First.Hash!.SequenceEqual(copiedEntry.First.Hash!));
             diff.CopiedEntries.ShouldContain(p => p.Second == copiedEntry.Second);
         }
 
@@ -601,7 +601,7 @@ public class DirMetaSnapshotTest
         diff.CopiedEntries.Count.ShouldBe(expectedCopiedEntries.Count);
         foreach (var copiedEntry in expectedCopiedEntries)
         {
-            diff.CopiedEntries.ShouldContain(p => p.First.HashHex == copiedEntry.First.HashHex);
+            diff.CopiedEntries.ShouldContain(p => p.First.Hash!.SequenceEqual(copiedEntry.First.Hash!));
             diff.CopiedEntries.ShouldContain(p => p.Second == copiedEntry.Second);
         }
 

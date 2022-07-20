@@ -2,11 +2,9 @@
 
 public class DirWalkerTest
 {
-    // TODO: add tests
-
     [Fact]
     public void Test()
     {
-        false.ShouldBeTrue();
+        // TODO: add tests
     }
 }

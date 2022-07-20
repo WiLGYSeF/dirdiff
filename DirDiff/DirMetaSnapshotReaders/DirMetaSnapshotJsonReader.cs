@@ -27,7 +27,7 @@ public class DirMetaSnapshotJsonReader : IDirMetaSnapshotReader
 
     public async Task<DirMetaSnapshot> ReadAsync(Stream stream)
     {
-        var snapshot = new DirMetaSnapshot();
+        var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);
 
         var result = await DeserializeSnapshotAsync(stream);
 

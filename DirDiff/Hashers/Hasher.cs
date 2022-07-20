@@ -2,9 +2,9 @@
 
 namespace DirDiff.Hashers;
 
-internal static class Hasher
+internal class Hasher : IHasher
 {
-    public static byte[] HashStream(Enums.HashAlgorithm algorithm, Stream stream)
+    public byte[] HashStream(Enums.HashAlgorithm algorithm, Stream stream)
     {
         byte[] hash = algorithm switch
         {

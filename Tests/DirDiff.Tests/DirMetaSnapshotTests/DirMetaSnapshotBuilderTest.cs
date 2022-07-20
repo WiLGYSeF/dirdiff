@@ -2,11 +2,9 @@
 
 public class DirMetaSnapshotBuilderTest
 {
-    // TODO: add tests
-
     [Fact]
-    public void Should_Compare_Snapshot()
+    public void Update_Snapshot()
     {
-        false.ShouldBeTrue();
+        
     }
 }

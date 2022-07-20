@@ -35,8 +35,6 @@ internal static class SnapshotVerb
 
         try
         {
-            var snapshot = snapshotBuilder.CreateSnapshot();
-
             IDirMetaSnapshotWriter? snapshotWriter = opts.SnapshotFormat?.ToLower() switch
             {
                 "text" => new DirMetaSnapshotTextWriter().Configure(options =>
@@ -66,6 +64,18 @@ internal static class SnapshotVerb
                 options.WriteLastModifiedTime = opts.UseLastModifiedTime;
                 options.WriteFileSize = opts.UseFileSize;
             });
+
+            DirMetaSnapshot snapshot;
+
+            if (opts.UpdateSnapshot != null)
+            {
+                var origSnapshot = await Shared.ReadSnapshot(opts.UpdateSnapshot, opts);
+                snapshot = snapshotBuilder.UpdateSnapshot(origSnapshot);
+            }
+            else
+            {
+                snapshot = snapshotBuilder.CreateSnapshot();
+            }
 
             await snapshotWriter.WriteAsync(Console.OpenStandardOutput(), snapshot);
         }
