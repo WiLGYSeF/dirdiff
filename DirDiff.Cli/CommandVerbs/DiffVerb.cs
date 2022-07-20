@@ -25,18 +25,18 @@ internal static class DiffVerb
         {
             firstSnapshot = await ReadSnapshot(firstPath, opts);
         }
-        catch
+        catch (Exception ex)
         {
-            throw new CommandVerbException(1, $"could not read snapshot file: {firstPath}");
+            throw new CommandVerbException(1, $"could not read snapshot file: {firstPath}", ex.Message);
         }
 
         try
         {
             secondSnapshot = await ReadSnapshot(secondPath, opts);
         }
-        catch
+        catch (Exception ex)
         {
-            throw new CommandVerbException(1, $"could not read snapshot file: {secondPath}");
+            throw new CommandVerbException(1, $"could not read snapshot file: {secondPath}", ex.Message);
         }
 
         var diff = secondSnapshot.Compare(
@@ -78,7 +78,11 @@ internal static class DiffVerb
         var snapshotTextReader = new DirMetaSnapshotTextReader();
         snapshotTextReader.Configure(options =>
         {
-            options.ReadGuess = true;
+            options.ReadGuess = opts.UseHash || opts.UseLastModifiedTime || opts.UseFileSize;
+
+            options.ReadHash = opts.UseHash;
+            options.ReadLastModifiedTime = opts.UseLastModifiedTime;
+            options.ReadFileSize = opts.UseFileSize;
 
             options.Separator = "  ";
             options.NoneValue = "-";

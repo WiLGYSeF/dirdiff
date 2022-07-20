@@ -13,6 +13,10 @@ try
 catch (CommandVerbException exception)
 {
     Shared.WriteError(exception.Message);
+    if (exception.Detail != null)
+    {
+        Console.Error.WriteLine(exception.Detail);
+    }
     return exception.ReturnCode;
 }
 catch
