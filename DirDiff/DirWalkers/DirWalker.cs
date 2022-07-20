@@ -14,8 +14,16 @@ internal class DirWalker : IDirWalker
 
     public IEnumerable<DirWalkerResult> Walk(string path)
     {
+        var fullpath = Path.GetFullPath(path);
+
+        if (File.Exists(fullpath))
+        {
+            yield return new DirWalkerResult(fullpath, FileType.File);
+            yield break;
+        }
+
         var stack = new Stack<(string Path, int Depth)>();
-        stack.Push((Path.GetFullPath(path), 0));
+        stack.Push((fullpath, 0));
 
         while (stack.Count > 0)
         {
