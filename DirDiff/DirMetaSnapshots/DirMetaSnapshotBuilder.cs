@@ -1,4 +1,6 @@
 ﻿using DirDiff.DirWalkers;
+using DirDiff.FileInfoReaders;
+using DirDiff.FileReaders;
 using DirDiff.Hashers;
 
 namespace DirDiff.DirMetaSnapshots;
@@ -18,19 +20,27 @@ public class DirMetaSnapshotBuilder
     private readonly List<string> _snapshotPaths = new();
 
     private readonly IDirWalker _walker;
+    private readonly IFileReader _fileReader;
+    private readonly IFileInfoReader _fileInfoReader;
     private readonly IHasher _hasher;
 
     public DirMetaSnapshotBuilder()
     {
         _walker = new DirWalker();
+        _fileReader = new FileReader();
+        _fileInfoReader = new FileInfoReader();
         _hasher = new Hasher();
     }
 
     internal DirMetaSnapshotBuilder(
         IDirWalker dirWalker,
+        IFileReader fileReader,
+        IFileInfoReader fileInfoReader,
         IHasher hasher)
     {
         _walker = dirWalker;
+        _fileReader = fileReader;
+        _fileInfoReader = fileInfoReader;
         _hasher = hasher;
     }
 
@@ -60,7 +70,7 @@ public class DirMetaSnapshotBuilder
     /// Traverses paths and creates snapshot.
     /// </summary>
     /// <returns>Snapshot.</returns>
-    public DirMetaSnapshot CreateSnapshot()
+    public async Task<DirMetaSnapshot> CreateSnapshotAsync()
     {
         var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);
 
@@ -74,7 +84,7 @@ public class DirMetaSnapshotBuilder
 
         foreach (var path in _snapshotPaths)
         {
-            AddToSnapshot(snapshot, path);
+            await AddToSnapshotAsync(snapshot, path);
         }
 
         return snapshot;
@@ -90,7 +100,7 @@ public class DirMetaSnapshotBuilder
     /// </summary>
     /// <param name="snapshot">Snapshot to update.</param>
     /// <returns>New snapshot with updates.</returns>
-    public DirMetaSnapshot UpdateSnapshot(DirMetaSnapshot snapshot)
+    public async Task<DirMetaSnapshot> UpdateSnapshotAsync(DirMetaSnapshot snapshot)
     {
         var newSnapshot = new DirMetaSnapshot(Options.DirectorySeparator);
 
@@ -104,31 +114,31 @@ public class DirMetaSnapshotBuilder
 
         foreach (var path in _snapshotPaths)
         {
-            UpdateSnapshot(snapshot, newSnapshot, path);
+            await UpdateSnapshotAsync(snapshot, newSnapshot, path);
         }
 
         return newSnapshot;
     }
 
-    private void AddToSnapshot(DirMetaSnapshot snapshot, string path)
+    private async Task AddToSnapshotAsync(DirMetaSnapshot snapshot, string path)
     {
         foreach (var file in _walker.Walk(path))
         {
-            snapshot.AddEntry(CreateEntryFromResult(file, skipHash: false));
+            snapshot.AddEntry(await CreateEntryFromResultAsync(file, skipHash: false));
         }
     }
 
-    private void UpdateSnapshot(DirMetaSnapshot snapshot, DirMetaSnapshot newSnapshot, string path)
+    private async Task UpdateSnapshotAsync(DirMetaSnapshot snapshot, DirMetaSnapshot newSnapshot, string path)
     {
         foreach (var file in _walker.Walk(path))
         {
             if (!snapshot.TryGetEntry(file.Path, out var entry))
             {
-                newSnapshot.AddEntry(CreateEntryFromResult(file));
+                newSnapshot.AddEntry(await CreateEntryFromResultAsync(file));
                 continue;
             }
 
-            var newEntry = CreateEntryFromResult(file, skipHash: true);
+            var newEntry = await CreateEntryFromResultAsync(file, skipHash: true);
 
             if (newEntry.IsDifferentFrom(entry))
             {
@@ -150,7 +160,7 @@ public class DirMetaSnapshotBuilder
         }
     }
 
-    private DirMetaSnapshotEntry CreateEntryFromResult(DirWalkerResult result, bool skipHash = false)
+    private async Task<DirMetaSnapshotEntry> CreateEntryFromResultAsync(DirWalkerResult result, bool skipHash = false)
     {
         var entry = new DirMetaSnapshotEntry(result.Path, result.Type);
 
@@ -158,7 +168,7 @@ public class DirMetaSnapshotBuilder
             || Options.UseCreatedTime
             || Options.UseLastModifiedTime)
         {
-            var info = new FileInfo(result.Path);
+            var info = await _fileInfoReader.GetInfoAsync(result.Path);
 
             if (Options.UseFileSize)
             {
@@ -186,6 +196,8 @@ public class DirMetaSnapshotBuilder
     private void SetEntryHash(DirMetaSnapshotEntry entry)
     {
         entry.HashAlgorithm = Options.HashAlgorithm!.Value;
-        entry.Hash = _hasher.HashStream(Options.HashAlgorithm.Value, File.OpenRead(entry.Path));
+
+        using var stream = _fileReader.Open(entry.Path);
+        entry.Hash = _hasher.HashStream(Options.HashAlgorithm.Value, stream);
     }
 }
