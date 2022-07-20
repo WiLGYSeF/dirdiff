@@ -51,6 +51,7 @@ internal static class DiffVerb
         IDirMetaSnapshotDiffWriter? diffWriter = opts.DiffFormat?.ToLower() switch
         {
             "bash" => new DirMetaSnapshotDiffBashWriter(),
+            "powershell" => new DirMetaSnapshotDiffPowershellWriter(),
             "json" => new DirMetaSnapshotDiffJsonWriter().Configure(options =>
             {
                 options.UseUnixTimestamp = false;
