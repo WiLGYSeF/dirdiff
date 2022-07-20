@@ -57,7 +57,11 @@ public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
     {
         var dictionary = new Dictionary<string, object>
         {
-            { "path", prefix != null ? prefix + diff.GetEntryPathWithoutPrefix(entry) : entry.Path },
+            {
+                "path",
+                prefix != null
+                    ? prefix + diff.GetEntryPathWithoutPrefix(entry)
+                    : Options.WritePrefix ? entry.Path : diff.GetEntryPathWithoutPrefix(entry) },
             { "type", entry.Type },
         };
 

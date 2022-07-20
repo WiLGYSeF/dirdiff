@@ -2,6 +2,10 @@
 
 public class DirMetaSnapshotDiff
 {
+    internal DirMetaSnapshot FirstSnapshot => _firstSnapshot;
+
+    internal DirMetaSnapshot SecondSnapshot => _secondSnapshot;
+
     /// <summary>
     /// Created entries.
     /// </summary>
@@ -65,20 +69,6 @@ public class DirMetaSnapshotDiff
         if (_firstSnapshot.Entries.Contains(entry))
         {
             return _firstSnapshot.PathWithoutPrefix(entry.Path);
-        }
-        if (_secondSnapshot.Entries.Contains(entry))
-        {
-            return _secondSnapshot.PathWithoutPrefix(entry.Path);
-        }
-
-        throw new ArgumentException("Entry does not belong to snapshot diff.", nameof(entry));
-    }
-
-    public string GetEntryPathWithOtherSnapshotPrefix(DirMetaSnapshotEntry entry)
-    {
-        if (_firstSnapshot.Entries.Contains(entry))
-        {
-            return _secondSnapshot.Prefix + _firstSnapshot.PathWithoutPrefix(entry.Path);
         }
         if (_secondSnapshot.Entries.Contains(entry))
         {

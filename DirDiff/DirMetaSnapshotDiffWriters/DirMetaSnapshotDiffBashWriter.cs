@@ -17,7 +17,7 @@ public class DirMetaSnapshotDiffBashWriter : IDirMetaSnapshotDiffWriter
     {
         foreach (var entry in diff.CreatedEntries)
         {
-            //await WriteCommand(stream, CopyCommand(entry.));
+            await WriteCommand(stream, CopyCommand(entry.Path, diff.FirstSnapshot.Prefix + diff.GetEntryPathWithoutPrefix(entry)));
         }
 
         foreach (var pair in diff.ModifiedEntries)
@@ -27,12 +27,12 @@ public class DirMetaSnapshotDiffBashWriter : IDirMetaSnapshotDiffWriter
 
         foreach (var pair in diff.CopiedEntries)
         {
-            //await WriteCommand(stream, CopyCommand(entry.));
+            await WriteCommand(stream, CopyCommand(pair.First.Path, diff.FirstSnapshot.Prefix + diff.GetEntryPathWithoutPrefix(pair.Second)));
         }
 
         foreach (var pair in diff.MovedEntries)
         {
-            //await WriteCommand(stream, MoveCommand(entry.));
+            await WriteCommand(stream, MoveCommand(pair.First.Path, diff.FirstSnapshot.Prefix + diff.GetEntryPathWithoutPrefix(pair.Second)));
         }
 
         foreach (var pair in diff.TouchedEntries)
@@ -53,12 +53,22 @@ public class DirMetaSnapshotDiffBashWriter : IDirMetaSnapshotDiffWriter
 
     private string CopyCommand(DirMetaSnapshotEntry reference, DirMetaSnapshotEntry subject)
     {
-        return $"cp -- {EscapeArgument(reference.Path)} {EscapeArgument(subject.Path)}";
+        return CopyCommand(reference.Path, subject.Path);
+    }
+
+    private string CopyCommand(string reference, string subject)
+    {
+        return $"cp -- {EscapeArgument(reference)} {EscapeArgument(subject)}";
     }
 
     private string MoveCommand(DirMetaSnapshotEntry oldEntry, DirMetaSnapshotEntry newEntry)
     {
-        return $"mv -- {EscapeArgument(oldEntry.Path)} {EscapeArgument(newEntry.Path)}";
+        return MoveCommand(oldEntry.Path, newEntry.Path);
+    }
+
+    private string MoveCommand(string oldPath, string newPath)
+    {
+        return $"mv -- {EscapeArgument(oldPath)} {EscapeArgument(newPath)}";
     }
 
     private string TouchCommand(DirMetaSnapshotEntry reference, DirMetaSnapshotEntry subject)
@@ -82,9 +92,6 @@ public class DirMetaSnapshotDiffBashWriter : IDirMetaSnapshotDiffWriter
             {
                 case '\'':
                     builder.Append("'\\''");
-                    break;
-                case '\\':
-                    builder.Append("\\\\");
                     break;
                 default:
                     builder.Append(argument[i]);
