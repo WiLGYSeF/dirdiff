@@ -6,12 +6,11 @@ namespace DirDiff.Cli.CommandVerbs;
 
 internal static class DiffVerb
 {
-    public static async Task<int> Run(DiffOptions opts)
+    public static async Task Run(DiffOptions opts)
     {
         if (opts.Arguments.Count() != 2)
         {
-            Shared.WriteError($"diff requires exactly two snapshots to compare.");
-            return 1;
+            throw new CommandVerbException(1, "diff requires exactly two snapshots to compare");
         }
 
         var args = opts.Arguments.ToList();
@@ -28,8 +27,7 @@ internal static class DiffVerb
         }
         catch
         {
-            Shared.WriteError($"could not read snapshot file: {firstPath}");
-            return 1;
+            throw new CommandVerbException(1, $"could not read snapshot file: {firstPath}");
         }
 
         try
@@ -38,8 +36,7 @@ internal static class DiffVerb
         }
         catch
         {
-            Shared.WriteError($"could not read snapshot file: {secondPath}");
-            return 1;
+            throw new CommandVerbException(1, $"could not read snapshot file: {secondPath}");
         }
 
         var diff = secondSnapshot.Compare(
@@ -62,8 +59,7 @@ internal static class DiffVerb
 
         if (diffWriter == null)
         {
-            Shared.WriteError("unknown diff format");
-            return 1;
+            throw new CommandVerbException(1, "unknown diff format");
         }
 
         diffWriter.Configure(options =>
@@ -73,7 +69,6 @@ internal static class DiffVerb
         });
 
         await diffWriter.WriteAsync(Console.OpenStandardOutput(), diff);
-        return 0;
     }
 
     static async Task<DirMetaSnapshot> ReadSnapshot(string path, DiffOptions opts)

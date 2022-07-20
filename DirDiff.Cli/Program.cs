@@ -1,25 +1,45 @@
 ﻿using CommandLine;
+using DirDiff.Cli;
 using DirDiff.Cli.CommandVerbs;
 using System.Reflection;
 
 var verbs = LoadVerbs();
-await Parser.Default.ParseArguments(args, verbs)
-    .WithParsedAsync(Run);
+
+try
+{
+    await Parser.Default.ParseArguments(args, verbs)
+        .WithParsedAsync(Run);
+}
+catch (CommandVerbException exception)
+{
+    Shared.WriteError(exception.Message);
+    return exception.ReturnCode;
+}
+catch
+{
+    return 1;
+}
 
 return 0;
 
-static async Task<int> Run(object opts)
+static async Task Run(object opts)
 {
-    return opts switch
+    switch (opts)
     {
-        SnapshotOptions snapshotOptions => await SnapshotVerb.Run(snapshotOptions),
-        DiffOptions diffOptions => await DiffVerb.Run(diffOptions),
-        _ => throw new NotImplementedException(),
-    };
+        case SnapshotOptions snapshotOptions:
+            await SnapshotVerb.Run(snapshotOptions);
+            break;
+        case DiffOptions diffOptions:
+            await DiffVerb.Run(diffOptions);
+            break;
+        default:
+            throw new NotImplementedException();
+    }
 }
 
 static Type[] LoadVerbs()
 {
     return Assembly.GetExecutingAssembly().GetTypes()
-        .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
+        .Where(t => t.GetCustomAttribute<VerbAttribute>() != null)
+        .ToArray();
 }

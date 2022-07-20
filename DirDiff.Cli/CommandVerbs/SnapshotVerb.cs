@@ -6,7 +6,7 @@ namespace DirDiff.Cli.CommandVerbs;
 
 internal static class SnapshotVerb
 {
-    public static async Task<int> Run(SnapshotOptions opts)
+    public static async Task Run(SnapshotOptions opts)
     {
         var snapshotBuilder = new DirMetaSnapshotBuilder();
         snapshotBuilder.Configure(options =>
@@ -54,8 +54,7 @@ internal static class SnapshotVerb
 
             if (snapshotWriter == null)
             {
-                Shared.WriteError("unknown snapshot format");
-                return 1;
+                throw new CommandVerbException(1, "unknown snapshot format");
             }
 
             snapshotWriter.Configure(options =>
@@ -72,10 +71,7 @@ internal static class SnapshotVerb
         }
         catch (DirectoryNotFoundException exception)
         {
-            Shared.WriteError($"could not find path: {exception.Message}");
-            return 1;
+            throw new CommandVerbException(1, $"could not find path: {exception.Message}");
         }
-
-        return 0;
     }
 }
