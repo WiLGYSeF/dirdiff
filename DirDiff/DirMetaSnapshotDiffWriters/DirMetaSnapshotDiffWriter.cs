@@ -3,7 +3,7 @@ using System.Text;
 
 namespace DirDiff.DirMetaSnapshotDiffWriters;
 
-public abstract class DirMetaSnapshotDiffWriter : IDirMetaSnapshotDiffWriter
+public abstract class DirMetaSnapshotDiffCommandWriter : IDirMetaSnapshotDiffWriter
 {
     abstract public DirMetaSnapshotDiffWriterOptions Options { get; }
 
