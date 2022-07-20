@@ -8,7 +8,7 @@ namespace DirDiff.DirMetaSnapshotDiffWriters;
 public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
 {
     public DirMetaSnapshotDiffJsonWriterOptions JsonWriterOptions { get; } = new();
-    
+
     public DirMetaSnapshotDiffWriterOptions Options => JsonWriterOptions;
 
     public DirMetaSnapshotDiffJsonWriter Configure(Action<DirMetaSnapshotDiffJsonWriterOptions> action)
@@ -65,7 +65,7 @@ public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
             { "type", entry.Type },
         };
 
-        if ( entry.Hash != null)
+        if (entry.Hash != null)
         {
             dictionary["hash"] = entry.HashHex!;
 

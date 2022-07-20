@@ -834,7 +834,7 @@ public class DirMetaSnapshotTest
     }
 
     #endregion
-    
+
     #region Null Checks
 
     [Fact]
