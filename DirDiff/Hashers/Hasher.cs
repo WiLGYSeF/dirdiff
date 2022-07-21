@@ -2,7 +2,7 @@
 
 namespace DirDiff.Hashers;
 
-internal class Hasher : IHasher
+public class Hasher : IHasher
 {
     public byte[] HashStream(Enums.HashAlgorithm algorithm, Stream stream)
     {

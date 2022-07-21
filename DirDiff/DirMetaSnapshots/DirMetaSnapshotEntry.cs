@@ -93,7 +93,7 @@ public class DirMetaSnapshotEntry
     private byte[]? _hash;
     private string? _hashHex;
 
-    internal DirMetaSnapshotEntry(string path, FileType type)
+    public DirMetaSnapshotEntry(string path, FileType type)
     {
         Path = path;
         Type = type;

@@ -24,15 +24,7 @@ public class DirMetaSnapshotBuilder
     private readonly IFileInfoReader _fileInfoReader;
     private readonly IHasher _hasher;
 
-    public DirMetaSnapshotBuilder()
-    {
-        _walker = new DirWalker();
-        _fileReader = new FileReader();
-        _fileInfoReader = new FileInfoReader();
-        _hasher = new Hasher();
-    }
-
-    internal DirMetaSnapshotBuilder(
+    public DirMetaSnapshotBuilder(
         IDirWalker dirWalker,
         IFileReader fileReader,
         IFileInfoReader fileInfoReader,

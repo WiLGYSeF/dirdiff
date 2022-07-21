@@ -1,6 +1,6 @@
 ﻿namespace DirDiff.FileInfoReaders;
 
-internal class FileInfoResult
+public class FileInfoResult
 {
     public long? Length { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿namespace DirDiff.FileInfoReaders;
 
-internal class FileInfoReader : IFileInfoReader
+public class FileInfoReader : IFileInfoReader
 {
     public async Task<FileInfoResult> GetInfoAsync(string path)
     {

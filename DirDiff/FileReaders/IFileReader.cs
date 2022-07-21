@@ -1,6 +1,6 @@
 ﻿namespace DirDiff.FileReaders;
 
-internal interface IFileReader
+public interface IFileReader
 {
     Stream Open(string path);
 }

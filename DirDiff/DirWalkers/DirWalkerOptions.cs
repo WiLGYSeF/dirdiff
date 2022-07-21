@@ -1,6 +1,6 @@
 ﻿namespace DirDiff.DirWalkers;
 
-internal class DirWalkerOptions
+public class DirWalkerOptions
 {
     public bool ReturnDirectories { get; set; }
 

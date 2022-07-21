@@ -35,22 +35,10 @@ public class DirMetaSnapshot
     private string? _prefix;
     private string[]? _prefixParts;
 
-    public DirMetaSnapshot() : this(null) { }
+    public DirMetaSnapshot() : this(Path.DirectorySeparatorChar) { }
 
-    internal DirMetaSnapshot(string? prefix)
+    public DirMetaSnapshot(char directorySeparator)
     {
-        Prefix = prefix;
-        DirectorySeparator = Path.DirectorySeparatorChar;
-    }
-
-    internal DirMetaSnapshot(char directorySeparator)
-    {
-        DirectorySeparator = directorySeparator;
-    }
-
-    internal DirMetaSnapshot(string? prefix, char directorySeparator)
-    {
-        Prefix = prefix;
         DirectorySeparator = directorySeparator;
     }
 
@@ -64,18 +52,18 @@ public class DirMetaSnapshot
         return _entries.ContainsKey(path);
     }
 
-    internal void AddEntry(DirMetaSnapshotEntry entry)
+    public void AddEntry(DirMetaSnapshotEntry entry)
     {
         _entries.Add(entry.Path, entry);
         Prefix = GetCommonPrefix(entry.Path);
     }
 
-    internal DirMetaSnapshotEntry GetEntry(string path)
+    public DirMetaSnapshotEntry GetEntry(string path)
     {
         return _entries[path];
     }
 
-    internal bool TryGetEntry(string path, [MaybeNullWhen(false)] out DirMetaSnapshotEntry entry)
+    public bool TryGetEntry(string path, [MaybeNullWhen(false)] out DirMetaSnapshotEntry entry)
     {
         if (_entries.TryGetValue(path, out entry))
         {

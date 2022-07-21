@@ -1,6 +1,6 @@
 ﻿namespace DirDiff.DirWalkers;
 
-internal interface IDirWalker
+public interface IDirWalker
 {
     DirWalkerOptions Options { get; }
 

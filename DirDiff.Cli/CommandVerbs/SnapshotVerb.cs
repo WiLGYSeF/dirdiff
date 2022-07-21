@@ -1,6 +1,10 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.DirMetaSnapshotWriters;
+using DirDiff.DirWalkers;
 using DirDiff.Enums;
+using DirDiff.FileInfoReaders;
+using DirDiff.FileReaders;
+using DirDiff.Hashers;
 
 namespace DirDiff.Cli.CommandVerbs;
 
@@ -8,7 +12,11 @@ internal static class SnapshotVerb
 {
     public static async Task Run(SnapshotOptions opts)
     {
-        var snapshotBuilder = new DirMetaSnapshotBuilder();
+        var snapshotBuilder = new DirMetaSnapshotBuilder(
+            new DirWalker(),
+            new FileReader(),
+            new FileInfoReader(),
+            new Hasher());
         snapshotBuilder.Configure(options =>
         {
             options.DirectorySeparator = Path.DirectorySeparatorChar;
