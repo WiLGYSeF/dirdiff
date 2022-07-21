@@ -59,6 +59,16 @@ public class DirMetaSnapshotBuilder
     }
 
     /// <summary>
+    /// Removes all paths from being traversed in snapshot.
+    /// </summary>
+    /// <returns></returns>
+    public DirMetaSnapshotBuilder ClearPaths()
+    {
+        _snapshotPaths.Clear();
+        return this;
+    }
+
+    /// <summary>
     /// Traverses paths and creates snapshot.
     /// </summary>
     /// <returns>Snapshot.</returns>
