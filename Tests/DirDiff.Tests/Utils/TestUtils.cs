@@ -97,7 +97,12 @@ internal static class TestUtils
         return builder.ToString();
     }
 
-    public static string RandomPath(int parts, string separator = "/")
+    public static string RandomPath(int parts)
+    {
+        return RandomPath(parts, '/');
+    }
+
+    public static string RandomPath(int parts, char separator)
     {
         var minPartLength = 4;
         var maxPartLength = 24;
