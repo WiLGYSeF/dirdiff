@@ -1,11 +1,12 @@
 ﻿using DirDiff.DirMetaSnapshotDiffWriters;
 using DirDiff.DirMetaSnapshots;
 using DirDiff.DirMetaSnapshotWriters;
-using System.Text.Json;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace DirDiff.Tests.DirMetaSnapshotDiffWritersTests;
 
-public class DirMetaSnapshotDiffJsonWriterTest
+public class DirMetaSnapshotDiffYamlWriterTest
 {
     [Fact]
     public async Task Write_Diff()
@@ -21,7 +22,7 @@ public class DirMetaSnapshotDiffJsonWriterTest
 
         var diff = secondSnapshot.Compare(firstSnapshot);
 
-        var diffWriter = new DirMetaSnapshotDiffJsonWriter();
+        var diffWriter = new DirMetaSnapshotDiffYamlWriter();
         var stream = new MemoryStream();
         await diffWriter.WriteAsync(stream, diff);
         stream.Position = 0;
@@ -43,12 +44,13 @@ public class DirMetaSnapshotDiffJsonWriterTest
 
     private static async Task<DiffSchema> DeserializeDiffAsync(Stream stream)
     {
-        var result = await JsonSerializer.DeserializeAsync<DiffSchema>(
-            stream,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-            });
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        using var reader = new StreamReader(stream);
+        var result = deserializer.Deserialize<DiffSchema>(reader);
+
         if (result == null)
         {
             throw new ArgumentException("Stream could not be deserialized to diff.", nameof(stream));
