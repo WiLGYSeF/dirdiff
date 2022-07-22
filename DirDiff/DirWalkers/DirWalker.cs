@@ -2,11 +2,11 @@
 
 namespace DirDiff.DirWalkers;
 
-internal class DirWalker : IDirWalker
+public class DirWalker : IDirWalker
 {
     public DirWalkerOptions Options { get; } = new();
 
-    public DirWalker Configure(Action<DirWalkerOptions> action)
+    public IDirWalker Configure(Action<DirWalkerOptions> action)
     {
         action(Options);
         return this;
@@ -14,45 +14,59 @@ internal class DirWalker : IDirWalker
 
     public IEnumerable<DirWalkerResult> Walk(string path)
     {
-        var stack = new Stack<string>();
-        stack.Push(Path.GetFullPath(path));
+        var fullpath = Path.GetFullPath(path);
+
+        if (File.Exists(fullpath))
+        {
+            yield return new DirWalkerResult(fullpath, FileType.File);
+            yield break;
+        }
+
+        var stack = new Stack<(string Path, int Depth)>();
+        stack.Push((fullpath, 0));
 
         while (stack.Count > 0)
         {
             var currentPath = stack.Pop();
 
-            if (!Directory.Exists(currentPath))
+            if (!Directory.Exists(currentPath.Path))
             {
                 if (Options.ThrowIfNotFound)
                 {
-                    throw new DirectoryNotFoundException(currentPath);
+                    throw new DirectoryNotFoundException(currentPath.Path);
                 }
                 continue;
             }
 
-            if (Options.ReturnDirectories)
+            if (!Options.MinDepthLimit.HasValue || currentPath.Depth >= Options.MinDepthLimit.Value)
             {
-                yield return new DirWalkerResult(currentPath, FileType.Directory);
-            }
-
-            foreach (var filename in Directory.EnumerateFiles(currentPath))
-            {
-                yield return new DirWalkerResult(filename, FileType.File);
-            }
-
-            if (Options.KeepDirectoryOrder)
-            {
-                var directories = Directory.GetDirectories(currentPath);
-                for (var i = directories.Length - 1; i >= 0; i--)
+                if (Options.ReturnDirectories)
                 {
-                    stack.Push(directories[i]);
+                    yield return new DirWalkerResult(currentPath.Path, FileType.Directory);
+                }
+
+                foreach (var filename in Directory.EnumerateFiles(currentPath.Path))
+                {
+                    yield return new DirWalkerResult(filename, FileType.File);
                 }
             }
-            else
+
+            if (!Options.MaxDepthLimit.HasValue || currentPath.Depth < Options.MaxDepthLimit.Value)
             {
-                foreach (var dirname in Directory.EnumerateDirectories(currentPath))
+                if (Options.KeepDirectoryOrder)
                 {
-                    stack.Push(dirname);
+                    var directories = Directory.GetDirectories(currentPath.Path);
+                    for (var i = directories.Length - 1; i >= 0; i--)
+                    {
+                        stack.Push((directories[i], currentPath.Depth + 1));
+                    }
+                }
+                else
+                {
+                    foreach (var dirname in Directory.EnumerateDirectories(currentPath.Path))
+                    {
+                        stack.Push((dirname, currentPath.Depth + 1));
+                    }
                 }
             }
         }
