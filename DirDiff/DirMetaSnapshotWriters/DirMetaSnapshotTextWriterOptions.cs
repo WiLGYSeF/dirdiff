@@ -11,4 +11,9 @@ public class DirMetaSnapshotTextWriterOptions : DirMetaSnapshotWriterOptions
     /// None value indicator.
     /// </summary>
     public string NoneValue { get; set; } = "-";
+
+    /// <summary>
+    /// Whether to write the file format header.
+    /// </summary>
+    public bool WriteHeader { get; set; } = true;
 }

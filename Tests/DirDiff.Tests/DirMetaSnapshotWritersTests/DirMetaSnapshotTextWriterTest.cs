@@ -8,8 +8,10 @@ namespace DirDiff.Tests.DirMetaSnapshotWritersTests;
 
 public class DirMetaSnapshotTextWriterTest
 {
-    [Fact]
-    public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize(bool writeHeader)
     {
         var stream = new MemoryStream();
 
@@ -23,14 +25,18 @@ public class DirMetaSnapshotTextWriterTest
             entries.Add(entry);
         }
 
+        var expectedHeader = "# Hash,HashAlgorithm,CreatedTime,LastModifiedTime,FileSize,Path";
+
         var writer = new DirMetaSnapshotTextWriter()
-            .Configure((DirMetaSnapshotTextWriterOptions options) =>
+            .Configure(options =>
             {
                 options.WriteHash = true;
                 options.WriteHashAlgorithm = true;
                 options.WriteCreatedTime = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
+
+                options.WriteHeader = writeHeader;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -39,10 +45,16 @@ public class DirMetaSnapshotTextWriterTest
         var content = Encoding.UTF8.GetString(stream.ToArray());
         var lines = content.Split(Environment.NewLine)[..^1];
 
-        lines.Length.ShouldBe(entries.Count);
+        lines.Length.ShouldBe(writeHeader ? entries.Count + 1 : entries.Count);
 
         var linesEnumerator = lines.GetEnumerator();
         var entriesEnumerator = entries.GetEnumerator();
+
+        if (writeHeader)
+        {
+            linesEnumerator.MoveNext();
+            linesEnumerator.Current.ShouldBe(expectedHeader);
+        }
 
         while (linesEnumerator.MoveNext() && entriesEnumerator.MoveNext())
         {
@@ -62,8 +74,10 @@ public class DirMetaSnapshotTextWriterTest
         }
     }
 
-    [Fact]
-    public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize_NoValue()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize_NoValue(bool writeHeader)
     {
         var stream = new MemoryStream();
 
@@ -82,14 +96,18 @@ public class DirMetaSnapshotTextWriterTest
             entries.Add(entry);
         }
 
+        var expectedHeader = "# Hash,HashAlgorithm,CreatedTime,LastModifiedTime,FileSize,Path";
+
         var writer = new DirMetaSnapshotTextWriter()
-            .Configure((DirMetaSnapshotTextWriterOptions options) =>
+            .Configure(options =>
             {
                 options.WriteHash = true;
                 options.WriteHashAlgorithm = true;
                 options.WriteCreatedTime = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
+
+                options.WriteHeader = writeHeader;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -98,10 +116,16 @@ public class DirMetaSnapshotTextWriterTest
         var content = Encoding.UTF8.GetString(stream.ToArray());
         var lines = content.Split(Environment.NewLine)[..^1];
 
-        lines.Length.ShouldBe(entries.Count);
+        lines.Length.ShouldBe(writeHeader ? entries.Count + 1 : entries.Count);
 
         var linesEnumerator = lines.GetEnumerator();
         var entriesEnumerator = entries.GetEnumerator();
+
+        if (writeHeader)
+        {
+            linesEnumerator.MoveNext();
+            linesEnumerator.Current.ShouldBe(expectedHeader);
+        }
 
         while (linesEnumerator.MoveNext() && entriesEnumerator.MoveNext())
         {
@@ -121,8 +145,10 @@ public class DirMetaSnapshotTextWriterTest
         }
     }
 
-    [Fact]
-    public async Task Write_Hash_LastModifiedTime_FileSize()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Write_Hash_LastModifiedTime_FileSize(bool writeHeader)
     {
         var stream = new MemoryStream();
 
@@ -137,12 +163,16 @@ public class DirMetaSnapshotTextWriterTest
             entries.Add(entry);
         }
 
+        var expectedHeader = "# Hash,LastModifiedTime,FileSize,Path";
+
         var writer = new DirMetaSnapshotTextWriter()
-            .Configure((DirMetaSnapshotTextWriterOptions options) =>
+            .Configure(options =>
             {
                 options.WriteHash = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
+
+                options.WriteHeader = writeHeader;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -151,10 +181,16 @@ public class DirMetaSnapshotTextWriterTest
         var content = Encoding.UTF8.GetString(stream.ToArray());
         var lines = content.Split(Environment.NewLine)[..^1];
 
-        lines.Length.ShouldBe(entries.Count);
+        lines.Length.ShouldBe(writeHeader ? entries.Count + 1 : entries.Count);
 
         var linesEnumerator = lines.GetEnumerator();
         var entriesEnumerator = entries.GetEnumerator();
+
+        if (writeHeader)
+        {
+            linesEnumerator.MoveNext();
+            linesEnumerator.Current.ShouldBe(expectedHeader);
+        }
 
         while (linesEnumerator.MoveNext() && entriesEnumerator.MoveNext())
         {

@@ -3,7 +3,7 @@
 namespace DirDiff.Cli.CommandVerbs;
 
 [Verb("diff")]
-internal class DiffOptions : ISnapshotReadOptions
+internal class DiffOptions
 {
     [Option("format", Default = "json", HelpText = "Snapshot diff format (bash, powershell, json)")]
     public string? DiffFormat { get; set; }
@@ -22,15 +22,6 @@ internal class DiffOptions : ISnapshotReadOptions
 
     [Option("second-prefix", MetaValue = "PREFIX", HelpText = "Replace second snapshot prefix with string")]
     public string? SecondPrefix { get; set; }
-
-    [Option("hash", HelpText = "Indicates the text snapshot has file hashes")]
-    public bool ReadHash { get; set; }
-
-    [Option("last-modified-time", HelpText = "Indicates the text snapshot has file last modified times")]
-    public bool ReadLastModifiedTime { get; set; }
-
-    [Option("file-size", HelpText = "Indicates the text snapshot has file sizes")]
-    public bool ReadFileSize { get; set; }
 
     [Value(0)]
     public IEnumerable<string> Arguments { get; set; } = Array.Empty<string>();

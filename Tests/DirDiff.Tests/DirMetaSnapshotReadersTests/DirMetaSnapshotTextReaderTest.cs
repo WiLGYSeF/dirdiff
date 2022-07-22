@@ -30,6 +30,8 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteCreatedTime = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
+
+                options.WriteHeader = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -52,11 +54,11 @@ public class DirMetaSnapshotTextReaderTest
         {
             var resultEntry = resultSnapshot.Entries.Single(e => e.Path == entry.Path);
 
-            resultEntry.FileSize.ShouldBe(entry.FileSize);
-            resultEntry.CreatedTime.ShouldBe(TruncateToSeconds(entry.CreatedTime!.Value));
-            resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
             resultEntry.Hash.ShouldBe(entry.Hash);
             resultEntry.HashAlgorithm.ShouldBe(entry.HashAlgorithm);
+            resultEntry.CreatedTime.ShouldBe(TruncateToSeconds(entry.CreatedTime!.Value));
+            resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
+            resultEntry.FileSize.ShouldBe(entry.FileSize);
         }
     }
 
@@ -83,6 +85,8 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteCreatedTime = false;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
+
+                options.WriteHeader = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -105,9 +109,9 @@ public class DirMetaSnapshotTextReaderTest
         {
             var resultEntry = resultSnapshot.Entries.Single(e => e.Path == entry.Path);
 
-            resultEntry.FileSize.ShouldBe(entry.FileSize);
-            resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
             resultEntry.Hash.ShouldBe(entry.Hash);
+            resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
+            resultEntry.FileSize.ShouldBe(entry.FileSize);
         }
     }
 
@@ -136,6 +140,8 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteCreatedTime = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
+
+                options.WriteHeader = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -154,11 +160,11 @@ public class DirMetaSnapshotTextReaderTest
         {
             var resultEntry = resultSnapshot.Entries.Single(e => e.Path == entry.Path);
 
-            resultEntry.FileSize.ShouldBe(entry.FileSize);
-            resultEntry.CreatedTime.ShouldBe(TruncateToSeconds(entry.CreatedTime!.Value));
-            resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
             resultEntry.Hash.ShouldBe(entry.Hash);
             resultEntry.HashAlgorithm.ShouldBe(entry.HashAlgorithm);
+            resultEntry.CreatedTime.ShouldBe(TruncateToSeconds(entry.CreatedTime!.Value));
+            resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
+            resultEntry.FileSize.ShouldBe(entry.FileSize);
         }
     }
 
@@ -185,6 +191,8 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteCreatedTime = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
+
+                options.WriteHeader = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -203,10 +211,10 @@ public class DirMetaSnapshotTextReaderTest
         {
             var resultEntry = resultSnapshot.Entries.Single(e => e.Path == entry.Path);
 
-            resultEntry.FileSize.ShouldBe(entry.FileSize);
+            resultEntry.Hash.ShouldBe(entry.Hash);
             resultEntry.CreatedTime.ShouldBe(TruncateToSeconds(entry.CreatedTime!.Value));
             resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
-            resultEntry.Hash.ShouldBe(entry.Hash);
+            resultEntry.FileSize.ShouldBe(entry.FileSize);
         }
     }
 
@@ -233,6 +241,8 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteCreatedTime = false;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
+
+                options.WriteHeader = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -251,9 +261,9 @@ public class DirMetaSnapshotTextReaderTest
         {
             var resultEntry = resultSnapshot.Entries.Single(e => e.Path == entry.Path);
 
-            resultEntry.FileSize.ShouldBe(entry.FileSize);
-            resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
             resultEntry.Hash.ShouldBe(entry.Hash);
+            resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
+            resultEntry.FileSize.ShouldBe(entry.FileSize);
         }
     }
 
@@ -280,6 +290,8 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteCreatedTime = false;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
+
+                options.WriteHeader = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -298,12 +310,57 @@ public class DirMetaSnapshotTextReaderTest
         {
             var resultEntry = resultSnapshot.Entries.Single(e => e.Path == entry.Path);
 
-            resultEntry.FileSize.ShouldBe(entry.FileSize);
             resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
+            resultEntry.FileSize.ShouldBe(entry.FileSize);
         }
     }
 
     #endregion
+
+    [Fact]
+    public async Task Read_Header_Hash_LastModifiedTime_FileSize()
+    {
+        var stream = new MemoryStream();
+
+        var snapshot = new DirMetaSnapshot();
+        var entries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder().Build();
+            snapshot.AddEntry(entry);
+            entries.Add(entry);
+        }
+
+        var writer = new DirMetaSnapshotTextWriter()
+            .Configure(options =>
+            {
+                options.WriteHash = true;
+                options.WriteHashAlgorithm = false;
+                options.WriteCreatedTime = false;
+                options.WriteLastModifiedTime = true;
+                options.WriteFileSize = true;
+
+                options.WriteHeader = true;
+            });
+
+        await writer.WriteAsync(stream, snapshot);
+        stream.Position = 0;
+
+        var reader = new DirMetaSnapshotTextReader();
+        var resultSnapshot = await reader.ReadAsync(stream);
+
+        resultSnapshot.Entries.Count.ShouldBe(snapshot.Entries.Count);
+
+        foreach (var entry in snapshot.Entries)
+        {
+            var resultEntry = resultSnapshot.Entries.Single(e => e.Path == entry.Path);
+
+            resultEntry.Hash.ShouldBe(entry.Hash);
+            resultEntry.LastModifiedTime.ShouldBe(TruncateToSeconds(entry.LastModifiedTime!.Value));
+            resultEntry.FileSize.ShouldBe(entry.FileSize);
+        }
+    }
 
     private static DateTime TruncateToSeconds(DateTime dateTime)
     {

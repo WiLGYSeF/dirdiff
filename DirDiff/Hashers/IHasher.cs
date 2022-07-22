@@ -2,5 +2,5 @@
 
 public interface IHasher
 {
-    byte[] HashStream(Enums.HashAlgorithm algorithm, Stream stream);
+    byte[]? HashStream(Enums.HashAlgorithm algorithm, Stream stream);
 }
