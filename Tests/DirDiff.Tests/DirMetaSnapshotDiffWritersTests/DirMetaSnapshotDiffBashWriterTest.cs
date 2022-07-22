@@ -17,57 +17,7 @@ public class DirMetaSnapshotDiffBashWriterTest
         var firstSnapshot = new DirMetaSnapshot(directorySeparator);
         var secondSnapshot = new DirMetaSnapshot(directorySeparator);
 
-        var createdEntry = new DirMetaSnapshotEntryBuilder()
-            .WithPath(RandomPathWithPrefix(secondPrefix))
-            .Build();
-        secondSnapshot.AddEntry(createdEntry);
-
-        var firstModifiedEntry = new DirMetaSnapshotEntryBuilder()
-            .WithPath(RandomPathWithPrefix(firstPrefix))
-            .Build();
-        firstSnapshot.AddEntry(firstModifiedEntry);
-        var secondModifiedEntry = new DirMetaSnapshotEntryBuilder().From(firstModifiedEntry)
-            .WithPath(PathWithDifferentPrefix(firstModifiedEntry.Path, firstPrefix, secondPrefix))
-            .WithRandomHash()
-            .Build();
-        secondSnapshot.AddEntry(secondModifiedEntry);
-
-        var firstCopiedEntry = new DirMetaSnapshotEntryBuilder()
-            .WithPath(RandomPathWithPrefix(firstPrefix))
-            .Build();
-        firstSnapshot.AddEntry(firstCopiedEntry);
-        var secondCopiedEntry = new DirMetaSnapshotEntryBuilder().From(firstCopiedEntry)
-            .WithPath(PathWithDifferentPrefix(firstCopiedEntry.Path, firstPrefix, secondPrefix))
-            .Build();
-        secondSnapshot.AddEntry(secondCopiedEntry);
-        var secondCopiedEntryCopy = new DirMetaSnapshotEntryBuilder().From(firstCopiedEntry)
-            .WithPath(RandomPathWithPrefix(secondPrefix))
-            .Build();
-        secondSnapshot.AddEntry(secondCopiedEntryCopy);
-
-        var firstMovedEntry = new DirMetaSnapshotEntryBuilder()
-            .WithPath(RandomPathWithPrefix(firstPrefix))
-            .Build();
-        firstSnapshot.AddEntry(firstMovedEntry);
-        var secondMovedEntry = new DirMetaSnapshotEntryBuilder().From(firstMovedEntry)
-            .WithPath(RandomPathWithPrefix(secondPrefix))
-            .Build();
-        secondSnapshot.AddEntry(secondMovedEntry);
-
-        var firstTouchedEntry = new DirMetaSnapshotEntryBuilder()
-            .WithPath(RandomPathWithPrefix(firstPrefix))
-            .Build();
-        firstSnapshot.AddEntry(firstTouchedEntry);
-        var secondTouchedEntry = new DirMetaSnapshotEntryBuilder().From(firstTouchedEntry)
-            .WithPath(PathWithDifferentPrefix(firstTouchedEntry.Path, firstPrefix, secondPrefix))
-            .WithRandomLastModifiedTime()
-            .Build();
-        secondSnapshot.AddEntry(secondTouchedEntry);
-
-        var deletedEntry = new DirMetaSnapshotEntryBuilder()
-            .WithPath(RandomPathWithPrefix(firstPrefix))
-            .Build();
-        firstSnapshot.AddEntry(deletedEntry);
+        var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
 
         var diff = secondSnapshot.Compare(firstSnapshot);
 
@@ -81,12 +31,12 @@ public class DirMetaSnapshotDiffBashWriterTest
         var lines = result.Split(Environment.NewLine);
 
         lines.Length.ShouldBe(7);
-        ShouldBeCreateCommand(lines[0], createdEntry, firstSnapshot, secondSnapshot);
-        ShouldBeModifyCommand(lines[1], firstModifiedEntry, secondModifiedEntry);
-        ShouldBeCopyCommand(lines[2], firstCopiedEntry, secondCopiedEntryCopy, firstSnapshot, secondSnapshot);
-        ShouldBeMoveCommand(lines[3], firstMovedEntry, secondMovedEntry, firstSnapshot, secondSnapshot);
-        ShouldBeTouchCommand(lines[4], firstTouchedEntry, secondTouchedEntry);
-        ShouldBeDeleteCommand(lines[5], deletedEntry);
+        ShouldBeCreateCommand(lines[0], entries.CreatedEntry, firstSnapshot, secondSnapshot);
+        ShouldBeModifyCommand(lines[1], entries.FirstModifiedEntry, entries.SecondModifiedEntry);
+        ShouldBeCopyCommand(lines[2], entries.FirstCopiedEntry, entries.SecondCopiedEntry, firstSnapshot, secondSnapshot);
+        ShouldBeMoveCommand(lines[3], entries.FirstMovedEntry, entries.SecondMovedEntry, firstSnapshot, secondSnapshot);
+        ShouldBeTouchCommand(lines[4], entries.FirstTouchedEntry, entries.SecondTouchedEntry);
+        ShouldBeDeleteCommand(lines[5], entries.DeletedEntry);
     }
 
     [Theory]
@@ -146,15 +96,5 @@ public class DirMetaSnapshotDiffBashWriterTest
     private static void ShouldBeDeleteCommand(string command, DirMetaSnapshotEntry entry)
     {
         command.ShouldBe($"rm -- '{entry.Path}'");
-    }
-
-    private static string RandomPathWithPrefix(string prefix)
-    {
-        return prefix + TestUtils.RandomPath(3);
-    }
-
-    private static string PathWithDifferentPrefix(string path, string firstPrefix, string secondPrefix)
-    {
-        return secondPrefix + path[firstPrefix.Length..];
     }
 }

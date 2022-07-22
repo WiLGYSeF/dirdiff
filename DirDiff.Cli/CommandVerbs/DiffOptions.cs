@@ -24,5 +24,5 @@ internal class DiffOptions
     public string? SecondPrefix { get; set; }
 
     [Value(0)]
-    public IEnumerable<string> Arguments { get; set; } = Array.Empty<string>();
+    public ICollection<string> Arguments { get; set; } = Array.Empty<string>();
 }
