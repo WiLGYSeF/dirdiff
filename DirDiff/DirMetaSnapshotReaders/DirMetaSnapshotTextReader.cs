@@ -1,4 +1,5 @@
 ﻿using DirDiff.DirMetaSnapshots;
+using DirDiff.DirMetaSnapshotWriters;
 using DirDiff.Enums;
 using DirDiff.Extensions;
 using DirDiff.Utilities;
@@ -36,20 +37,30 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);
         var reader = new StreamReader(stream);
 
-        var minColumns = MinimumExpectedColumnCount();
+        var minColumns = MinimumExpectedColumnCount(TextReaderOptions);
+        var options = TextReaderOptions.Copy();
 
         string? line;
+        var firstLine = true;
 
         while ((line = await reader.ReadLineAsync()) != null)
         {
             if (line.StartsWith('#') || line.Trim().Length == 0)
             {
+                if (firstLine && line.StartsWith('#'))
+                {
+                    options.DisableReadOptions();
+                    SetReadOptionsFromHeader(options, line);
+                    minColumns = MinimumExpectedColumnCount(options);
+                }
+                firstLine = false;
                 continue;
             }
+            firstLine = false;
 
             var entry = TextReaderOptions.ReadGuess
                 ? ParseLineGuess(line)
-                : ParseLine(line, minColumns);
+                : ParseLine(line, minColumns, options);
 
             snapshot.AddEntry(entry);
         }
@@ -119,9 +130,9 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         };
     }
 
-    private DirMetaSnapshotEntry ParseLine(string line, int minColumns)
+    private DirMetaSnapshotEntry ParseLine(string line, int minColumns, DirMetaSnapshotTextReaderOptions options)
     {
-        var split = line.Split(TextReaderOptions.Separator);
+        var split = line.Split(options.Separator);
         if (split.Length < minColumns)
         {
             throw new ArgumentException("Line does not have expected minimum values.", nameof(line));
@@ -135,43 +146,43 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 
         var column = 0;
 
-        if (TextReaderOptions.ReadHash)
+        if (options.ReadHash)
         {
-            hash = split[column] != TextReaderOptions.NoneValue
+            hash = split[column] != options.NoneValue
                 ? Convert.FromHexString(split[column])
                 : null;
             column++;
         }
-        if (TextReaderOptions.ReadHashAlgorithm)
+        if (options.ReadHashAlgorithm)
         {
-            hashAlgorithm = split[column] != TextReaderOptions.NoneValue
+            hashAlgorithm = split[column] != options.NoneValue
                 ? EnumUtils.ParseEnumMemberValue<HashAlgorithm>(split[column])
                 : null;
             column++;
         }
-        if (TextReaderOptions.ReadCreatedTime)
+        if (options.ReadCreatedTime)
         {
-            createdTime = split[column] != TextReaderOptions.NoneValue
+            createdTime = split[column] != options.NoneValue
                 ? UnixTimeSecondsToDateTime(long.Parse(split[column]))
                 : null;
             column++;
         }
-        if (TextReaderOptions.ReadLastModifiedTime)
+        if (options.ReadLastModifiedTime)
         {
-            lastModifiedTime = split[column] != TextReaderOptions.NoneValue
+            lastModifiedTime = split[column] != options.NoneValue
                 ? UnixTimeSecondsToDateTime(long.Parse(split[column]))
                 : null;
             column++;
         }
-        if (TextReaderOptions.ReadFileSize)
+        if (options.ReadFileSize)
         {
-            fileSize = split[column] != TextReaderOptions.NoneValue
+            fileSize = split[column] != options.NoneValue
                 ? Convert.ToInt64(split[column])
                 : null;
             column++;
         }
 
-        var path = split[column..].Join(TextReaderOptions.Separator);
+        var path = split[column..].Join(options.Separator);
 
         return new DirMetaSnapshotEntry(path, FileType.File)
         {
@@ -183,11 +194,47 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         };
     }
 
-    private T? GetValue<T>(string value, Func<string, T> convert)
+    private void SetReadOptionsFromHeader(DirMetaSnapshotTextReaderOptions options, string header)
     {
-        return value != TextReaderOptions.NoneValue
-            ? convert(value)
-            : default;
+        if (!header.StartsWith('#'))
+        {
+            throw new ArgumentException("Invalid header format.", nameof(header));
+        }
+
+        var parts = header[1..].TrimStart().Split(',')
+            .Select(p => p.Trim());
+
+        foreach (var part in parts)
+        {
+            if (part.Equals(DirMetaSnapshotTextWriter.HashHeader, StringComparison.OrdinalIgnoreCase))
+            {
+                options.ReadHash = true;
+            }
+            else if (part.Equals(DirMetaSnapshotTextWriter.HashAlgorithmHeader, StringComparison.OrdinalIgnoreCase))
+            {
+                options.ReadHashAlgorithm = true;
+            }
+            else if (part.Equals(DirMetaSnapshotTextWriter.CreatedTimeHeader, StringComparison.OrdinalIgnoreCase))
+            {
+                options.ReadCreatedTime = true;
+            }
+            else if (part.Equals(DirMetaSnapshotTextWriter.LastModifiedTimeHeader, StringComparison.OrdinalIgnoreCase))
+            {
+                options.ReadLastModifiedTime = true;
+            }
+            else if (part.Equals(DirMetaSnapshotTextWriter.FileSizeHeader, StringComparison.OrdinalIgnoreCase))
+            {
+                options.ReadFileSize = true;
+            }
+            else if (part.Equals(DirMetaSnapshotTextWriter.PathHeader, StringComparison.OrdinalIgnoreCase))
+            {
+                // no option to change
+            }
+            else
+            {
+                throw new ArgumentException($"Unknown header value: {part}", nameof(header));
+            }
+        }
     }
 
     private static DateTime UnixTimeSecondsToDateTime(long seconds)
@@ -195,20 +242,20 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         return DateTimeOffset.FromUnixTimeSeconds(seconds).DateTime;
     }
 
-    private int MinimumExpectedColumnCount()
+    private int MinimumExpectedColumnCount(DirMetaSnapshotTextReaderOptions options)
     {
-        if (TextReaderOptions.ReadGuess)
+        if (options.ReadGuess)
         {
             return 1;
         }
 
         var bools = new[]
         {
-            TextReaderOptions.ReadHash,
-            TextReaderOptions.ReadHashAlgorithm,
-            TextReaderOptions.ReadCreatedTime,
-            TextReaderOptions.ReadLastModifiedTime,
-            TextReaderOptions.ReadFileSize,
+            options.ReadHash,
+            options.ReadHashAlgorithm,
+            options.ReadCreatedTime,
+            options.ReadLastModifiedTime,
+            options.ReadFileSize,
         };
         var columnCount = 1;
 

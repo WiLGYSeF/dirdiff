@@ -41,4 +41,29 @@ public class DirMetaSnapshotTextReaderOptions : DirMetaSnapshotReaderOptions
     /// None value indicator.
     /// </summary>
     public string NoneValue { get; set; } = "-";
+
+    public DirMetaSnapshotTextReaderOptions Copy()
+    {
+        return new DirMetaSnapshotTextReaderOptions
+        {
+            ReadGuess = ReadGuess,
+            ReadHash = ReadHash,
+            ReadHashAlgorithm = ReadHashAlgorithm,
+            ReadCreatedTime = ReadCreatedTime,
+            ReadLastModifiedTime = ReadLastModifiedTime,
+            ReadFileSize = ReadFileSize,
+            Separator = Separator,
+            NoneValue = NoneValue,
+        };
+    }
+
+    internal void DisableReadOptions()
+    {
+        ReadGuess = false;
+        ReadHash = false;
+        ReadHashAlgorithm = false;
+        ReadCreatedTime = false;
+        ReadLastModifiedTime = false;
+        ReadFileSize = false;
+    }
 }

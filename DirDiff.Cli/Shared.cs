@@ -7,18 +7,14 @@ namespace DirDiff.Cli;
 
 internal static class Shared
 {
-    public static async Task<DirMetaSnapshot> ReadSnapshot(string path, ISnapshotReadOptions opts)
+    public static async Task<DirMetaSnapshot> ReadSnapshot(string path)
     {
         var snapshotJsonReader = new DirMetaSnapshotJsonReader();
 
         var snapshotTextReader = new DirMetaSnapshotTextReader();
         snapshotTextReader.Configure(options =>
         {
-            options.ReadGuess = !opts.ReadHash && !opts.ReadLastModifiedTime && !opts.ReadFileSize;
-
-            options.ReadHash = opts.ReadHash;
-            options.ReadLastModifiedTime = opts.ReadLastModifiedTime;
-            options.ReadFileSize = opts.ReadFileSize;
+            options.ReadGuess = true;
 
             options.Separator = "  ";
             options.NoneValue = "-";

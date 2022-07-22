@@ -78,7 +78,7 @@ internal static class SnapshotVerb
 
             if (opts.UpdateSnapshot != null)
             {
-                var origSnapshot = await Shared.ReadSnapshot(opts.UpdateSnapshot, opts);
+                var origSnapshot = await Shared.ReadSnapshot(opts.UpdateSnapshot);
                 snapshot = await snapshotBuilder.UpdateSnapshotAsync(origSnapshot);
             }
             else
