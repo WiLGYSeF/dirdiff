@@ -14,7 +14,7 @@ internal class SnapshotOptions
     [Option("hash", HelpText = "Calculate file hashes")]
     public bool UseHash { get; set; }
 
-    [Option("last-modified-time", HelpText = "Get file last modified times")]
+    [Option('m', "last-modified-time", HelpText = "Get file last modified times")]
     public bool UseLastModifiedTime { get; set; }
 
     [Option("file-size", HelpText = "Get file sizes")]
@@ -23,7 +23,7 @@ internal class SnapshotOptions
     [Option("remove-prefix", HelpText = "Remove snapshot file prefixes when writing")]
     public bool RemovePrefix { get; set; }
 
-    [Option("update", MetaValue = "SNAPSHOT", HelpText = "Use snapshot to create an updated snapshot")]
+    [Option('u', "update", MetaValue = "SNAPSHOT", HelpText = "Use snapshot to create an updated snapshot")]
     public string? UpdateSnapshot { get; set; }
 
     [Option("time-window", HelpText = "Maximum difference in times before entries are considered different (seconds)")]
