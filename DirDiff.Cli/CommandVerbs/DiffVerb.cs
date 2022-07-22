@@ -66,7 +66,7 @@ internal static class DiffVerb
             firstSnapshot,
             !opts.NoSizeAndTimeMatch,
             !opts.UnknownNotModified,
-            opts.ModifyWindow.HasValue ? TimeSpan.FromSeconds(opts.ModifyWindow.Value) : null);
+            opts.TimeWindow.HasValue ? TimeSpan.FromSeconds(opts.TimeWindow.Value) : null);
 
         await diffWriter.WriteAsync(Console.OpenStandardOutput(), diff);
     }

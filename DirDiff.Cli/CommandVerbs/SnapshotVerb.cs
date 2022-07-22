@@ -24,6 +24,7 @@ internal static class SnapshotVerb
             options.UseCreatedTime = true;
             options.UseLastModifiedTime = opts.UseLastModifiedTime;
             options.HashAlgorithm = opts.UseHash ? HashAlgorithm.SHA256 : null;
+            options.TimeWindow = TimeSpan.FromSeconds(opts.TimeWindow ?? 0);
             options.KeepDirectoryOrder = true;
             options.ThrowIfNotFound = true;
         });

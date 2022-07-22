@@ -14,7 +14,7 @@ internal static class Shared
         var snapshotTextReader = new DirMetaSnapshotTextReader();
         snapshotTextReader.Configure(options =>
         {
-            options.ReadGuess = opts.ReadHash || opts.ReadLastModifiedTime || opts.ReadFileSize;
+            options.ReadGuess = !opts.ReadHash && !opts.ReadLastModifiedTime && !opts.ReadFileSize;
 
             options.ReadHash = opts.ReadHash;
             options.ReadLastModifiedTime = opts.ReadLastModifiedTime;
@@ -61,10 +61,5 @@ internal static class Shared
         {
             yield return input.ToString();
         }
-    }
-
-    public static void WriteError(string message)
-    {
-        Console.Error.WriteLine("error: " + message);
     }
 }

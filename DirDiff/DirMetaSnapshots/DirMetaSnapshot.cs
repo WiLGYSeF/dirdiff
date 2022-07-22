@@ -306,7 +306,7 @@ public class DirMetaSnapshot
     private static bool? CheckEntryCreationTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
         return entry.CreatedTime.HasValue && other.CreatedTime.HasValue
-            ? (entry.CreatedTime.Value - other.CreatedTime.Value).Duration() <= window
+            ? entry.CreatedTime.Value.Within(other.CreatedTime.Value, window)
             : null;
     }
 
@@ -320,7 +320,7 @@ public class DirMetaSnapshot
     private static bool? CheckEntryLastModifiedTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
         return entry.LastModifiedTime.HasValue && other.LastModifiedTime.HasValue
-            ? (entry.LastModifiedTime.Value - other.LastModifiedTime.Value).Duration() <= window
+            ? entry.LastModifiedTime.Value.Within(other.LastModifiedTime.Value, window)
             : null;
     }
 
@@ -489,7 +489,7 @@ public class DirMetaSnapshot
         var possibleEntries = sizeEntries
             .Where(entry => entry.Type != FileType.Directory
                 && entry.LastModifiedTime.HasValue
-                && (entry.LastModifiedTime.Value - lastModifiedTime).Duration() <= window
+                && entry.LastModifiedTime.Value.Within(lastModifiedTime, window)
                 && !entries.ContainsKey(PathWithoutPrefix(entry.Path)))
             .ToList();
         return possibleEntries.Count == 1 ? possibleEntries[0] : null;

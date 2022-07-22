@@ -35,6 +35,9 @@ internal class SnapshotOptions : ISnapshotReadOptions
     [Option("read-file-size", HelpText = "Indicates the text snapshot has file sizes")]
     public bool ReadFileSize { get; set; }
 
+    [Option("time-window", HelpText = "Maximum difference in times before entries are considered different (seconds)")]
+    public double? TimeWindow { get; set; }
+
     [Value(0)]
     public IEnumerable<string> Arguments { get; set; } = Array.Empty<string>();
 }

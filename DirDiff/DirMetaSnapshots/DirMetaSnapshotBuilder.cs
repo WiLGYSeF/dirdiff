@@ -142,7 +142,7 @@ public class DirMetaSnapshotBuilder
 
             var newEntry = await CreateEntryFromResultAsync(file, skipHash: true);
 
-            if (newEntry.IsDifferentFrom(entry))
+            if (newEntry.IsDifferentFrom(entry, timeWindow: Options.TimeWindow))
             {
                 if (Options.HashAlgorithm.HasValue)
                 {

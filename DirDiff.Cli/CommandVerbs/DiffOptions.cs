@@ -14,8 +14,8 @@ internal class DiffOptions : ISnapshotReadOptions
     [Option("unknown-not-modified")]
     public bool UnknownNotModified { get; set; }
 
-    [Option("modify-window", HelpText = "Maximum difference in times before entries are considered different (seconds)")]
-    public double? ModifyWindow { get; set; }
+    [Option("time-window", HelpText = "Maximum difference in times before entries are considered different (seconds)")]
+    public double? TimeWindow { get; set; }
 
     [Option("first-prefix", MetaValue = "PREFIX", HelpText = "Replace first snapshot prefix with string")]
     public string? FirstPrefix { get; set; }

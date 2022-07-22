@@ -99,14 +99,15 @@ public class DirMetaSnapshotEntry
         Type = type;
     }
 
-    public bool IsDifferentFrom(DirMetaSnapshotEntry entry)
+    public bool IsDifferentFrom(DirMetaSnapshotEntry entry, TimeSpan? timeWindow = null)
     {
+        timeWindow ??= TimeSpan.Zero;
         return Type != entry.Type
             || Path != entry.Path
-            || (FileSize.HasValue && entry.FileSize.HasValue && FileSize.Value != entry.FileSize.Value)
-            || (CreatedTime.HasValue && entry.CreatedTime.HasValue && CreatedTime.Value != entry.CreatedTime.Value)
-            || (LastModifiedTime.HasValue && entry.LastModifiedTime.HasValue)
-            || (HashAlgorithm.HasValue && entry.HashAlgorithm.HasValue && HashAlgorithm.Value != entry.HashAlgorithm.Value)
+            || NotNullAndDifferent(FileSize, entry.FileSize)
+            || NotNullAndDifferent(CreatedTime, entry.CreatedTime, timeWindow.Value)
+            || NotNullAndDifferent(LastModifiedTime, entry.LastModifiedTime, timeWindow.Value)
+            || NotNullAndDifferent(HashAlgorithm, entry.HashAlgorithm)
             || (Hash != null && entry.Hash != null && !Hash.SequenceEqual(entry.Hash));
     }
 
@@ -132,5 +133,15 @@ public class DirMetaSnapshotEntry
         {
             Hash = entry.Hash;
         }
+    }
+
+    private static bool NotNullAndDifferent<T>(T? a, T? b) where T : struct
+    {
+        return a.HasValue && b.HasValue && !a.Value.Equals(b.Value);
+    }
+
+    private static bool NotNullAndDifferent(DateTime? a, DateTime? b, TimeSpan window)
+    {
+        return a.HasValue && b.HasValue && !a.Value.Within(b.Value, window);
     }
 }
