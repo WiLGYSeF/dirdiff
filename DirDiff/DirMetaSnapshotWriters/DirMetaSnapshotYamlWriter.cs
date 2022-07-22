@@ -35,13 +35,15 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
 
     public async Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
     {
-        var schema = new DirMetaSnapshotSchema
+        var schema = new
         {
             Entries = snapshot.Entries
                 .Where(e => e.Type != FileType.Directory)
                 .Select(e => SerializeEntry(snapshot, e)),
         };
-        var serializer = new SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
         await stream.WriteAsync(Encoding.UTF8.GetBytes(serializer.Serialize(schema)));
     }
 

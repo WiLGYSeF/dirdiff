@@ -1,5 +1,4 @@
-﻿using DirDiff.Cli.CommandVerbs;
-using DirDiff.DirMetaSnapshotReaders;
+﻿using DirDiff.DirMetaSnapshotReaders;
 using DirDiff.DirMetaSnapshots;
 using System.Text;
 

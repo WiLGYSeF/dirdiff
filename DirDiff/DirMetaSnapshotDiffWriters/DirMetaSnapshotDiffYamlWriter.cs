@@ -1,25 +1,26 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.Extensions;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Text;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace DirDiff.DirMetaSnapshotDiffWriters;
 
-public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
+public class DirMetaSnapshotDiffYamlWriter : IDirMetaSnapshotDiffWriter
 {
-    public DirMetaSnapshotDiffJsonWriterOptions JsonWriterOptions { get; } = new();
+    public DirMetaSnapshotDiffYamlWriterOptions YamlWriterOptions { get; } = new();
 
-    public DirMetaSnapshotDiffWriterOptions Options => JsonWriterOptions;
+    public DirMetaSnapshotDiffWriterOptions Options => YamlWriterOptions;
 
-    public DirMetaSnapshotDiffJsonWriter Configure(Action<DirMetaSnapshotDiffJsonWriterOptions> action)
+    public DirMetaSnapshotDiffYamlWriter Configure(Action<DirMetaSnapshotDiffYamlWriterOptions> action)
     {
-        action(JsonWriterOptions);
+        action(YamlWriterOptions);
         return this;
     }
 
     public IDirMetaSnapshotDiffWriter Configure(Action<DirMetaSnapshotDiffWriterOptions> action)
     {
-        action(JsonWriterOptions);
+        action(YamlWriterOptions);
         return this;
     }
 
@@ -36,13 +37,10 @@ public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
             Unchanged = diff.UnchangedEntries.Select(e => SerializeEntry(diff, e, Options.SecondPrefix)),
         };
 
-        var options = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = JsonWriterOptions.WriteIndented,
-        };
-        options.Converters.Add(new JsonStringEnumConverter());
-        await stream.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(schema, options));
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+        await stream.WriteAsync(Encoding.UTF8.GetBytes(serializer.Serialize(schema)));
     }
 
     private object SerializeEntryPair(DirMetaSnapshotDiff diff, DirMetaSnapshotDiffEntryPair pair)
@@ -78,14 +76,14 @@ public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
 
         if (entry.CreatedTime.HasValue)
         {
-            dictionary["createdTime"] = JsonWriterOptions.UseUnixTimestamp
+            dictionary["createdTime"] = YamlWriterOptions.UseUnixTimestamp
                 ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
                 : entry.CreatedTime.Value;
         }
 
         if (entry.LastModifiedTime.HasValue)
         {
-            dictionary["lastModifiedTime"] = JsonWriterOptions.UseUnixTimestamp
+            dictionary["lastModifiedTime"] = YamlWriterOptions.UseUnixTimestamp
                 ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
                 : entry.LastModifiedTime.Value;
         }

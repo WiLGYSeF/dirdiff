@@ -97,7 +97,7 @@ public class DirMetaSnapshotBuilderTest
         var newSnapshot = await builder.UpdateSnapshotAsync(snapshot);
 
         newSnapshot.Entries.Count.ShouldBe(3);
-        
+
         foreach (var expected in entries.Take(2))
         {
             ShouldBeEntry(newSnapshot.Entries.Single(e => e.Path == expected.Path), expected);

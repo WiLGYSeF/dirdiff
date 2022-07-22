@@ -1,6 +1,5 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.DirMetaSnapshotWriters;
-using DirDiff.Enums;
 using DirDiff.Extensions;
 using DirDiff.Tests.Utils;
 using System.Text;
@@ -142,12 +141,12 @@ public class DirMetaSnapshotYamlWriterTest
         }
     }
 
-    private static SnapshotDeserialized DeserializeSnapshot(string text)
+    private static DirMetaSnapshotSchema DeserializeSnapshot(string text)
     {
         var deserializer = new DeserializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .Build();
-        var result = deserializer.Deserialize<SnapshotDeserialized>(text);
+        var result = deserializer.Deserialize<DirMetaSnapshotSchema>(text);
 
         if (result == null)
         {
@@ -155,27 +154,5 @@ public class DirMetaSnapshotYamlWriterTest
         }
 
         return result;
-    }
-
-    private class SnapshotDeserialized
-    {
-        public List<SnapshotEntryDeserialized>? Entries { get; set; }
-    }
-
-    private class SnapshotEntryDeserialized
-    {
-        public string Path { get; set; }
-
-        public FileType Type { get; set; }
-
-        public long? FileSize { get; set; }
-
-        public DateTime? CreatedTime { get; set; }
-
-        public DateTime? LastModifiedTime { get; set; }
-
-        public string? HashAlgorithm { get; set; }
-
-        public string? Hash { get; set; }
     }
 }

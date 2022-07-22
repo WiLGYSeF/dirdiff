@@ -1,10 +1,11 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.DirMetaSnapshotWriters;
-using System.Text.Json;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace DirDiff.DirMetaSnapshotReaders;
 
-public class DirMetaSnapshotJsonReader : IDirMetaSnapshotReader
+public class DirMetaSnapshotYamlReader : IDirMetaSnapshotReader
 {
     public DirMetaSnapshotReaderOptions Options { get; } = new();
 
@@ -14,28 +15,29 @@ public class DirMetaSnapshotJsonReader : IDirMetaSnapshotReader
         return this;
     }
 
-    public async Task<DirMetaSnapshot> ReadAsync(Stream stream)
+    public Task<DirMetaSnapshot> ReadAsync(Stream stream)
     {
         var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);
 
-        var result = await DeserializeSnapshotAsync(stream);
+        var result = DeserializeSnapshotAsync(stream);
 
         foreach (var entry in result.Entries!)
         {
             snapshot.AddEntry(entry.ToEntry());
         }
 
-        return snapshot;
+        return Task.FromResult(snapshot);
     }
 
-    private static async Task<DirMetaSnapshotSchema> DeserializeSnapshotAsync(Stream stream)
+    private static DirMetaSnapshotSchema DeserializeSnapshotAsync(Stream stream)
     {
-        var result = await JsonSerializer.DeserializeAsync<DirMetaSnapshotSchema>(
-            stream,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-            });
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        using var reader = new StreamReader(stream);
+        var result = deserializer.Deserialize<DirMetaSnapshotSchema>(reader);
+
         if (result == null)
         {
             throw new ArgumentException("Stream could not be deserialized to snapshot.", nameof(stream));

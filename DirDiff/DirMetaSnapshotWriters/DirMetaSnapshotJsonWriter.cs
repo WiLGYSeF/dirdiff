@@ -34,7 +34,7 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
     public async Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
     {
-        var schema = new DirMetaSnapshotSchema
+        var schema = new
         {
             Entries = snapshot.Entries
                 .Where(e => e.Type != FileType.Directory)
