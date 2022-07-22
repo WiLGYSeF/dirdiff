@@ -1,6 +1,6 @@
 ﻿namespace DirDiff.DirMetaSnapshotWriters;
 
-internal class DirMetaSnapshotJsonSchema
+internal class DirMetaSnapshotSchema
 {
     public IEnumerable<Dictionary<string, object>>? Entries { get; set; }
 }

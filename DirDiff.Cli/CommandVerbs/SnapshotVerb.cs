@@ -56,6 +56,10 @@ internal static class SnapshotVerb
                     options.UseUnixTimestamp = false;
                     options.WriteIndented = true;
                 }),
+                "yaml" => new DirMetaSnapshotYamlWriter().Configure(options =>
+                {
+                    options.UseUnixTimestamp = false;
+                }),
                 _ => null,
             };
 

@@ -1,34 +1,35 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.Enums;
 using DirDiff.Extensions;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Text;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace DirDiff.DirMetaSnapshotWriters;
 
-public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
+public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
 {
     /// <summary>
     /// Snapshot writer options.
     /// </summary>
-    public DirMetaSnapshotJsonWriterOptions JsonWriterOptions { get; } = new();
+    public DirMetaSnapshotYamlWriterOptions YamlWriterOptions { get; } = new();
 
-    public DirMetaSnapshotWriterOptions Options => JsonWriterOptions;
+    public DirMetaSnapshotWriterOptions Options => YamlWriterOptions;
 
     /// <summary>
     /// Configures snapshot writer options.
     /// </summary>
     /// <param name="action">Configure action.</param>
     /// <returns></returns>
-    public DirMetaSnapshotJsonWriter Configure(Action<DirMetaSnapshotJsonWriterOptions> action)
+    public DirMetaSnapshotYamlWriter Configure(Action<DirMetaSnapshotYamlWriterOptions> action)
     {
-        action(JsonWriterOptions);
+        action(YamlWriterOptions);
         return this;
     }
 
     public IDirMetaSnapshotWriter Configure(Action<DirMetaSnapshotWriterOptions> action)
     {
-        action(JsonWriterOptions);
+        action(YamlWriterOptions);
         return this;
     }
 
@@ -40,15 +41,8 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
                 .Where(e => e.Type != FileType.Directory)
                 .Select(e => SerializeEntry(snapshot, e)),
         };
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = JsonWriterOptions.WriteIndented,
-
-        };
-        options.Converters.Add(new JsonStringEnumConverter());
-        await stream.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(schema, options));
+        var serializer = new SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
+        await stream.WriteAsync(Encoding.UTF8.GetBytes(serializer.Serialize(schema)));
     }
 
     private Dictionary<string, object> SerializeEntry(DirMetaSnapshot snapshot, DirMetaSnapshotEntry entry)
@@ -71,14 +65,14 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
         if (Options.WriteCreatedTime && entry.CreatedTime.HasValue)
         {
-            dictionary["createdTime"] = JsonWriterOptions.UseUnixTimestamp
+            dictionary["createdTime"] = YamlWriterOptions.UseUnixTimestamp
                 ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
                 : entry.CreatedTime.Value;
         }
 
         if (Options.WriteLastModifiedTime && entry.LastModifiedTime.HasValue)
         {
-            dictionary["lastModifiedTime"] = JsonWriterOptions.UseUnixTimestamp
+            dictionary["lastModifiedTime"] = YamlWriterOptions.UseUnixTimestamp
                 ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
                 : entry.LastModifiedTime.Value;
         }

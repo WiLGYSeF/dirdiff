@@ -40,9 +40,9 @@ public class DirMetaSnapshotJsonReader : IDirMetaSnapshotReader
         return snapshot;
     }
 
-    private static async Task<DirMetaSnapshotJsonSchema> DeserializeSnapshotAsync(Stream stream)
+    private static async Task<DirMetaSnapshotSchema> DeserializeSnapshotAsync(Stream stream)
     {
-        var result = await JsonSerializer.DeserializeAsync<DirMetaSnapshotJsonSchema>(
+        var result = await JsonSerializer.DeserializeAsync<DirMetaSnapshotSchema>(
             stream,
             new JsonSerializerOptions
             {

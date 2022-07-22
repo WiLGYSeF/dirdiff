@@ -5,7 +5,7 @@ namespace DirDiff.Cli.CommandVerbs;
 [Verb("snapshot", isDefault: true, HelpText = "Creates a file metadata snapshot.")]
 internal class SnapshotOptions
 {
-    [Option("format", Default = "text", HelpText = "Snapshot format (text, json)")]
+    [Option("format", Default = "text", HelpText = "Snapshot format (text, json, yaml)")]
     public string? SnapshotFormat { get; set; }
 
     [Option("null", HelpText = "Input paths are terminated by a null character instead of a newline")]
@@ -30,5 +30,5 @@ internal class SnapshotOptions
     public double? TimeWindow { get; set; }
 
     [Value(0)]
-    public IEnumerable<string> Arguments { get; set; } = Array.Empty<string>();
+    public ICollection<string> Arguments { get; set; } = Array.Empty<string>();
 }
