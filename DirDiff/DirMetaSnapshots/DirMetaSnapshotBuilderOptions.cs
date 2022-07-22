@@ -30,6 +30,11 @@ public class DirMetaSnapshotBuilderOptions
     public HashAlgorithm? HashAlgorithm { get; set; }
 
     /// <summary>
+    /// Maximum difference in times before entries are considered different.
+    /// </summary>
+    public TimeSpan TimeWindow { get; set; } = TimeSpan.Zero;
+
+    /// <summary>
     /// Minimum directory depth limit.
     /// </summary>
     public int? MinDepthLimit { get; set; }

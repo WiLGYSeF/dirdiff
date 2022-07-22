@@ -1,6 +1,10 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.DirMetaSnapshotWriters;
+using DirDiff.DirWalkers;
 using DirDiff.Enums;
+using DirDiff.FileInfoReaders;
+using DirDiff.FileReaders;
+using DirDiff.Hashers;
 
 namespace DirDiff.Cli.CommandVerbs;
 
@@ -8,7 +12,11 @@ internal static class SnapshotVerb
 {
     public static async Task Run(SnapshotOptions opts)
     {
-        var snapshotBuilder = new DirMetaSnapshotBuilder();
+        var snapshotBuilder = new DirMetaSnapshotBuilder(
+            new DirWalker(),
+            new FileReader(),
+            new FileInfoReader(),
+            new Hasher());
         snapshotBuilder.Configure(options =>
         {
             options.DirectorySeparator = Path.DirectorySeparatorChar;
@@ -16,6 +24,7 @@ internal static class SnapshotVerb
             options.UseCreatedTime = true;
             options.UseLastModifiedTime = opts.UseLastModifiedTime;
             options.HashAlgorithm = opts.UseHash ? HashAlgorithm.SHA256 : null;
+            options.TimeWindow = TimeSpan.FromSeconds(opts.TimeWindow ?? 0);
             options.KeepDirectoryOrder = true;
             options.ThrowIfNotFound = true;
         });
@@ -35,8 +44,6 @@ internal static class SnapshotVerb
 
         try
         {
-            var snapshot = snapshotBuilder.CreateSnapshot();
-
             IDirMetaSnapshotWriter? snapshotWriter = opts.SnapshotFormat?.ToLower() switch
             {
                 "text" => new DirMetaSnapshotTextWriter().Configure(options =>
@@ -66,6 +73,18 @@ internal static class SnapshotVerb
                 options.WriteLastModifiedTime = opts.UseLastModifiedTime;
                 options.WriteFileSize = opts.UseFileSize;
             });
+
+            DirMetaSnapshot snapshot;
+
+            if (opts.UpdateSnapshot != null)
+            {
+                var origSnapshot = await Shared.ReadSnapshot(opts.UpdateSnapshot, opts);
+                snapshot = await snapshotBuilder.UpdateSnapshotAsync(origSnapshot);
+            }
+            else
+            {
+                snapshot = await snapshotBuilder.CreateSnapshotAsync();
+            }
 
             await snapshotWriter.WriteAsync(Console.OpenStandardOutput(), snapshot);
         }

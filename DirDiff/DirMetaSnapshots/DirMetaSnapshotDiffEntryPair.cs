@@ -12,7 +12,7 @@ public class DirMetaSnapshotDiffEntryPair
     /// </summary>
     public DirMetaSnapshotEntry Second { get; }
 
-    internal DirMetaSnapshotDiffEntryPair(DirMetaSnapshotEntry first, DirMetaSnapshotEntry second)
+    public DirMetaSnapshotDiffEntryPair(DirMetaSnapshotEntry first, DirMetaSnapshotEntry second)
     {
         First = first;
         Second = second;

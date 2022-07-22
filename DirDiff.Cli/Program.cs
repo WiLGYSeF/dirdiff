@@ -1,5 +1,4 @@
 ﻿using CommandLine;
-using DirDiff.Cli;
 using DirDiff.Cli.CommandVerbs;
 using System.Reflection;
 
@@ -12,15 +11,16 @@ try
 }
 catch (CommandVerbException exception)
 {
-    Shared.WriteError(exception.Message);
+    Console.Error.WriteLine("error: " + exception.Message);
     if (exception.Detail != null)
     {
         Console.Error.WriteLine(exception.Detail);
     }
     return exception.ReturnCode;
 }
-catch
+catch (Exception exception)
 {
+    Console.Error.WriteLine(exception.ToString());
     return 1;
 }
 

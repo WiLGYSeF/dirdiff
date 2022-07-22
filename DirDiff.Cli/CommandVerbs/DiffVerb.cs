@@ -18,33 +18,6 @@ internal static class DiffVerb
         var firstPath = args[0];
         var secondPath = args[1];
 
-        DirMetaSnapshot firstSnapshot;
-        DirMetaSnapshot secondSnapshot;
-
-        try
-        {
-            firstSnapshot = await ReadSnapshot(firstPath, opts);
-        }
-        catch (Exception ex)
-        {
-            throw new CommandVerbException(1, $"could not read snapshot file: {firstPath}", ex.Message);
-        }
-
-        try
-        {
-            secondSnapshot = await ReadSnapshot(secondPath, opts);
-        }
-        catch (Exception ex)
-        {
-            throw new CommandVerbException(1, $"could not read snapshot file: {secondPath}", ex.Message);
-        }
-
-        var diff = secondSnapshot.Compare(
-            firstSnapshot,
-            !opts.NoSizeAndTimeMatch,
-            !opts.UnknownNotModified,
-            opts.ModifyWindow.HasValue ? TimeSpan.FromSeconds(opts.ModifyWindow.Value) : null);
-
         IDirMetaSnapshotDiffWriter? diffWriter = opts.DiffFormat?.ToLower() switch
         {
             "bash" => new DirMetaSnapshotDiffBashWriter(),
@@ -68,35 +41,33 @@ internal static class DiffVerb
             options.SecondPrefix = opts.SecondPrefix;
         });
 
-        await diffWriter.WriteAsync(Console.OpenStandardOutput(), diff);
-    }
+        DirMetaSnapshot firstSnapshot;
+        DirMetaSnapshot secondSnapshot;
 
-    static async Task<DirMetaSnapshot> ReadSnapshot(string path, DiffOptions opts)
-    {
-        var snapshotJsonReader = new DirMetaSnapshotJsonReader();
-
-        var snapshotTextReader = new DirMetaSnapshotTextReader();
-        snapshotTextReader.Configure(options =>
-        {
-            options.ReadGuess = opts.UseHash || opts.UseLastModifiedTime || opts.UseFileSize;
-
-            options.ReadHash = opts.UseHash;
-            options.ReadLastModifiedTime = opts.UseLastModifiedTime;
-            options.ReadFileSize = opts.UseFileSize;
-
-            options.Separator = "  ";
-            options.NoneValue = "-";
-        });
-
-        using var stream = File.OpenRead(path);
         try
         {
-            return await snapshotJsonReader.ReadAsync(stream);
+            firstSnapshot = await Shared.ReadSnapshot(firstPath, opts);
         }
-        catch
+        catch (Exception ex)
         {
-            stream.Position = 0;
-            return await snapshotTextReader.ReadAsync(stream);
+            throw new CommandVerbException(1, $"could not read snapshot file: {firstPath}", ex.Message);
         }
+
+        try
+        {
+            secondSnapshot = await Shared.ReadSnapshot(secondPath, opts);
+        }
+        catch (Exception ex)
+        {
+            throw new CommandVerbException(1, $"could not read snapshot file: {secondPath}", ex.Message);
+        }
+
+        var diff = secondSnapshot.Compare(
+            firstSnapshot,
+            !opts.NoSizeAndTimeMatch,
+            !opts.UnknownNotModified,
+            opts.TimeWindow.HasValue ? TimeSpan.FromSeconds(opts.TimeWindow.Value) : null);
+
+        await diffWriter.WriteAsync(Console.OpenStandardOutput(), diff);
     }
 }

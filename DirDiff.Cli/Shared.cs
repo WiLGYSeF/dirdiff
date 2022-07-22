@@ -1,9 +1,41 @@
-﻿using System.Text;
+﻿using DirDiff.Cli.CommandVerbs;
+using DirDiff.DirMetaSnapshotReaders;
+using DirDiff.DirMetaSnapshots;
+using System.Text;
 
 namespace DirDiff.Cli;
 
 internal static class Shared
 {
+    public static async Task<DirMetaSnapshot> ReadSnapshot(string path, ISnapshotReadOptions opts)
+    {
+        var snapshotJsonReader = new DirMetaSnapshotJsonReader();
+
+        var snapshotTextReader = new DirMetaSnapshotTextReader();
+        snapshotTextReader.Configure(options =>
+        {
+            options.ReadGuess = !opts.ReadHash && !opts.ReadLastModifiedTime && !opts.ReadFileSize;
+
+            options.ReadHash = opts.ReadHash;
+            options.ReadLastModifiedTime = opts.ReadLastModifiedTime;
+            options.ReadFileSize = opts.ReadFileSize;
+
+            options.Separator = "  ";
+            options.NoneValue = "-";
+        });
+
+        using var stream = File.OpenRead(path);
+        try
+        {
+            return await snapshotJsonReader.ReadAsync(stream);
+        }
+        catch
+        {
+            stream.Position = 0;
+            return await snapshotTextReader.ReadAsync(stream);
+        }
+    }
+
     public static IEnumerable<string> InputFromStream(Stream stream, int delimiter)
     {
         var input = new StringBuilder();
@@ -29,10 +61,5 @@ internal static class Shared
         {
             yield return input.ToString();
         }
-    }
-
-    public static void WriteError(string message)
-    {
-        Console.Error.WriteLine("error: " + message);
     }
 }

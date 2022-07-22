@@ -33,7 +33,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 
     public async Task<DirMetaSnapshot> ReadAsync(Stream stream)
     {
-        var snapshot = new DirMetaSnapshot();
+        var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);
         var reader = new StreamReader(stream);
 
         var minColumns = MinimumExpectedColumnCount();

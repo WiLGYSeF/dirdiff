@@ -2,9 +2,9 @@
 
 public class DirMetaSnapshotDiff
 {
-    internal DirMetaSnapshot FirstSnapshot => _firstSnapshot;
+    public DirMetaSnapshot FirstSnapshot => _firstSnapshot;
 
-    internal DirMetaSnapshot SecondSnapshot => _secondSnapshot;
+    public DirMetaSnapshot SecondSnapshot => _secondSnapshot;
 
     /// <summary>
     /// Created entries.
@@ -52,7 +52,7 @@ public class DirMetaSnapshotDiff
     private readonly DirMetaSnapshot _firstSnapshot;
     private readonly DirMetaSnapshot _secondSnapshot;
 
-    internal DirMetaSnapshotDiff(DirMetaSnapshot firstSnapshot, DirMetaSnapshot secondSnapshot)
+    public DirMetaSnapshotDiff(DirMetaSnapshot firstSnapshot, DirMetaSnapshot secondSnapshot)
     {
         _firstSnapshot = firstSnapshot;
         _secondSnapshot = secondSnapshot;
@@ -78,37 +78,37 @@ public class DirMetaSnapshotDiff
         throw new ArgumentException("Entry does not belong to snapshot diff.", nameof(entry));
     }
 
-    internal void AddCreatedEntry(DirMetaSnapshotEntry entry)
+    public void AddCreatedEntry(DirMetaSnapshotEntry entry)
     {
         _createdEntries.Add(entry);
     }
 
-    internal void AddDeletedEntry(DirMetaSnapshotEntry entry)
+    public void AddDeletedEntry(DirMetaSnapshotEntry entry)
     {
         _deletedEntries.Add(entry);
     }
 
-    internal void AddModifiedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    public void AddModifiedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
         _modifiedEntries.Add(new DirMetaSnapshotDiffEntryPair(other, entry));
     }
 
-    internal void AddCopiedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    public void AddCopiedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
         _copiedEntries.Add(new DirMetaSnapshotDiffEntryPair(other, entry));
     }
 
-    internal void AddMovedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    public void AddMovedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
         _movedEntries.Add(new DirMetaSnapshotDiffEntryPair(other, entry));
     }
 
-    internal void AddTouchedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
+    public void AddTouchedEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
         _touchedEntries.Add(new DirMetaSnapshotDiffEntryPair(other, entry));
     }
 
-    internal void AddUnchangedEntry(DirMetaSnapshotEntry entry)
+    public void AddUnchangedEntry(DirMetaSnapshotEntry entry)
     {
         _unchangedEntries.Add(entry);
     }

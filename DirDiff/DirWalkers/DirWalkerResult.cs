@@ -2,7 +2,7 @@
 
 namespace DirDiff.DirWalkers;
 
-internal class DirWalkerResult
+public class DirWalkerResult
 {
     public string Path { get; }
 

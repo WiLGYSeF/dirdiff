@@ -1,5 +1,6 @@
 ﻿using DirDiff.Enums;
 using DirDiff.Extensions;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace DirDiff.DirMetaSnapshots;
@@ -34,29 +35,43 @@ public class DirMetaSnapshot
     private string? _prefix;
     private string[]? _prefixParts;
 
-    public DirMetaSnapshot() : this(null) { }
+    public DirMetaSnapshot() : this(Path.DirectorySeparatorChar) { }
 
-    internal DirMetaSnapshot(string? prefix)
-    {
-        Prefix = prefix;
-        DirectorySeparator = Path.DirectorySeparatorChar;
-    }
-
-    internal DirMetaSnapshot(char directorySeparator)
+    public DirMetaSnapshot(char directorySeparator)
     {
         DirectorySeparator = directorySeparator;
     }
 
-    internal DirMetaSnapshot(string? prefix, char directorySeparator)
+    /// <summary>
+    /// Checks if the snapshot contains the entry path.
+    /// </summary>
+    /// <param name="path">Entry path.</param>
+    /// <returns><see langword="true"/> if the entry path is in the snapshot, otherwise <see langword="false"/>.</returns>
+    public bool ContainsPath(string path)
     {
-        Prefix = prefix;
-        DirectorySeparator = directorySeparator;
+        return _entries.ContainsKey(path);
     }
 
-    internal void AddEntry(DirMetaSnapshotEntry entry)
+    public void AddEntry(DirMetaSnapshotEntry entry)
     {
         _entries.Add(entry.Path, entry);
         Prefix = GetCommonPrefix(entry.Path);
+    }
+
+    public DirMetaSnapshotEntry GetEntry(string path)
+    {
+        return _entries[path];
+    }
+
+    public bool TryGetEntry(string path, [MaybeNullWhen(false)] out DirMetaSnapshotEntry entry)
+    {
+        if (_entries.TryGetValue(path, out entry))
+        {
+            return true;
+        }
+
+        entry = default;
+        return false;
     }
 
     /// <summary>
@@ -291,7 +306,7 @@ public class DirMetaSnapshot
     private static bool? CheckEntryCreationTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
         return entry.CreatedTime.HasValue && other.CreatedTime.HasValue
-            ? (entry.CreatedTime.Value - other.CreatedTime.Value).Duration() <= window
+            ? entry.CreatedTime.Value.Within(other.CreatedTime.Value, window)
             : null;
     }
 
@@ -305,7 +320,7 @@ public class DirMetaSnapshot
     private static bool? CheckEntryLastModifiedTimeMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other, TimeSpan window)
     {
         return entry.LastModifiedTime.HasValue && other.LastModifiedTime.HasValue
-            ? (entry.LastModifiedTime.Value - other.LastModifiedTime.Value).Duration() <= window
+            ? entry.LastModifiedTime.Value.Within(other.LastModifiedTime.Value, window)
             : null;
     }
 
@@ -351,8 +366,8 @@ public class DirMetaSnapshot
     /// <returns>Returns true if entry hashes match, false otherwise. If entry hashes are not present, return null.</returns>
     private static bool? CheckEntryHashesMatch(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry other)
     {
-        return entry.HashHex != null && other.HashHex != null
-            ? entry.HashHex == other.HashHex
+        return entry.Hash != null && other.Hash != null
+            ? entry.Hash.SequenceEqual(other.Hash)
             : null;
     }
 
@@ -474,7 +489,7 @@ public class DirMetaSnapshot
         var possibleEntries = sizeEntries
             .Where(entry => entry.Type != FileType.Directory
                 && entry.LastModifiedTime.HasValue
-                && (entry.LastModifiedTime.Value - lastModifiedTime).Duration() <= window
+                && entry.LastModifiedTime.Value.Within(lastModifiedTime, window)
                 && !entries.ContainsKey(PathWithoutPrefix(entry.Path)))
             .ToList();
         return possibleEntries.Count == 1 ? possibleEntries[0] : null;

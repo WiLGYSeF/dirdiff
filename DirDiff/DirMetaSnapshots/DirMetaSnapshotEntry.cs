@@ -93,9 +93,55 @@ public class DirMetaSnapshotEntry
     private byte[]? _hash;
     private string? _hashHex;
 
-    internal DirMetaSnapshotEntry(string path, FileType type)
+    public DirMetaSnapshotEntry(string path, FileType type)
     {
         Path = path;
         Type = type;
+    }
+
+    public bool IsDifferentFrom(DirMetaSnapshotEntry entry, TimeSpan? timeWindow = null)
+    {
+        timeWindow ??= TimeSpan.Zero;
+        return Type != entry.Type
+            || Path != entry.Path
+            || NotNullAndDifferent(FileSize, entry.FileSize)
+            || NotNullAndDifferent(CreatedTime, entry.CreatedTime, timeWindow.Value)
+            || NotNullAndDifferent(LastModifiedTime, entry.LastModifiedTime, timeWindow.Value)
+            || NotNullAndDifferent(HashAlgorithm, entry.HashAlgorithm)
+            || (Hash != null && entry.Hash != null && !Hash.SequenceEqual(entry.Hash));
+    }
+
+    public void CopyKnownPropertiesFrom(DirMetaSnapshotEntry entry)
+    {
+        if (!FileSize.HasValue && entry.FileSize.HasValue)
+        {
+            FileSize = entry.FileSize;
+        }
+        if (!CreatedTime.HasValue && entry.CreatedTime.HasValue)
+        {
+            CreatedTime = entry.CreatedTime;
+        }
+        if (!LastModifiedTime.HasValue && entry.LastModifiedTime.HasValue)
+        {
+            LastModifiedTime = entry.LastModifiedTime;
+        }
+        if (!HashAlgorithm.HasValue && entry.HashAlgorithm.HasValue)
+        {
+            HashAlgorithm = entry.HashAlgorithm;
+        }
+        if (Hash == null && entry.Hash != null)
+        {
+            Hash = entry.Hash;
+        }
+    }
+
+    private static bool NotNullAndDifferent<T>(T? a, T? b) where T : struct
+    {
+        return a.HasValue && b.HasValue && !a.Value.Equals(b.Value);
+    }
+
+    private static bool NotNullAndDifferent(DateTime? a, DateTime? b, TimeSpan window)
+    {
+        return a.HasValue && b.HasValue && !a.Value.Within(b.Value, window);
     }
 }
