@@ -5,7 +5,7 @@ namespace DirDiff.Cli.CommandVerbs;
 [Verb("diff")]
 internal class DiffOptions
 {
-    [Option("format", Default = "json", HelpText = "Snapshot diff format (bash, powershell, json)")]
+    [Option("format", Default = "json", HelpText = "Snapshot diff format (bash, powershell, json, yaml)")]
     public string? DiffFormat { get; set; }
 
     [Option("no-size-and-time")]
