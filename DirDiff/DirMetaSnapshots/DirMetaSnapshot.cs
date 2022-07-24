@@ -96,7 +96,7 @@ public class DirMetaSnapshot
         var diff = new DirMetaSnapshotDiff(snapshot, this);
 
         var entriesMap = Entries.ToDictionary(e => PathWithoutPrefix(e.Path));
-        var otherEntriesMap = snapshot.Entries.ToDictionary(e => snapshot.PathWithoutPrefix(e.Path));
+        var otherEntriesMap = snapshot.Entries.ToDictionary(e => snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(e.Path), DirectorySeparator));
 
         var otherHashMap = CreateHashMap(snapshot.Entries);
 
@@ -135,11 +135,11 @@ public class DirMetaSnapshot
                     otherEntry = otherHashEntries.FirstOrDefault(e => e.LastModifiedTime == entry.LastModifiedTime);
                     if (otherEntry != null)
                     {
-                        moved = !entriesMap.ContainsKey(snapshot.PathWithoutPrefix(otherEntry.Path)) && !otherMovedEntries.Contains(otherEntry);
+                        moved = !entriesMap.ContainsKey(snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(otherEntry.Path), DirectorySeparator)) && !otherMovedEntries.Contains(otherEntry);
                     }
                     else
                     {
-                        otherEntry = otherHashEntries.FirstOrDefault(e => !entriesMap.ContainsKey(snapshot.PathWithoutPrefix(e.Path)) && !otherMovedEntries.Contains(e));
+                        otherEntry = otherHashEntries.FirstOrDefault(e => !entriesMap.ContainsKey(snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(e.Path), DirectorySeparator)) && !otherMovedEntries.Contains(e));
                         if (otherEntry != null)
                         {
                             moved = true;
@@ -212,7 +212,7 @@ public class DirMetaSnapshot
 
         foreach (var otherEntry in otherEntriesMap.Values)
         {
-            if (!entriesMap.TryGetValue(snapshot.PathWithoutPrefix(otherEntry.Path), out var entry))
+            if (!entriesMap.TryGetValue(snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(otherEntry.Path), DirectorySeparator), out var entry))
             {
                 // entry does not exist in newer snapshot
 
