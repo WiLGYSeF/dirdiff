@@ -3,6 +3,7 @@ using DirDiff.Enums;
 using DirDiff.FileInfoReaders;
 using DirDiff.FileReaders;
 using DirDiff.Hashers;
+using Microsoft.Extensions.Logging;
 
 namespace DirDiff.DirMetaSnapshots;
 
@@ -17,6 +18,8 @@ public class DirMetaSnapshotBuilder
     /// Paths that will be traversed for the snapshot.
     /// </summary>
     public IReadOnlyList<string> SnapshotPaths => _snapshotPaths;
+
+    public ILogger? Logger { get; set; }
 
     private readonly List<string> _snapshotPaths = new();
 
@@ -45,6 +48,12 @@ public class DirMetaSnapshotBuilder
     public DirMetaSnapshotBuilder Configure(Action<DirMetaSnapshotBuilderOptions> action)
     {
         action(Options);
+        return this;
+    }
+
+    public DirMetaSnapshotBuilder WithLogger(ILogger logger)
+    {
+        Logger = logger;
         return this;
     }
 
@@ -97,7 +106,7 @@ public class DirMetaSnapshotBuilder
     /// Traverses paths and updates the given snapshot.
     /// <para>
     /// New entries are added to the snapshot.
-    /// Entries that no longer exist are removed from the snapshot.
+    /// Entries that no longer exist are removed from the snapshot, unless <see cref="DirMetaSnapshotBuilderOptions.UpdateKeepRemoved"/> is <see langword="true"/>.
     /// Existing entries are compared with the last modified time, file size, and hash, and are updated accordingly.
     /// </para>
     /// </summary>
@@ -126,7 +135,7 @@ public class DirMetaSnapshotBuilder
             {
                 if (!newSnapshot.ContainsPath(entry.Path))
                 {
-                    newSnapshot.AddEntry(await CreateEntryAsync(entry));
+                    newSnapshot.AddEntry(entry.Copy());
                 }
             }
         }
@@ -138,6 +147,8 @@ public class DirMetaSnapshotBuilder
     {
         foreach (var file in _walker.Walk(path))
         {
+            Logger?.LogInformation("adding: {path}", file.Path);
+
             snapshot.AddEntry(await CreateEntryAsync(file));
         }
     }
@@ -148,6 +159,8 @@ public class DirMetaSnapshotBuilder
         {
             if (!snapshot.TryGetEntry(file.Path, out var entry))
             {
+                Logger?.LogInformation("updating with new entry: {path}", file.Path);
+
                 newSnapshot.AddEntry(await CreateEntryAsync(file));
                 continue;
             }
@@ -156,6 +169,8 @@ public class DirMetaSnapshotBuilder
 
             if (newEntry.IsDifferentFrom(entry, timeWindow: Options.TimeWindow))
             {
+                Logger?.LogInformation("updating existing entry: {path}", file.Path);
+
                 if (Options.HashAlgorithm.HasValue)
                 {
                     await SetEntryHashAsync(newEntry);
@@ -166,7 +181,13 @@ public class DirMetaSnapshotBuilder
                 newEntry.CopyKnownPropertiesFrom(entry);
                 if (newEntry.Hash == null && Options.HashAlgorithm.HasValue)
                 {
+                    Logger?.LogInformation("updating existing entry: {path}", file.Path);
+
                     await SetEntryHashAsync(newEntry);
+                }
+                else
+                {
+                    Logger?.LogInformation("using existing entry: {path}", file.Path);
                 }
             }
 
