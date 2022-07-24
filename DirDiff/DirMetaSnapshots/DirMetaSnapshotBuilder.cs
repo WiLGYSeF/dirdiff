@@ -51,6 +51,11 @@ public class DirMetaSnapshotBuilder
         return this;
     }
 
+    /// <summary>
+    /// Adds a logger to the snapshot builder.
+    /// </summary>
+    /// <param name="logger">Logger</param>
+    /// <returns></returns>
     public DirMetaSnapshotBuilder WithLogger(ILogger logger)
     {
         Logger = logger;
@@ -72,10 +77,9 @@ public class DirMetaSnapshotBuilder
     /// Removes all paths from being traversed in snapshot.
     /// </summary>
     /// <returns></returns>
-    public DirMetaSnapshotBuilder ClearPaths()
+    public void ClearPaths()
     {
         _snapshotPaths.Clear();
-        return this;
     }
 
     /// <summary>
@@ -168,7 +172,7 @@ public class DirMetaSnapshotBuilder
             {
                 if (!newPath.StartsWith(Options.UpdatePrefix))
                 {
-                    throw new InvalidOperationException($"Enty path does not start with prefix: {newPath}");
+                    throw new InvalidOperationException($"Entry path does not start with prefix: {newPath}");
                 }
 
                 newPath = newPath[Options.UpdatePrefix.Length..];
@@ -227,11 +231,6 @@ public class DirMetaSnapshotBuilder
     private async Task<DirMetaSnapshotEntry> CreateEntryAsync(DirWalkerResult result, bool skipHash = false)
     {
         return await CreateEntryAsync(result.Path, result.Type, skipHash);
-    }
-
-    private async Task<DirMetaSnapshotEntry> CreateEntryAsync(DirMetaSnapshotEntry entry, bool skipHash = false)
-    {
-        return await CreateEntryAsync(entry.Path, entry.Type, skipHash);
     }
 
     private async Task<DirMetaSnapshotEntry> CreateEntryAsync(string path, FileType type, bool skipHash = false)

@@ -230,6 +230,12 @@ public class DirMetaSnapshot
         return diff;
     }
 
+    /// <summary>
+    /// Gets the path without snapshot prefix.
+    /// </summary>
+    /// <param name="path">Path.</param>
+    /// <returns>Path without snapshot prefix.</returns>
+    /// <exception cref="ArgumentException"><paramref name="path"/> does not start with snapshot prefix.</exception>
     public string PathWithoutPrefix(string path)
     {
         if (Prefix == null || Prefix.Length == 0)
@@ -242,6 +248,19 @@ public class DirMetaSnapshot
             throw new ArgumentException("Path does not start with expected prefix.", nameof(path));
         }
         return path[Prefix.Length..];
+    }
+
+    /// <summary>
+    /// Change the snapshot path's directory separator.
+    /// </summary>
+    /// <param name="path">Path.</param>
+    /// <param name="directorySeparator">Directory separator to change to.</param>
+    /// <returns>Snapshot path with specified directory separator.</returns>
+    public string ChangePathDirectorySeparator(string path, char directorySeparator)
+    {
+        return directorySeparator != DirectorySeparator
+            ? GetDirectoryParts(path).Join(directorySeparator)
+            : path;
     }
 
     /// <summary>
@@ -530,15 +549,8 @@ public class DirMetaSnapshot
         return builder.ToString();
     }
 
-    public string[] GetDirectoryParts(string path)
+    private string[] GetDirectoryParts(string path)
     {
         return path.Split(DirectorySeparator);
-    }
-
-    public string ChangePathDirectorySeparator(string path, char directorySeparator)
-    {
-        return directorySeparator != DirectorySeparator
-            ? GetDirectoryParts(path).Join(directorySeparator)
-            : path;
     }
 }
