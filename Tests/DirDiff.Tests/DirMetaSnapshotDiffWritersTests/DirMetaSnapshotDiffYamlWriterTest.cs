@@ -1,6 +1,5 @@
 ﻿using DirDiff.DirMetaSnapshotDiffWriters;
 using DirDiff.DirMetaSnapshots;
-using DirDiff.DirMetaSnapshotWriters;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
