@@ -31,12 +31,12 @@ public class DirMetaSnapshotDiffBashWriterTest
         var lines = result.Split(Environment.NewLine);
 
         lines.Length.ShouldBe(7);
-        ShouldBeCreateCommand(lines[0], entries.CreatedEntry, firstSnapshot, secondSnapshot);
-        ShouldBeModifyCommand(lines[1], entries.FirstModifiedEntry, entries.SecondModifiedEntry);
-        ShouldBeCopyCommand(lines[2], entries.FirstCopiedEntry, entries.SecondCopiedEntry, firstSnapshot, secondSnapshot);
-        ShouldBeMoveCommand(lines[3], entries.FirstMovedEntry, entries.SecondMovedEntry, firstSnapshot, secondSnapshot);
-        ShouldBeTouchCommand(lines[4], entries.FirstTouchedEntry, entries.SecondTouchedEntry);
-        ShouldBeDeleteCommand(lines[5], entries.DeletedEntry);
+        ShouldBeCreateCommand(lines[0], entries.CreatedEntry!, firstSnapshot, secondSnapshot);
+        ShouldBeModifyCommand(lines[1], entries.FirstModifiedEntry!, entries.SecondModifiedEntry!);
+        ShouldBeCopyCommand(lines[2], entries.FirstCopiedEntry!, entries.SecondCopiedEntry!, firstSnapshot, secondSnapshot);
+        ShouldBeMoveCommand(lines[3], entries.FirstMovedEntry!, entries.SecondMovedEntry!, firstSnapshot, secondSnapshot);
+        ShouldBeTouchCommand(lines[4], entries.FirstTouchedEntry!, entries.SecondTouchedEntry!);
+        ShouldBeDeleteCommand(lines[5], entries.DeletedEntry!);
     }
 
     [Theory]
@@ -46,8 +46,9 @@ public class DirMetaSnapshotDiffBashWriterTest
     [InlineData("abcd\\ef", "'abcd\\ef'")]
     public async Task Write_Escaped_Paths(string path, string expected)
     {
-        var firstSnapshot = new DirMetaSnapshot();
-        var secondSnapshot = new DirMetaSnapshot();
+        var directorySeparator = '/';
+        var firstSnapshot = new DirMetaSnapshot(directorySeparator);
+        var secondSnapshot = new DirMetaSnapshot(directorySeparator);
 
         firstSnapshot.AddEntry(new DirMetaSnapshotEntryBuilder()
             .WithPath(path)

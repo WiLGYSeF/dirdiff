@@ -1,6 +1,7 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.DirWalkers;
 using DirDiff.Enums;
+using DirDiff.Extensions;
 using DirDiff.FileInfoReaders;
 using DirDiff.Hashers;
 using DirDiff.Tests.Utils;
@@ -87,6 +88,7 @@ public class DirMetaSnapshotBuilderTest
                 options.UseCreatedTime = true;
                 options.UseLastModifiedTime = true;
                 options.HashAlgorithm = HashAlgorithm.SHA256;
+                options.UpdateKeepRemoved = false;
             });
 
         foreach (var entry in newEntries)
@@ -571,6 +573,197 @@ public class DirMetaSnapshotBuilderTest
 
     #endregion
 
+    [Fact]
+    public async Task Update_Snapshot_Different_DirectorySeparator()
+    {
+        var firstDirectorySeparator = '/';
+        var secondDirectorySeparator = '\\';
+        var firstPrefix = new[] { "abc", "def" }.Join(firstDirectorySeparator) + firstDirectorySeparator;
+        var secondPrefix = new[] { "abc", "def" }.Join(secondDirectorySeparator) + secondDirectorySeparator;
+
+        var entries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            entries.Add(new DirMetaSnapshotEntryBuilder()
+                .WithPath(firstPrefix + TestUtils.RandomPath(3, firstDirectorySeparator))
+                .Build());
+        }
+
+        var builder = CreateMockedBuilder(entries, firstDirectorySeparator)
+            .Configure(options =>
+            {
+                options.UseFileSize = true;
+                options.UseCreatedTime = true;
+                options.UseLastModifiedTime = true;
+                options.HashAlgorithm = HashAlgorithm.SHA256;
+            });
+
+        foreach (var entry in entries)
+        {
+            builder.AddPath(entry.Path);
+        }
+
+        var snapshot = await builder.CreateSnapshotAsync();
+
+        var newEntries = new List<DirMetaSnapshotEntry>();
+
+        foreach (var entry in entries.Take(2))
+        {
+            newEntries.Add(new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithPath(secondPrefix + snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(entry.Path), secondDirectorySeparator))
+                .Build());
+        }
+
+        var newAddedEntry = new DirMetaSnapshotEntryBuilder()
+            .WithPath(secondPrefix + TestUtils.RandomPath(3, secondDirectorySeparator))
+            .Build();
+        newEntries.Add(newAddedEntry);
+
+        builder = CreateMockedBuilder(newEntries, secondDirectorySeparator)
+            .Configure(options =>
+            {
+                options.UseFileSize = true;
+                options.UseCreatedTime = true;
+                options.UseLastModifiedTime = true;
+                options.HashAlgorithm = HashAlgorithm.SHA256;
+            });
+
+        foreach (var entry in newEntries)
+        {
+            builder.AddPath(entry.Path);
+        }
+
+        var newSnapshot = await builder.UpdateSnapshotAsync(snapshot);
+
+        newSnapshot.Prefix.ShouldBe(firstPrefix.Replace(firstDirectorySeparator, secondDirectorySeparator));
+        newSnapshot.Entries.Count.ShouldBe(3);
+
+        foreach (var expected in entries.Take(2))
+        {
+            newSnapshot.Entries.ShouldContain(e => e.Path == snapshot.ChangePathDirectorySeparator(expected.Path, newSnapshot.DirectorySeparator));
+        }
+    }
+
+    [Theory]
+    [InlineData('/')]
+    [InlineData('\\')]
+    public async Task Update_Snapshot_Different_Prefix_DirectorySeparator(char secondDirectorySeparator)
+    {
+        var firstDirectorySeparator = '/';
+        var firstPrefix = new[] { "abc", "def" }.Join(firstDirectorySeparator) + firstDirectorySeparator;
+        var secondPrefix = new[] { "test", "123" }.Join(secondDirectorySeparator) + secondDirectorySeparator;
+
+        var entries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            entries.Add(new DirMetaSnapshotEntryBuilder()
+                .WithPath(firstPrefix + TestUtils.RandomPath(3, firstDirectorySeparator))
+                .Build());
+        }
+
+        var builder = CreateMockedBuilder(entries, firstDirectorySeparator)
+            .Configure(options =>
+            {
+                options.UseFileSize = true;
+                options.UseCreatedTime = true;
+                options.UseLastModifiedTime = true;
+                options.HashAlgorithm = HashAlgorithm.SHA256;
+            });
+
+        foreach (var entry in entries)
+        {
+            builder.AddPath(entry.Path);
+        }
+
+        var snapshot = await builder.CreateSnapshotAsync();
+
+        var newEntries = new List<DirMetaSnapshotEntry>();
+
+        foreach (var entry in entries.Take(2))
+        {
+            newEntries.Add(new DirMetaSnapshotEntryBuilder().From(entry)
+                .WithPath(secondPrefix + snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(entry.Path), secondDirectorySeparator))
+                .Build());
+        }
+
+        var newAddedEntry = new DirMetaSnapshotEntryBuilder()
+            .WithPath(secondPrefix + TestUtils.RandomPath(3, secondDirectorySeparator))
+            .Build();
+        newEntries.Add(newAddedEntry);
+
+        builder = CreateMockedBuilder(newEntries, secondDirectorySeparator)
+            .Configure(options =>
+            {
+                options.UseFileSize = true;
+                options.UseCreatedTime = true;
+                options.UseLastModifiedTime = true;
+                options.HashAlgorithm = HashAlgorithm.SHA256;
+                options.UpdatePrefix = secondPrefix;
+            });
+
+        foreach (var entry in newEntries)
+        {
+            builder.AddPath(entry.Path);
+        }
+
+        var newSnapshot = await builder.UpdateSnapshotAsync(snapshot);
+
+        newSnapshot.Prefix.ShouldBe(firstPrefix.Replace(firstDirectorySeparator, secondDirectorySeparator));
+        newSnapshot.Entries.Count.ShouldBe(3);
+
+        foreach (var expected in entries.Take(2))
+        {
+            newSnapshot.Entries.ShouldContain(e => e.Path == snapshot.ChangePathDirectorySeparator(expected.Path, newSnapshot.DirectorySeparator));
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Update_Snapshot_TimeWindow(bool useTimeWindow)
+    {
+        var directorySeparator = '/';
+
+        var entry = new DirMetaSnapshotEntryBuilder().Build();
+
+        var builder = CreateMockedBuilder(new[] { entry }, directorySeparator)
+            .Configure(options =>
+            {
+                options.UseFileSize = true;
+                options.UseCreatedTime = true;
+                options.UseLastModifiedTime = true;
+                options.HashAlgorithm = HashAlgorithm.SHA256;
+            });
+
+        builder.AddPath(entry.Path);
+
+        var snapshot = await builder.CreateSnapshotAsync();
+
+        var newEntry = new DirMetaSnapshotEntryBuilder().From(entry)
+            .WithLastModifiedTime(entry.LastModifiedTime + TimeSpan.FromSeconds(20))
+            .WithRandomHash()
+            .Build();
+
+        builder = CreateMockedBuilder(new[] { newEntry }, directorySeparator)
+            .Configure(options =>
+            {
+                options.UseFileSize = true;
+                options.UseCreatedTime = true;
+                options.UseLastModifiedTime = true;
+                options.HashAlgorithm = HashAlgorithm.SHA256;
+                options.TimeWindow = useTimeWindow ? TimeSpan.FromMinutes(1) : TimeSpan.Zero;
+            });
+
+        builder.AddPath(newEntry.Path);
+
+        var newSnapshot = await builder.UpdateSnapshotAsync(snapshot);
+
+        var result = newSnapshot.Entries.Single();
+        result.Hash.ShouldBeEquivalentTo(useTimeWindow ? entry.Hash : newEntry.Hash);
+    }
+
     private static DirMetaSnapshotBuilder CreateMockedBuilder(
         IEnumerable<DirMetaSnapshotEntry> entries,
         char directorySeparator)
@@ -611,10 +804,11 @@ public class DirMetaSnapshotBuilderTest
             walkerMock,
             readerMock,
             infoReaderMock,
-            hasherMock).Configure(options =>
-            {
-                options.DirectorySeparator = directorySeparator;
-            });
+            hasherMock)
+                .Configure(options =>
+                {
+                    options.DirectorySeparator = directorySeparator;
+                });
 
         hasherMock.Hasher = (algorithm, stream) =>
         {
@@ -641,5 +835,11 @@ public class DirMetaSnapshotBuilderTest
     private void ShouldBeEntry(DirMetaSnapshotEntry entry, DirMetaSnapshotEntry expected)
     {
         entry.Path.ShouldBe(expected.Path);
+        entry.Type.ShouldBe(expected.Type);
+        entry.FileSize.ShouldBe(expected.FileSize);
+        entry.CreatedTime.ShouldBe(expected.CreatedTime);
+        entry.LastModifiedTime.ShouldBe(expected.LastModifiedTime);
+        entry.HashAlgorithm.ShouldBe(expected.HashAlgorithm);
+        entry.Hash.ShouldBeEquivalentTo(expected.Hash);
     }
 }

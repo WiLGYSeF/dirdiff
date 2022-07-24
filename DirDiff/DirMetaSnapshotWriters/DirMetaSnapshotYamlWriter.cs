@@ -9,27 +9,11 @@ namespace DirDiff.DirMetaSnapshotWriters;
 
 public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
 {
-    /// <summary>
-    /// Snapshot writer options.
-    /// </summary>
-    public DirMetaSnapshotYamlWriterOptions YamlWriterOptions { get; } = new();
-
-    public DirMetaSnapshotWriterOptions Options => YamlWriterOptions;
-
-    /// <summary>
-    /// Configures snapshot writer options.
-    /// </summary>
-    /// <param name="action">Configure action.</param>
-    /// <returns></returns>
-    public DirMetaSnapshotYamlWriter Configure(Action<DirMetaSnapshotYamlWriterOptions> action)
-    {
-        action(YamlWriterOptions);
-        return this;
-    }
+    public DirMetaSnapshotWriterOptions Options { get; } = new();
 
     public IDirMetaSnapshotWriter Configure(Action<DirMetaSnapshotWriterOptions> action)
     {
-        action(YamlWriterOptions);
+        action(Options);
         return this;
     }
 
@@ -49,9 +33,18 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
 
     private Dictionary<string, object> SerializeEntry(DirMetaSnapshot snapshot, DirMetaSnapshotEntry entry)
     {
+        var path = Options.WritePrefix
+            ? entry.Path
+            : snapshot.PathWithoutPrefix(entry.Path);
+
+        if (Options.DirectorySeparator.HasValue && Options.DirectorySeparator.Value != snapshot.DirectorySeparator)
+        {
+            path = snapshot.ChangePathDirectorySeparator(path, Options.DirectorySeparator.Value);
+        }
+
         var dictionary = new Dictionary<string, object>
         {
-            { "path", Options.WritePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path) },
+            { "path", path },
             { "type", entry.Type },
         };
 
@@ -67,16 +60,12 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
 
         if (Options.WriteCreatedTime && entry.CreatedTime.HasValue)
         {
-            dictionary["createdTime"] = YamlWriterOptions.UseUnixTimestamp
-                ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
-                : entry.CreatedTime.Value;
+            dictionary["createdTime"] = entry.CreatedTime.Value;
         }
 
         if (Options.WriteLastModifiedTime && entry.LastModifiedTime.HasValue)
         {
-            dictionary["lastModifiedTime"] = YamlWriterOptions.UseUnixTimestamp
-                ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
-                : entry.LastModifiedTime.Value;
+            dictionary["lastModifiedTime"] = entry.LastModifiedTime.Value;
         }
 
         if (Options.WriteFileSize && entry.FileSize.HasValue)

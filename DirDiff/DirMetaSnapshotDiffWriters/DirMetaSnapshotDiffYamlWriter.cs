@@ -8,19 +8,11 @@ namespace DirDiff.DirMetaSnapshotDiffWriters;
 
 public class DirMetaSnapshotDiffYamlWriter : IDirMetaSnapshotDiffWriter
 {
-    public DirMetaSnapshotDiffYamlWriterOptions YamlWriterOptions { get; } = new();
-
-    public DirMetaSnapshotDiffWriterOptions Options => YamlWriterOptions;
-
-    public DirMetaSnapshotDiffYamlWriter Configure(Action<DirMetaSnapshotDiffYamlWriterOptions> action)
-    {
-        action(YamlWriterOptions);
-        return this;
-    }
+    public DirMetaSnapshotDiffWriterOptions Options { get; } = new();
 
     public IDirMetaSnapshotDiffWriter Configure(Action<DirMetaSnapshotDiffWriterOptions> action)
     {
-        action(YamlWriterOptions);
+        action(Options);
         return this;
     }
 
@@ -76,16 +68,12 @@ public class DirMetaSnapshotDiffYamlWriter : IDirMetaSnapshotDiffWriter
 
         if (entry.CreatedTime.HasValue)
         {
-            dictionary["createdTime"] = YamlWriterOptions.UseUnixTimestamp
-                ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
-                : entry.CreatedTime.Value;
+            dictionary["createdTime"] = entry.CreatedTime.Value;
         }
 
         if (entry.LastModifiedTime.HasValue)
         {
-            dictionary["lastModifiedTime"] = YamlWriterOptions.UseUnixTimestamp
-                ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
-                : entry.LastModifiedTime.Value;
+            dictionary["lastModifiedTime"] = entry.LastModifiedTime.Value;
         }
 
         if (entry.FileSize.HasValue)

@@ -51,6 +51,11 @@ public class DirMetaSnapshotBuilder
         return this;
     }
 
+    /// <summary>
+    /// Adds a logger to the snapshot builder.
+    /// </summary>
+    /// <param name="logger">Logger</param>
+    /// <returns></returns>
     public DirMetaSnapshotBuilder WithLogger(ILogger logger)
     {
         Logger = logger;
@@ -72,10 +77,9 @@ public class DirMetaSnapshotBuilder
     /// Removes all paths from being traversed in snapshot.
     /// </summary>
     /// <returns></returns>
-    public DirMetaSnapshotBuilder ClearPaths()
+    public void ClearPaths()
     {
         _snapshotPaths.Clear();
-        return this;
     }
 
     /// <summary>
@@ -133,9 +137,13 @@ public class DirMetaSnapshotBuilder
         {
             foreach (var entry in snapshot.Entries)
             {
-                if (!newSnapshot.ContainsPath(entry.Path))
+                var path = snapshot.ChangePathDirectorySeparator(entry.Path, newSnapshot.DirectorySeparator);
+
+                if (!newSnapshot.ContainsPath(path))
                 {
-                    newSnapshot.AddEntry(entry.Copy());
+                    var copy = entry.Copy();
+                    copy.Path = path;
+                    newSnapshot.AddEntry(copy);
                 }
             }
         }
@@ -157,38 +165,63 @@ public class DirMetaSnapshotBuilder
     {
         foreach (var file in _walker.Walk(path))
         {
-            if (!snapshot.TryGetEntry(file.Path, out var entry))
-            {
-                Logger?.LogInformation("updating with new entry: {path}", file.Path);
+            var snapshotPath = newSnapshot.ChangePathDirectorySeparator(file.Path, snapshot.DirectorySeparator);
+            var newPath = file.Path;
 
-                newSnapshot.AddEntry(await CreateEntryAsync(file));
-                continue;
+            if (Options.UpdatePrefix != null)
+            {
+                if (!newPath.StartsWith(Options.UpdatePrefix))
+                {
+                    throw new InvalidOperationException($"Entry path does not start with prefix: {newPath}");
+                }
+
+                newPath = newPath[Options.UpdatePrefix.Length..];
+                snapshotPath = snapshot.Prefix + snapshot.ChangePathDirectorySeparator(newPath, snapshot.DirectorySeparator);
             }
 
-            var newEntry = await CreateEntryAsync(file, skipHash: true);
+            DirMetaSnapshotEntry newEntry;
 
-            if (newEntry.IsDifferentFrom(entry, timeWindow: Options.TimeWindow))
+            if (snapshot.TryGetEntry(snapshotPath, out var entry))
             {
-                Logger?.LogInformation("updating existing entry: {path}", file.Path);
+                newEntry = await CreateEntryAsync(file, skipHash: true);
 
-                if (Options.HashAlgorithm.HasValue)
+                if (newEntry.IsDifferentFrom(entry, timeWindow: Options.TimeWindow, ignorePath: true))
                 {
-                    await SetEntryHashAsync(newEntry);
+                    Logger?.LogInformation("updating existing entry: {path}", file.Path);
+
+                    if (Options.HashAlgorithm.HasValue)
+                    {
+                        Logger?.LogInformation("hashing contents: {path}", file.Path);
+
+                        await SetEntryHashAsync(newEntry);
+                    }
+                }
+                else
+                {
+                    newEntry.CopyKnownPropertiesFrom(entry);
+                    if (newEntry.Hash == null && Options.HashAlgorithm.HasValue)
+                    {
+                        Logger?.LogInformation("updating existing entry: {path}", file.Path);
+                        Logger?.LogInformation("hashing contents: {path}", file.Path);
+
+                        await SetEntryHashAsync(newEntry);
+                    }
+                    else
+                    {
+                        Logger?.LogInformation("using existing entry: {path}", file.Path);
+                    }
                 }
             }
             else
             {
-                newEntry.CopyKnownPropertiesFrom(entry);
-                if (newEntry.Hash == null && Options.HashAlgorithm.HasValue)
-                {
-                    Logger?.LogInformation("updating existing entry: {path}", file.Path);
+                Logger?.LogInformation("updating with new entry: {path}", file.Path);
 
-                    await SetEntryHashAsync(newEntry);
-                }
-                else
-                {
-                    Logger?.LogInformation("using existing entry: {path}", file.Path);
-                }
+                newEntry = await CreateEntryAsync(file);
+            }
+
+            if (Options.UpdatePrefix != null)
+            {
+                newEntry.Path = snapshot.ChangePathDirectorySeparator(snapshot.Prefix!, newSnapshot.DirectorySeparator) + newPath;
             }
 
             newSnapshot.AddEntry(newEntry);
@@ -198,11 +231,6 @@ public class DirMetaSnapshotBuilder
     private async Task<DirMetaSnapshotEntry> CreateEntryAsync(DirWalkerResult result, bool skipHash = false)
     {
         return await CreateEntryAsync(result.Path, result.Type, skipHash);
-    }
-
-    private async Task<DirMetaSnapshotEntry> CreateEntryAsync(DirMetaSnapshotEntry entry, bool skipHash = false)
-    {
-        return await CreateEntryAsync(entry.Path, entry.Type, skipHash);
     }
 
     private async Task<DirMetaSnapshotEntry> CreateEntryAsync(string path, FileType type, bool skipHash = false)

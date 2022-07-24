@@ -23,7 +23,6 @@ internal static class DiffVerb
             "powershell" => new DirMetaSnapshotDiffPowershellWriter(),
             "json" => new DirMetaSnapshotDiffJsonWriter().Configure(options =>
             {
-                options.UseUnixTimestamp = false;
                 options.WriteIndented = true;
             }),
             _ => null,
@@ -45,7 +44,7 @@ internal static class DiffVerb
 
         try
         {
-            firstSnapshot = await Shared.ReadSnapshot(firstPath);
+            firstSnapshot = await Shared.ReadSnapshot(firstPath, Path.DirectorySeparatorChar);
         }
         catch (Exception ex)
         {
@@ -54,7 +53,7 @@ internal static class DiffVerb
 
         try
         {
-            secondSnapshot = await Shared.ReadSnapshot(secondPath);
+            secondSnapshot = await Shared.ReadSnapshot(secondPath, Path.DirectorySeparatorChar);
         }
         catch (Exception ex)
         {

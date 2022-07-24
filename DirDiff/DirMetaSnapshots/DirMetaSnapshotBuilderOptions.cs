@@ -40,6 +40,11 @@ public class DirMetaSnapshotBuilderOptions
     public bool UpdateKeepRemoved { get; set; }
 
     /// <summary>
+    /// Replace this prefix from entry paths when updating to the existing snapshot prefix.
+    /// </summary>
+    public string? UpdatePrefix { get; set; }
+
+    /// <summary>
     /// Minimum directory depth limit.
     /// </summary>
     public int? MinDepthLimit { get; set; }

@@ -42,7 +42,7 @@ public class DirMetaSnapshotTextReaderOptions : DirMetaSnapshotReaderOptions
     /// </summary>
     public string NoneValue { get; set; } = "-";
 
-    public DirMetaSnapshotTextReaderOptions Copy()
+    internal DirMetaSnapshotTextReaderOptions Copy()
     {
         return new DirMetaSnapshotTextReaderOptions
         {

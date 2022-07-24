@@ -33,7 +33,6 @@ public class DirMetaSnapshotYamlWriterTest
                 options.WriteCreatedTime = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
-                options.UseUnixTimestamp = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -83,7 +82,6 @@ public class DirMetaSnapshotYamlWriterTest
                 options.WriteCreatedTime = false;
                 options.WriteLastModifiedTime = false;
                 options.WriteFileSize = false;
-                options.UseUnixTimestamp = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -109,8 +107,7 @@ public class DirMetaSnapshotYamlWriterTest
 
         for (var i = 0; i < 5; i++)
         {
-            var entry = new DirMetaSnapshotEntryBuilder()
-                .Build();
+            var entry = new DirMetaSnapshotEntryBuilder().Build();
             snapshot.AddEntry(entry);
             entries.Add(entry);
         }
@@ -121,7 +118,6 @@ public class DirMetaSnapshotYamlWriterTest
                 options.WriteHash = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
-                options.UseUnixTimestamp = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -138,6 +134,54 @@ public class DirMetaSnapshotYamlWriterTest
             resultEntry.Hash.ShouldBe(entry.HashHex);
             resultEntry.LastModifiedTime.ShouldBe(entry.LastModifiedTime!.Value);
             resultEntry.FileSize.ShouldBe(entry.FileSize!.Value);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Write_Prefix(bool writePrefix)
+    {
+        var stream = new MemoryStream();
+
+        var directorySeparator = '/';
+
+        var snapshot = new DirMetaSnapshot(directorySeparator);
+        var entries = new List<DirMetaSnapshotEntry>();
+
+        var prefix = "abc/";
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithPath(prefix + TestUtils.RandomPath(3))
+                .Build();
+            snapshot.AddEntry(entry);
+            entries.Add(entry);
+        }
+
+        snapshot.Prefix.ShouldBe(prefix);
+
+        var writer = new DirMetaSnapshotYamlWriter()
+            .Configure(options =>
+            {
+                options.WriteHash = true;
+                options.WriteLastModifiedTime = true;
+                options.WriteFileSize = true;
+                options.WritePrefix = writePrefix;
+            });
+
+        await writer.WriteAsync(stream, snapshot);
+        stream.Position = 0;
+
+        var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
+
+        result.Entries!.Count.ShouldBe(entries.Count);
+
+        foreach (var entry in entries)
+        {
+            var path = writePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path);
+            var resultEntry = result.Entries.Single(e => e.Path == path);
         }
     }
 

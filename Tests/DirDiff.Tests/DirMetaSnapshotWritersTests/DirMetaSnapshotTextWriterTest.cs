@@ -157,8 +157,7 @@ public class DirMetaSnapshotTextWriterTest
 
         for (var i = 0; i < 5; i++)
         {
-            var entry = new DirMetaSnapshotEntryBuilder()
-                .Build();
+            var entry = new DirMetaSnapshotEntryBuilder().Build();
             snapshot.AddEntry(entry);
             entries.Add(entry);
         }
@@ -202,6 +201,68 @@ public class DirMetaSnapshotTextWriterTest
                 ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
                 entry.FileSize!.Value.ToString(),
                 entry.Path,
+            }.Join(writer.TextWriterOptions.Separator);
+
+            linesEnumerator.Current.ShouldBe(expected);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Write_Prefix(bool writePrefix)
+    {
+        var stream = new MemoryStream();
+
+        var directorySeparator = '/';
+
+        var snapshot = new DirMetaSnapshot(directorySeparator);
+        var entries = new List<DirMetaSnapshotEntry>();
+
+        var prefix = "abc/";
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder()
+                .WithPath(prefix + TestUtils.RandomPath(3))
+                .Build();
+            snapshot.AddEntry(entry);
+            entries.Add(entry);
+        }
+
+        snapshot.Prefix.ShouldBe(prefix);
+
+        var writer = new DirMetaSnapshotTextWriter()
+            .Configure(options =>
+            {
+                options.WriteHash = true;
+                options.WriteLastModifiedTime = true;
+                options.WriteFileSize = true;
+                options.WritePrefix = writePrefix;
+                options.WriteHeader = false;
+            });
+
+        await writer.WriteAsync(stream, snapshot);
+        stream.Position = 0;
+
+        var content = Encoding.UTF8.GetString(stream.ToArray());
+        var lines = content.Split(Environment.NewLine)[..^1];
+
+        lines.Length.ShouldBe(entries.Count);
+
+        var linesEnumerator = lines.GetEnumerator();
+        var entriesEnumerator = entries.GetEnumerator();
+
+        while (linesEnumerator.MoveNext() && entriesEnumerator.MoveNext())
+        {
+            var entry = entriesEnumerator.Current;
+
+            var expected = new string[]
+            {
+                entry.HashHex!,
+                ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
+                entry.FileSize!.Value.ToString(),
+                writePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path),
             }.Join(writer.TextWriterOptions.Separator);
 
             linesEnumerator.Current.ShouldBe(expected);

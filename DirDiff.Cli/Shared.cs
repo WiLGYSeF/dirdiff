@@ -6,13 +6,19 @@ namespace DirDiff.Cli;
 
 internal static class Shared
 {
-    public static async Task<DirMetaSnapshot> ReadSnapshot(string path)
+    public static async Task<DirMetaSnapshot> ReadSnapshot(string path, char directorySeparator)
     {
         var snapshotJsonReader = new DirMetaSnapshotJsonReader();
+        snapshotJsonReader.Configure(options =>
+        {
+            options.DirectorySeparator = directorySeparator;
+        });
 
         var snapshotTextReader = new DirMetaSnapshotTextReader();
         snapshotTextReader.Configure(options =>
         {
+            options.DirectorySeparator = directorySeparator;
+
             options.ReadGuess = true;
 
             options.Separator = "  ";

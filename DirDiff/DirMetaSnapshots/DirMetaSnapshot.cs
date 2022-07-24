@@ -96,7 +96,7 @@ public class DirMetaSnapshot
         var diff = new DirMetaSnapshotDiff(snapshot, this);
 
         var entriesMap = Entries.ToDictionary(e => PathWithoutPrefix(e.Path));
-        var otherEntriesMap = snapshot.Entries.ToDictionary(e => snapshot.PathWithoutPrefix(e.Path));
+        var otherEntriesMap = snapshot.Entries.ToDictionary(e => snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(e.Path), DirectorySeparator));
 
         var otherHashMap = CreateHashMap(snapshot.Entries);
 
@@ -135,11 +135,11 @@ public class DirMetaSnapshot
                     otherEntry = otherHashEntries.FirstOrDefault(e => e.LastModifiedTime == entry.LastModifiedTime);
                     if (otherEntry != null)
                     {
-                        moved = !entriesMap.ContainsKey(snapshot.PathWithoutPrefix(otherEntry.Path)) && !otherMovedEntries.Contains(otherEntry);
+                        moved = !entriesMap.ContainsKey(snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(otherEntry.Path), DirectorySeparator)) && !otherMovedEntries.Contains(otherEntry);
                     }
                     else
                     {
-                        otherEntry = otherHashEntries.FirstOrDefault(e => !entriesMap.ContainsKey(snapshot.PathWithoutPrefix(e.Path)) && !otherMovedEntries.Contains(e));
+                        otherEntry = otherHashEntries.FirstOrDefault(e => !entriesMap.ContainsKey(snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(e.Path), DirectorySeparator)) && !otherMovedEntries.Contains(e));
                         if (otherEntry != null)
                         {
                             moved = true;
@@ -212,7 +212,7 @@ public class DirMetaSnapshot
 
         foreach (var otherEntry in otherEntriesMap.Values)
         {
-            if (!entriesMap.TryGetValue(snapshot.PathWithoutPrefix(otherEntry.Path), out var entry))
+            if (!entriesMap.TryGetValue(snapshot.ChangePathDirectorySeparator(snapshot.PathWithoutPrefix(otherEntry.Path), DirectorySeparator), out var entry))
             {
                 // entry does not exist in newer snapshot
 
@@ -230,6 +230,12 @@ public class DirMetaSnapshot
         return diff;
     }
 
+    /// <summary>
+    /// Gets the path without snapshot prefix.
+    /// </summary>
+    /// <param name="path">Path.</param>
+    /// <returns>Path without snapshot prefix.</returns>
+    /// <exception cref="ArgumentException"><paramref name="path"/> does not start with snapshot prefix.</exception>
     public string PathWithoutPrefix(string path)
     {
         if (Prefix == null || Prefix.Length == 0)
@@ -242,6 +248,19 @@ public class DirMetaSnapshot
             throw new ArgumentException("Path does not start with expected prefix.", nameof(path));
         }
         return path[Prefix.Length..];
+    }
+
+    /// <summary>
+    /// Change the snapshot path's directory separator.
+    /// </summary>
+    /// <param name="path">Path.</param>
+    /// <param name="directorySeparator">Directory separator to change to.</param>
+    /// <returns>Snapshot path with specified directory separator.</returns>
+    public string ChangePathDirectorySeparator(string path, char directorySeparator)
+    {
+        return directorySeparator != DirectorySeparator
+            ? GetDirectoryParts(path).Join(directorySeparator)
+            : path;
     }
 
     /// <summary>
@@ -499,7 +518,12 @@ public class DirMetaSnapshot
     {
         if (Prefix == null)
         {
-            return GetDirectoryParts(path)[..^1].Join(DirectorySeparator);
+            var prefix = GetDirectoryParts(path)[..^1].Join(DirectorySeparator);
+            if (prefix.Length > 0)
+            {
+                prefix += DirectorySeparator;
+            }
+            return prefix;
         }
 
         if (Prefix.Length == 0 || path.StartsWith(Prefix))

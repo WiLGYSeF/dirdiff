@@ -132,6 +132,24 @@ internal class DirMetaSnapshotEntryBuilder
         return this;
     }
 
+    public DirMetaSnapshotEntryBuilder WithRandomPath(char directorySeparator)
+    {
+        Path = RandomPath(directorySeparator);
+        return this;
+    }
+
+    public DirMetaSnapshotEntryBuilder WithRandomPath(string prefix)
+    {
+        Path = prefix + RandomPath();
+        return this;
+    }
+
+    public DirMetaSnapshotEntryBuilder WithRandomPath(string prefix, char directorySeparator)
+    {
+        Path = prefix + RandomPath(directorySeparator);
+        return this;
+    }
+
     public DirMetaSnapshotEntryBuilder WithFileType(FileType type)
     {
         Type = type;
@@ -212,9 +230,9 @@ internal class DirMetaSnapshotEntryBuilder
         return this;
     }
 
-    private string RandomPath()
+    private string RandomPath(char directorySeparator = '/')
     {
-        return TestUtils.RandomPath(3) + TestUtils.RandomExtension();
+        return TestUtils.RandomPath(3, directorySeparator) + TestUtils.RandomExtension();
     }
 
     private long RandomFileSize()

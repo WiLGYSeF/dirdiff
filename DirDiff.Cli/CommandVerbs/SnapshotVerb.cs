@@ -28,6 +28,7 @@ internal static class SnapshotVerb
             options.HashAlgorithm = opts.UseHash ? HashAlgorithm.SHA256 : null;
             options.TimeWindow = TimeSpan.FromSeconds(opts.TimeWindow ?? 0);
             options.UpdateKeepRemoved = opts.UpdateNoRemove;
+            options.UpdatePrefix = opts.UpdatePrefix;
             options.KeepDirectoryOrder = true;
             options.ThrowIfNotFound = true;
         });
@@ -64,13 +65,9 @@ internal static class SnapshotVerb
                 }),
                 "json" => new DirMetaSnapshotJsonWriter().Configure(options =>
                 {
-                    options.UseUnixTimestamp = false;
                     options.WriteIndented = true;
                 }),
-                "yaml" => new DirMetaSnapshotYamlWriter().Configure(options =>
-                {
-                    options.UseUnixTimestamp = false;
-                }),
+                "yaml" => new DirMetaSnapshotYamlWriter(),
                 _ => null,
             };
 
@@ -82,6 +79,7 @@ internal static class SnapshotVerb
             snapshotWriter.Configure(options =>
             {
                 options.WritePrefix = !opts.RemovePrefix;
+                options.DirectorySeparator = opts.OutputDirectorySeparator;
                 options.WriteHash = opts.UseHash;
                 options.WriteHashAlgorithm = false;
                 options.WriteCreatedTime = false;
@@ -93,7 +91,7 @@ internal static class SnapshotVerb
 
             if (opts.UpdateSnapshot != null)
             {
-                var origSnapshot = await Shared.ReadSnapshot(opts.UpdateSnapshot);
+                var origSnapshot = await Shared.ReadSnapshot(opts.UpdateSnapshot, opts.UpdateDirectorySeparator ?? Path.DirectorySeparatorChar);
                 snapshot = await snapshotBuilder.UpdateSnapshotAsync(origSnapshot);
             }
             else
