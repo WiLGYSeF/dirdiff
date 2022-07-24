@@ -1,4 +1,5 @@
-﻿using DirDiff.DirMetaSnapshotDiffWriters;
+﻿using DirDiff.DirMetaSnapshotComparers;
+using DirDiff.DirMetaSnapshotDiffWriters;
 using DirDiff.DirMetaSnapshots;
 using DirDiff.Tests.Utils;
 using System.Text;
@@ -19,7 +20,7 @@ public class DirMetaSnapshotDiffBashWriterTest
 
         var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
 
-        var diff = secondSnapshot.Compare(firstSnapshot);
+        var diff = new DirMetaSnapshotComparer().Compare(firstSnapshot, secondSnapshot);
 
         var diffWriter = new DirMetaSnapshotDiffBashWriter();
         var stream = new MemoryStream();
@@ -65,7 +66,7 @@ public class DirMetaSnapshotDiffBashWriterTest
 
         var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
 
-        var diff = secondSnapshot.Compare(firstSnapshot);
+        var diff = new DirMetaSnapshotComparer().Compare(firstSnapshot, secondSnapshot);
 
         var diffWriter = new DirMetaSnapshotDiffBashWriter().Configure(options =>
         {
@@ -119,7 +120,7 @@ public class DirMetaSnapshotDiffBashWriterTest
 
         var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
 
-        var diff = secondSnapshot.Compare(firstSnapshot);
+        var diff = new DirMetaSnapshotComparer().Compare(firstSnapshot, secondSnapshot);
 
         var diffWriter = new DirMetaSnapshotDiffBashWriter().Configure(options =>
         {
@@ -177,7 +178,7 @@ public class DirMetaSnapshotDiffBashWriterTest
             .WithPath(path)
             .Build());
 
-        var diff = secondSnapshot.Compare(firstSnapshot);
+        var diff = new DirMetaSnapshotComparer().Compare(firstSnapshot, secondSnapshot);
 
         var diffWriter = new DirMetaSnapshotDiffBashWriter();
         var stream = new MemoryStream();

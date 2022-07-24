@@ -76,31 +76,6 @@ public class DirMetaSnapshot
     }
 
     /// <summary>
-    /// Creates a diff between two snapshots, where the snapshot calling compare is considered more recent.
-    /// </summary>
-    /// <param name="snapshot">Snapshot to compare, considered less recent than the calling snapshot.</param>
-    /// <param name="sizeAndTimeMatch">
-    /// Indicates if matching entry last modified times and file sizes can be considered a match if there are no entry hashes.
-    /// Otherwise, they are considered unknown.
-    /// </param>
-    /// <param name="unknownAssumeModified">Indicates if unknown entry comparisons should be treated as modifications.</param>
-    /// <param name="window">Maximum difference in times before entries are considered different. Defaults to zero.</param>
-    /// <returns>Snapshot diff.</returns>
-    public DirMetaSnapshotDiff Compare(
-        DirMetaSnapshot snapshot,
-        bool sizeAndTimeMatch = true,
-        bool unknownAssumeModified = true,
-        TimeSpan? window = null)
-    {
-        return new DirMetaSnapshotComparer().Configure(options =>
-        {
-            options.SizeAndTimeMatch = sizeAndTimeMatch;
-            options.UnknownAssumeModified = unknownAssumeModified;
-            options.TimeWindow = window ?? TimeSpan.Zero;
-        }).Compare(snapshot, this);
-    }
-
-    /// <summary>
     /// Gets the path without snapshot prefix.
     /// </summary>
     /// <param name="path">Path.</param>

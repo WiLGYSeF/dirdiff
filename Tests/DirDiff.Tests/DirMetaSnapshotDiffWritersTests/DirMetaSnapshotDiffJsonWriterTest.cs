@@ -1,4 +1,5 @@
-﻿using DirDiff.DirMetaSnapshotDiffWriters;
+﻿using DirDiff.DirMetaSnapshotComparers;
+using DirDiff.DirMetaSnapshotDiffWriters;
 using DirDiff.DirMetaSnapshots;
 using System.Text.Json;
 
@@ -18,7 +19,7 @@ public class DirMetaSnapshotDiffJsonWriterTest
 
         var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
 
-        var diff = secondSnapshot.Compare(firstSnapshot);
+        var diff = new DirMetaSnapshotComparer().Compare(firstSnapshot, secondSnapshot);
 
         var diffWriter = new DirMetaSnapshotDiffJsonWriter();
         var stream = new MemoryStream();
@@ -55,7 +56,7 @@ public class DirMetaSnapshotDiffJsonWriterTest
 
         var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
 
-        var diff = secondSnapshot.Compare(firstSnapshot);
+        var diff = new DirMetaSnapshotComparer().Compare(firstSnapshot, secondSnapshot);
 
         var diffWriter = new DirMetaSnapshotDiffJsonWriter().Configure(options =>
         {
@@ -107,7 +108,7 @@ public class DirMetaSnapshotDiffJsonWriterTest
 
         var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
 
-        var diff = secondSnapshot.Compare(firstSnapshot);
+        var diff = new DirMetaSnapshotComparer().Compare(firstSnapshot, secondSnapshot);
 
         var diffWriter = new DirMetaSnapshotDiffJsonWriter().Configure(options =>
         {

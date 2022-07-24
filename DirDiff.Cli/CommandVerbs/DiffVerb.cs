@@ -1,4 +1,5 @@
 ﻿using DirDiff.Cli.Logging;
+using DirDiff.DirMetaSnapshotComparers;
 using DirDiff.DirMetaSnapshotDiffWriters;
 using DirDiff.DirMetaSnapshots;
 using Microsoft.Extensions.Logging;
@@ -60,11 +61,12 @@ internal static class DiffVerb
             throw new CommandVerbException(1, $"could not read snapshot file: {secondPath}", ex.Message);
         }
 
-        var diff = secondSnapshot.Compare(
-            firstSnapshot,
-            !opts.NoSizeAndTimeMatch,
-            !opts.UnknownNotModified,
-            opts.TimeWindow.HasValue ? TimeSpan.FromSeconds(opts.TimeWindow.Value) : null);
+        var diff = new DirMetaSnapshotComparer().Configure(options =>
+        {
+            options.SizeAndTimeMatch = !opts.NoSizeAndTimeMatch;
+            options.UnknownAssumeModified = !opts.UnknownNotModified;
+            options.TimeWindow = opts.TimeWindow.HasValue ? TimeSpan.FromSeconds(opts.TimeWindow.Value) : TimeSpan.Zero;
+        }).Compare(firstSnapshot, secondSnapshot);
 
         FileStream? fileStream = null;
         Stream outputStream;
