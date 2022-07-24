@@ -215,16 +215,20 @@ public class DirMetaSnapshotTextWriterTest
         var stream = new MemoryStream();
 
         var directorySeparator = '/';
+        var prefix = "abc/";
+
+        var factory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = directorySeparator,
+        };
 
         var snapshot = new DirMetaSnapshot(directorySeparator);
         var entries = new List<DirMetaSnapshotEntry>();
 
-        var prefix = "abc/";
-
         for (var i = 0; i < 5; i++)
         {
-            var entry = new DirMetaSnapshotEntryBuilder()
-                .WithPath(prefix + TestUtils.RandomPath(3))
+            var entry = factory.Create()
+                .WithRandomPath(prefix)
                 .Build();
             snapshot.AddEntry(entry);
             entries.Add(entry);
@@ -266,6 +270,51 @@ public class DirMetaSnapshotTextWriterTest
             }.Join(writer.TextWriterOptions.Separator);
 
             linesEnumerator.Current.ShouldBe(expected);
+        }
+    }
+
+    [Fact]
+    public async Task Write_SortByPath()
+    {
+        var stream = new MemoryStream();
+
+        var snapshot = new DirMetaSnapshot();
+        var entries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = new DirMetaSnapshotEntryBuilder().Build();
+            snapshot.AddEntry(entry);
+            entries.Add(entry);
+        }
+
+        var writer = new DirMetaSnapshotTextWriter()
+            .Configure(options =>
+            {
+                options.SortByPath = true;
+                options.WriteHash = true;
+                options.WriteLastModifiedTime = true;
+                options.WriteFileSize = true;
+
+                options.WriteHeader = false;
+            });
+
+        await writer.WriteAsync(stream, snapshot);
+        stream.Position = 0;
+
+        var content = Encoding.UTF8.GetString(stream.ToArray());
+        var lines = content.Split(Environment.NewLine)[..^1];
+
+        lines.Length.ShouldBe(entries.Count);
+
+        var linesEnumerator = lines.ToList().GetEnumerator();
+        var entriesEnumerator = entries.OrderBy(e => e.Path).GetEnumerator();
+
+        while (linesEnumerator.MoveNext() && entriesEnumerator.MoveNext())
+        {
+            var entry = entriesEnumerator.Current;
+
+            linesEnumerator.Current.EndsWith(entry.Path);
         }
     }
 }

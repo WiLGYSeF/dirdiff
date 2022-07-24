@@ -99,7 +99,7 @@ internal static class TestUtils
 
     public static string RandomPath(int parts)
     {
-        return RandomPath(parts, '/');
+        return RandomPath(parts, Path.DirectorySeparatorChar);
     }
 
     public static string RandomPath(int parts, char separator)

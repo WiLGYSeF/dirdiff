@@ -56,7 +56,7 @@ internal static class SnapshotVerb
 
         try
         {
-            IDirMetaSnapshotWriter? snapshotWriter = opts.SnapshotFormat?.ToLower() switch
+            IDirMetaSnapshotWriter snapshotWriter = opts.SnapshotFormat?.ToLower() switch
             {
                 "text" => new DirMetaSnapshotTextWriter().Configure(options =>
                 {
@@ -68,13 +68,8 @@ internal static class SnapshotVerb
                     options.WriteIndented = true;
                 }),
                 "yaml" => new DirMetaSnapshotYamlWriter(),
-                _ => null,
+                _ => throw new CommandVerbException(1, "unknown snapshot format"),
             };
-
-            if (snapshotWriter == null)
-            {
-                throw new CommandVerbException(1, "unknown snapshot format");
-            }
 
             snapshotWriter.Configure(options =>
             {
@@ -91,7 +86,7 @@ internal static class SnapshotVerb
 
             if (opts.UpdateSnapshot != null)
             {
-                var origSnapshot = await Shared.ReadSnapshot(opts.UpdateSnapshot, opts.UpdateDirectorySeparator ?? Path.DirectorySeparatorChar);
+                var origSnapshot = await Shared.ReadSnapshot(opts.UpdateSnapshot);
                 snapshot = await snapshotBuilder.UpdateSnapshotAsync(origSnapshot);
             }
             else

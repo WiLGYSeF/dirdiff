@@ -6,35 +6,45 @@ namespace DirDiff.Cli;
 
 internal static class Shared
 {
-    public static async Task<DirMetaSnapshot> ReadSnapshot(string path, char directorySeparator)
+    public static async Task<DirMetaSnapshot> ReadSnapshot(string path)
     {
         var snapshotJsonReader = new DirMetaSnapshotJsonReader();
-        snapshotJsonReader.Configure(options =>
-        {
-            options.DirectorySeparator = directorySeparator;
-        });
+
+        var snapshotYamlReader = new DirMetaSnapshotYamlReader();
 
         var snapshotTextReader = new DirMetaSnapshotTextReader();
         snapshotTextReader.Configure(options =>
         {
-            options.DirectorySeparator = directorySeparator;
-
             options.ReadGuess = true;
 
             options.Separator = "  ";
             options.NoneValue = "-";
         });
 
+        DirMetaSnapshot? snapshot = null;
+        Exception? lastException = null;
+
         using var stream = File.OpenRead(path);
-        try
+        foreach (var reader in new IDirMetaSnapshotReader[] { snapshotJsonReader, snapshotYamlReader, snapshotTextReader })
         {
-            return await snapshotJsonReader.ReadAsync(stream);
+            try
+            {
+                snapshot = await reader.ReadAsync(stream);
+                break;
+            }
+            catch (Exception exception)
+            {
+                stream.Position = 0;
+                lastException = exception;
+            }
         }
-        catch
+
+        if (lastException != null)
         {
-            stream.Position = 0;
-            return await snapshotTextReader.ReadAsync(stream);
+            throw lastException;
         }
+
+        return snapshot!;
     }
 
     public static IEnumerable<string> InputFromStream(Stream stream, int delimiter)

@@ -41,7 +41,7 @@ internal class ConsoleLogFormatter
                         builder.Append(format[start..]);
                         break;
                     }
-                     
+
                     builder.Append(pairs[pairIndex++].Value);
                 }
                 else if (format[i] == '}')

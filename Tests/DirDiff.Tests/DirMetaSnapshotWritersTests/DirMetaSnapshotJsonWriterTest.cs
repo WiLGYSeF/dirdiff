@@ -12,14 +12,19 @@ public class DirMetaSnapshotJsonWriterTest
     [Fact]
     public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
+        var directorySeparator = '/';
 
-        var snapshot = new DirMetaSnapshot();
+        var factory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = directorySeparator,
+        };
+
+        var snapshot = new DirMetaSnapshot(directorySeparator);
         var entries = new List<DirMetaSnapshotEntry>();
 
         for (var i = 0; i < 5; i++)
         {
-            var entry = new DirMetaSnapshotEntryBuilder().Build();
+            var entry = factory.Create().Build();
             snapshot.AddEntry(entry);
             entries.Add(entry);
         }
@@ -34,36 +39,44 @@ public class DirMetaSnapshotJsonWriterTest
                 options.WriteFileSize = true;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
 
+        result.DirectorySeparator.ShouldBe(directorySeparator);
+        result.Prefix.ShouldBe(snapshot.Prefix);
         result.Entries!.Count.ShouldBe(entries.Count);
 
         foreach (var entry in entries)
         {
-            var resultEntry = result.Entries.Single(e => e["path"].ToString() == entry.Path);
+            var resultEntry = result.Entries.Single(e => e.Path == entry.Path);
 
-            resultEntry["hash"].GetString().ShouldBe(entry.HashHex);
-            resultEntry["hashAlgorithm"].GetString().ShouldBe(entry.HashAlgorithm!.Value.ToEnumMemberValue());
-            resultEntry["createdTime"].GetDateTime().ShouldBe(entry.CreatedTime!.Value);
-            resultEntry["lastModifiedTime"].GetDateTime().ShouldBe(entry.LastModifiedTime!.Value);
-            resultEntry["fileSize"].GetInt64().ShouldBe(entry.FileSize!.Value);
+            resultEntry.Hash.ShouldBe(entry.HashHex);
+            resultEntry.HashAlgorithm.ShouldBe(entry.HashAlgorithm!.Value.ToEnumMemberValue());
+            resultEntry.CreatedTime.ShouldBe(entry.CreatedTime!.Value);
+            resultEntry.LastModifiedTime.ShouldBe(entry.LastModifiedTime!.Value);
+            resultEntry.FileSize.ShouldBe(entry.FileSize!.Value);
         }
     }
 
     [Fact]
     public async Task Write_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize_NoValue()
     {
-        var stream = new MemoryStream();
+        var directorySeparator = '/';
 
-        var snapshot = new DirMetaSnapshot();
+        var factory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = directorySeparator,
+        };
+
+        var snapshot = new DirMetaSnapshot(directorySeparator);
         var entries = new List<DirMetaSnapshotEntry>();
 
         for (var i = 0; i < 5; i++)
         {
-            var entry = new DirMetaSnapshotEntryBuilder()
+            var entry = factory.Create()
                 .WithNoHash()
                 .WithCreatedTime(null)
                 .WithLastModifiedTime(null)
@@ -83,32 +96,38 @@ public class DirMetaSnapshotJsonWriterTest
                 options.WriteFileSize = false;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
 
+        result.DirectorySeparator.ShouldBe(directorySeparator);
+        result.Prefix.ShouldBe(snapshot.Prefix);
         result.Entries!.Count.ShouldBe(entries.Count);
 
         foreach (var entry in entries)
         {
-            var resultEntry = result.Entries.Single(e => e["path"].ToString() == entry.Path);
-
-            resultEntry.Count.ShouldBe(2);
+            var resultEntry = result.Entries.Single(e => e.Path == entry.Path);
         }
     }
 
     [Fact]
     public async Task Write_Hash_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
+        var directorySeparator = '/';
 
-        var snapshot = new DirMetaSnapshot();
+        var factory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = directorySeparator,
+        };
+
+        var snapshot = new DirMetaSnapshot(directorySeparator);
         var entries = new List<DirMetaSnapshotEntry>();
 
         for (var i = 0; i < 5; i++)
         {
-            var entry = new DirMetaSnapshotEntryBuilder().Build();
+            var entry = factory.Create().Build();
             snapshot.AddEntry(entry);
             entries.Add(entry);
         }
@@ -121,20 +140,23 @@ public class DirMetaSnapshotJsonWriterTest
                 options.WriteFileSize = true;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
 
+        result.DirectorySeparator.ShouldBe(directorySeparator);
+        result.Prefix.ShouldBe(snapshot.Prefix);
         result.Entries!.Count.ShouldBe(entries.Count);
 
         foreach (var entry in entries)
         {
-            var resultEntry = result.Entries.Single(e => e["path"].ToString() == entry.Path);
+            var resultEntry = result.Entries.Single(e => e.Path == entry.Path);
 
-            resultEntry["hash"].GetString().ShouldBe(entry.HashHex);
-            resultEntry["lastModifiedTime"].GetDateTime().ShouldBe(entry.LastModifiedTime!.Value);
-            resultEntry["fileSize"].GetInt64().ShouldBe(entry.FileSize!.Value);
+            resultEntry.Hash.ShouldBe(entry.HashHex);
+            resultEntry.LastModifiedTime.ShouldBe(entry.LastModifiedTime!.Value);
+            resultEntry.FileSize.ShouldBe(entry.FileSize!.Value);
         }
     }
 
@@ -143,19 +165,21 @@ public class DirMetaSnapshotJsonWriterTest
     [InlineData(false)]
     public async Task Write_Prefix(bool writePrefix)
     {
-        var stream = new MemoryStream();
-
         var directorySeparator = '/';
+        var prefix = "abc/";
+
+        var factory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = directorySeparator,
+        };
 
         var snapshot = new DirMetaSnapshot(directorySeparator);
         var entries = new List<DirMetaSnapshotEntry>();
 
-        var prefix = "abc/";
-
         for (var i = 0; i < 5; i++)
         {
-            var entry = new DirMetaSnapshotEntryBuilder()
-                .WithPath(prefix + TestUtils.RandomPath(3))
+            var entry = factory.Create()
+                .WithRandomPath(prefix)
                 .Build();
             snapshot.AddEntry(entry);
             entries.Add(entry);
@@ -172,23 +196,65 @@ public class DirMetaSnapshotJsonWriterTest
                 options.WritePrefix = writePrefix;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
         var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
 
+        result.DirectorySeparator.ShouldBe(directorySeparator);
+        result.Prefix.ShouldBe(writePrefix ? snapshot.Prefix : null);
         result.Entries!.Count.ShouldBe(entries.Count);
 
         foreach (var entry in entries)
         {
             var path = writePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path);
-            var resultEntry = result.Entries.Single(e => e["path"].GetString() == path);
+            var resultEntry = result.Entries.Single(e => e.Path == path);
         }
     }
 
-    private static SnapshotDeserialized DeserializeSnapshot(string text)
+    [Fact]
+    public async Task Write_SortByPath()
     {
-        var result = JsonSerializer.Deserialize<SnapshotDeserialized>(
+        var directorySeparator = '/';
+
+        var factory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = directorySeparator,
+        };
+
+        var snapshot = new DirMetaSnapshot(directorySeparator);
+        var entries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = factory.Create().Build();
+            snapshot.AddEntry(entry);
+            entries.Add(entry);
+        }
+
+        var writer = new DirMetaSnapshotJsonWriter()
+            .Configure(options =>
+            {
+                options.SortByPath = true;
+                options.WriteHash = true;
+                options.WriteLastModifiedTime = true;
+                options.WriteFileSize = true;
+            });
+
+        var stream = new MemoryStream();
+        await writer.WriteAsync(stream, snapshot);
+        stream.Position = 0;
+
+        var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
+
+        result.Entries!.Select(e => e.Path).ToList()
+            .ShouldBeEquivalentTo(entries.OrderBy(e => e.Path).Select(e => e.Path).ToList());
+    }
+
+    private static DirMetaSnapshotSchema DeserializeSnapshot(string text)
+    {
+        var result = JsonSerializer.Deserialize<DirMetaSnapshotSchema>(
             text,
             new JsonSerializerOptions
             {
@@ -201,10 +267,5 @@ public class DirMetaSnapshotJsonWriterTest
         }
 
         return result;
-    }
-
-    private class SnapshotDeserialized
-    {
-        public List<Dictionary<string, JsonElement>>? Entries { get; set; }
     }
 }

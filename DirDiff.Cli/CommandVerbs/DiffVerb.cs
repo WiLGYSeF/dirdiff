@@ -17,7 +17,7 @@ internal static class DiffVerb
         var firstPath = args[0];
         var secondPath = args[1];
 
-        IDirMetaSnapshotDiffWriter? diffWriter = opts.DiffFormat?.ToLower() switch
+        IDirMetaSnapshotDiffWriter diffWriter = opts.DiffFormat?.ToLower() switch
         {
             "bash" => new DirMetaSnapshotDiffBashWriter(),
             "powershell" => new DirMetaSnapshotDiffPowershellWriter(),
@@ -25,13 +25,8 @@ internal static class DiffVerb
             {
                 options.WriteIndented = true;
             }),
-            _ => null,
+            _ => throw new CommandVerbException(1, "unknown diff format"),
         };
-
-        if (diffWriter == null)
-        {
-            throw new CommandVerbException(1, "unknown diff format");
-        }
 
         diffWriter.Configure(options =>
         {
@@ -44,7 +39,7 @@ internal static class DiffVerb
 
         try
         {
-            firstSnapshot = await Shared.ReadSnapshot(firstPath, Path.DirectorySeparatorChar);
+            firstSnapshot = await Shared.ReadSnapshot(firstPath);
         }
         catch (Exception ex)
         {
@@ -53,7 +48,7 @@ internal static class DiffVerb
 
         try
         {
-            secondSnapshot = await Shared.ReadSnapshot(secondPath, Path.DirectorySeparatorChar);
+            secondSnapshot = await Shared.ReadSnapshot(secondPath);
         }
         catch (Exception ex)
         {

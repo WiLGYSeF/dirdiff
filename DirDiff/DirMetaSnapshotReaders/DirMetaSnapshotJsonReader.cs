@@ -1,5 +1,6 @@
 ﻿using DirDiff.DirMetaSnapshots;
 using DirDiff.DirMetaSnapshotWriters;
+using DirDiff.Utilities;
 using System.Text.Json;
 
 namespace DirDiff.DirMetaSnapshotReaders;
@@ -16,9 +17,11 @@ public class DirMetaSnapshotJsonReader : IDirMetaSnapshotReader
 
     public async Task<DirMetaSnapshot> ReadAsync(Stream stream)
     {
-        var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);
-
         var result = await DeserializeSnapshotAsync(stream);
+        var directorySeparator = result.DirectorySeparator
+            ?? PathUtils.GuessDirectorySeparator(result.Entries!.Where(e => e.Path != null).Select(e => e.Path!));
+
+        var snapshot = new DirMetaSnapshot(directorySeparator);
 
         foreach (var entry in result.Entries!)
         {

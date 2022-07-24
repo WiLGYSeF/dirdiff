@@ -7,11 +7,6 @@ public class DirMetaSnapshotDiffPowershellWriter : DirMetaSnapshotDiffCommandWri
 {
     public override DirMetaSnapshotDiffWriterOptions Options { get; } = new();
 
-    protected override string CopyCommand(DirMetaSnapshotEntry reference, DirMetaSnapshotEntry subject)
-    {
-        return CopyCommand(reference.Path, subject.Path);
-    }
-
     protected override string CopyCommand(string reference, string subject)
     {
         return $"Copy-Item -LiteralPath {EscapeArgument(reference)} -Destination {EscapeArgument(subject)}";
@@ -22,17 +17,17 @@ public class DirMetaSnapshotDiffPowershellWriter : DirMetaSnapshotDiffCommandWri
         return $"Move-Item -LiteralPath {EscapeArgument(oldPath)} -Destination {EscapeArgument(newPath)}";
     }
 
-    protected override string TouchCommand(DirMetaSnapshotEntry reference, DirMetaSnapshotEntry subject)
+    protected override string TouchCommand(string reference, string subject)
     {
-        return $"(Get-ChildItem -LiteralPath {EscapeArgument(subject.Path)}).LastWriteTime = (Get-ChildItem -LiteralPath {EscapeArgument(reference.Path)}).LastWriteTime";
+        return $"(Get-ChildItem -LiteralPath {EscapeArgument(subject)}).LastWriteTime = (Get-ChildItem -LiteralPath {EscapeArgument(reference)}).LastWriteTime";
     }
 
-    protected override string DeleteCommand(DirMetaSnapshotEntry entry)
+    protected override string DeleteCommand(string path)
     {
-        return $"Remove-Item -LiteralPath {EscapeArgument(entry.Path)}";
+        return $"Remove-Item -LiteralPath {EscapeArgument(path)}";
     }
 
-    private string EscapeArgument(string argument)
+    private static string EscapeArgument(string argument)
     {
         var builder = new StringBuilder();
         builder.Append('"');
