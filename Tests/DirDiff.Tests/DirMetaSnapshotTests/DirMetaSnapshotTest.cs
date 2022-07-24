@@ -1438,7 +1438,7 @@ public class DirMetaSnapshotTest
         for (var i = 0; i < 8; i++)
         {
             var entry = new DirMetaSnapshotEntryBuilder()
-                .WithRandomPath(firstDirectorySeparator)
+                .WithRandomPath()
                 .Build();
             first.AddEntry(entry);
         }
@@ -1465,7 +1465,7 @@ public class DirMetaSnapshotTest
         foreach (var entry in first.Entries.Skip(4))
         {
             var otherEntry = new DirMetaSnapshotEntryBuilder()
-                .WithRandomPath(secondDirectorySeparator)
+                .WithRandomPath()
                 .Build();
             second.AddEntry(otherEntry);
             expectedCreatedEntries.Add(otherEntry);
