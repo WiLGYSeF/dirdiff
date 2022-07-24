@@ -39,6 +39,9 @@ public class DirMetaSnapshotBuilderOptions
     /// </summary>
     public bool UpdateKeepRemoved { get; set; }
 
+    /// <summary>
+    /// Replace this prefix from entry paths when updating to the existing snapshot prefix.
+    /// </summary>
     public string? UpdatePrefix { get; set; }
 
     /// <summary>
