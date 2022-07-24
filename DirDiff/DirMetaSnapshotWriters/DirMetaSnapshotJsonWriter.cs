@@ -34,12 +34,18 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
     public async Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
     {
-        var schema = new
+        var schema = new Dictionary<string, object>
         {
-            Entries = snapshot.Entries
+            [nameof(DirMetaSnapshotSchema.DirectorySeparator)] = snapshot.DirectorySeparator,
+            [nameof(DirMetaSnapshotSchema.Entries)] = snapshot.Entries
                 .Where(e => e.Type != FileType.Directory)
-                .Select(e => SerializeEntry(snapshot, e)),
+                .Select(e => SerializeEntry(snapshot, e))
         };
+
+        if (Options.WritePrefix)
+        {
+            schema[nameof(DirMetaSnapshotSchema.Prefix)] = snapshot.Prefix!;
+        }
 
         var options = new JsonSerializerOptions
         {

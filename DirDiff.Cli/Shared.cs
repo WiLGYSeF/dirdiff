@@ -10,6 +10,8 @@ internal static class Shared
     {
         var snapshotJsonReader = new DirMetaSnapshotJsonReader();
 
+        var snapshotYamlReader = new DirMetaSnapshotYamlReader();
+
         var snapshotTextReader = new DirMetaSnapshotTextReader();
         snapshotTextReader.Configure(options =>
         {
@@ -19,16 +21,30 @@ internal static class Shared
             options.NoneValue = "-";
         });
 
+        DirMetaSnapshot? snapshot = null;
+        Exception? lastException = null;
+
         using var stream = File.OpenRead(path);
-        try
+        foreach (var reader in new IDirMetaSnapshotReader[] { snapshotJsonReader, snapshotYamlReader, snapshotTextReader })
         {
-            return await snapshotJsonReader.ReadAsync(stream);
+            try
+            {
+                snapshot = await reader.ReadAsync(stream);
+                break;
+            }
+            catch (Exception exception)
+            {
+                stream.Position = 0;
+                lastException = exception;
+            }
         }
-        catch
+
+        if (lastException != null)
         {
-            stream.Position = 0;
-            return await snapshotTextReader.ReadAsync(stream);
+            throw lastException;
         }
+
+        return snapshot!;
     }
 
     public static IEnumerable<string> InputFromStream(Stream stream, int delimiter)

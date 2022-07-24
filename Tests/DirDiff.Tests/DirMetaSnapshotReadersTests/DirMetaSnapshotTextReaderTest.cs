@@ -10,8 +10,6 @@ public class DirMetaSnapshotTextReaderTest
     [Fact]
     public async Task Read_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
-
         var snapshot = new DirMetaSnapshot();
         var entries = new List<DirMetaSnapshotEntry>();
 
@@ -34,6 +32,7 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteHeader = false;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
@@ -65,8 +64,6 @@ public class DirMetaSnapshotTextReaderTest
     [Fact]
     public async Task Read_Hash_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
-
         var snapshot = new DirMetaSnapshot();
         var entries = new List<DirMetaSnapshotEntry>();
 
@@ -89,6 +86,7 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteHeader = false;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
@@ -120,8 +118,6 @@ public class DirMetaSnapshotTextReaderTest
     [Fact]
     public async Task Read_Guess_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
-
         var snapshot = new DirMetaSnapshot();
         var entries = new List<DirMetaSnapshotEntry>();
 
@@ -144,6 +140,7 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteHeader = false;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
@@ -171,8 +168,6 @@ public class DirMetaSnapshotTextReaderTest
     [Fact]
     public async Task Read_Guess_Hash_CreatedTime_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
-
         var snapshot = new DirMetaSnapshot();
         var entries = new List<DirMetaSnapshotEntry>();
 
@@ -195,6 +190,7 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteHeader = false;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
@@ -221,8 +217,6 @@ public class DirMetaSnapshotTextReaderTest
     [Fact]
     public async Task Read_Guess_Hash_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
-
         var snapshot = new DirMetaSnapshot();
         var entries = new List<DirMetaSnapshotEntry>();
 
@@ -245,6 +239,7 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteHeader = false;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
@@ -270,8 +265,6 @@ public class DirMetaSnapshotTextReaderTest
     [Fact]
     public async Task Read_Guess_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
-
         var snapshot = new DirMetaSnapshot();
         var entries = new List<DirMetaSnapshotEntry>();
 
@@ -294,6 +287,7 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteHeader = false;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 
@@ -320,8 +314,6 @@ public class DirMetaSnapshotTextReaderTest
     [Fact]
     public async Task Read_Header_Hash_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
-
         var snapshot = new DirMetaSnapshot();
         var entries = new List<DirMetaSnapshotEntry>();
 
@@ -344,6 +336,7 @@ public class DirMetaSnapshotTextReaderTest
                 options.WriteHeader = true;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 

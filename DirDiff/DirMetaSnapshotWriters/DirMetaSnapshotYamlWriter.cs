@@ -19,12 +19,19 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
 
     public async Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
     {
-        var schema = new
+        var schema = new Dictionary<string, object>
         {
-            Entries = snapshot.Entries
+            [ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator))] = snapshot.DirectorySeparator,
+            [ToCamelCase(nameof(DirMetaSnapshotSchema.Entries))] = snapshot.Entries
                 .Where(e => e.Type != FileType.Directory)
-                .Select(e => SerializeEntry(snapshot, e)),
+                .Select(e => SerializeEntry(snapshot, e))
         };
+
+        if (Options.WritePrefix)
+        {
+            schema[ToCamelCase(nameof(DirMetaSnapshotSchema.Prefix))] = snapshot.Prefix!;
+        }
+
         var serializer = new SerializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .Build();
@@ -74,5 +81,10 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
         }
 
         return dictionary;
+    }
+
+    private static string ToCamelCase(string a)
+    {
+        return a[..1].ToLower() + a[1..];
     }
 }

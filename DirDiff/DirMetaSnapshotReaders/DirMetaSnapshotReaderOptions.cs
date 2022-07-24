@@ -5,5 +5,5 @@ public class DirMetaSnapshotReaderOptions
     /// <summary>
     /// Directory separator.
     /// </summary>
-    public char DirectorySeparator { get; set; } = Path.DirectorySeparatorChar;
+    public char? DirectorySeparator { get; set; }
 }

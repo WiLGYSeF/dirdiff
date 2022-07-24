@@ -10,8 +10,6 @@ public class DirMetaSnapshotYamlReaderTest
     [Fact]
     public async Task Read_Hash_HashAlgorithm_CreatedTime_LastModifiedTime_FileSize()
     {
-        var stream = new MemoryStream();
-
         var snapshot = new DirMetaSnapshot();
         var entries = new List<DirMetaSnapshotEntry>();
 
@@ -32,6 +30,7 @@ public class DirMetaSnapshotYamlReaderTest
                 options.WriteFileSize = true;
             });
 
+        var stream = new MemoryStream();
         await writer.WriteAsync(stream, snapshot);
         stream.Position = 0;
 

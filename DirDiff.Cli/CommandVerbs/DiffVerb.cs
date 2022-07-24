@@ -44,7 +44,7 @@ internal static class DiffVerb
 
         try
         {
-            firstSnapshot = await Shared.ReadSnapshot(firstPath, Path.DirectorySeparatorChar);
+            firstSnapshot = await Shared.ReadSnapshot(firstPath);
         }
         catch (Exception ex)
         {
@@ -53,7 +53,7 @@ internal static class DiffVerb
 
         try
         {
-            secondSnapshot = await Shared.ReadSnapshot(secondPath, Path.DirectorySeparatorChar);
+            secondSnapshot = await Shared.ReadSnapshot(secondPath);
         }
         catch (Exception ex)
         {
