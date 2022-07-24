@@ -644,7 +644,6 @@ public class DirMetaSnapshotBuilderTest
         {
             DirectorySeparator = firstDirectorySeparator,
         };
-
         var secondFactory = new DirMetaSnapshotEntryBuilderFactory()
         {
             DirectorySeparator = secondDirectorySeparator,
@@ -727,7 +726,6 @@ public class DirMetaSnapshotBuilderTest
         {
             DirectorySeparator = firstDirectorySeparator,
         };
-
         var secondFactory = new DirMetaSnapshotEntryBuilderFactory()
         {
             DirectorySeparator = secondDirectorySeparator,

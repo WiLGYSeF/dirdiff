@@ -145,16 +145,20 @@ public class DirMetaSnapshotYamlWriterTest
         var stream = new MemoryStream();
 
         var directorySeparator = '/';
+        var prefix = "abc/";
+
+        var factory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = directorySeparator,
+        };
 
         var snapshot = new DirMetaSnapshot(directorySeparator);
         var entries = new List<DirMetaSnapshotEntry>();
 
-        var prefix = "abc/";
-
         for (var i = 0; i < 5; i++)
         {
-            var entry = new DirMetaSnapshotEntryBuilder()
-                .WithPath(prefix + TestUtils.RandomPath(3))
+            var entry = factory.Create()
+                .WithRandomPath(prefix)
                 .Build();
             snapshot.AddEntry(entry);
             entries.Add(entry);

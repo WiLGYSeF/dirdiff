@@ -4,11 +4,16 @@ namespace DirDiff.Tests.Utils;
 
 internal class DirMetaSnapshotEntryBuilderFactory
 {
-    public char DirectorySeparator { get; set; } = '/';
+    public char DirectorySeparator { get; set; }
 
     public long FileSizeMin { get; set; } = 0;
 
     public long FileSizeMax { get; set; } = 1024 * 1024;
+
+    public DirMetaSnapshotEntryBuilderFactory()
+    {
+        DirectorySeparator = Path.DirectorySeparatorChar;
+    }
 
     public DirMetaSnapshotEntryBuilder Create()
     {

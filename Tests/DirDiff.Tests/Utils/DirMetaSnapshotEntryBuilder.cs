@@ -79,7 +79,7 @@ internal class DirMetaSnapshotEntryBuilder
         }
     }
 
-    public char DirectorySeparator { get; set; } = '/';
+    public char DirectorySeparator { get; set; }
 
     public long? FileSizeMin { get; set; }
     public long? FileSizeMax { get; set; }
@@ -99,10 +99,14 @@ internal class DirMetaSnapshotEntryBuilder
     private byte[]? _hash;
     private bool _hashNull;
 
-    public DirMetaSnapshotEntryBuilder() { }
+    public DirMetaSnapshotEntryBuilder()
+    {
+        DirectorySeparator = System.IO.Path.DirectorySeparatorChar;
+    }
 
     public DirMetaSnapshotEntryBuilder(DirMetaSnapshotEntry entry)
     {
+        DirectorySeparator = System.IO.Path.DirectorySeparatorChar;
         From(entry);
     }
 

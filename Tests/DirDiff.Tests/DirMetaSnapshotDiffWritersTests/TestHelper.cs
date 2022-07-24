@@ -12,54 +12,63 @@ internal static class TestHelper
         string firstPrefix,
         string secondPrefix)
     {
-        var createdEntry = new DirMetaSnapshotEntryBuilder()
+        var firstFactory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = firstSnapshot.DirectorySeparator,
+        };
+        var secondFactory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = secondSnapshot.DirectorySeparator,
+        };
+
+        var createdEntry = secondFactory.Create()
             .WithPath(RandomPathWithPrefix(secondPrefix, firstSnapshot.DirectorySeparator))
             .Build();
         secondSnapshot.AddEntry(createdEntry);
 
-        var firstModifiedEntry = new DirMetaSnapshotEntryBuilder()
+        var firstModifiedEntry = firstFactory.Create()
             .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
             .Build();
         firstSnapshot.AddEntry(firstModifiedEntry);
-        var secondModifiedEntry = new DirMetaSnapshotEntryBuilder().From(firstModifiedEntry)
+        var secondModifiedEntry = secondFactory.Create(firstModifiedEntry)
             .WithPath(PathWithDifferentPrefix(firstModifiedEntry.Path, firstPrefix, secondPrefix))
             .WithRandomHash()
             .Build();
         secondSnapshot.AddEntry(secondModifiedEntry);
 
-        var firstCopiedUnchangedEntry = new DirMetaSnapshotEntryBuilder()
+        var firstCopiedUnchangedEntry = firstFactory.Create()
             .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
             .Build();
         firstSnapshot.AddEntry(firstCopiedUnchangedEntry);
-        var secondUnchangedEntry = new DirMetaSnapshotEntryBuilder().From(firstCopiedUnchangedEntry)
+        var secondUnchangedEntry = secondFactory.Create(firstCopiedUnchangedEntry)
             .WithPath(PathWithDifferentPrefix(firstCopiedUnchangedEntry.Path, firstPrefix, secondPrefix))
             .Build();
         secondSnapshot.AddEntry(secondUnchangedEntry);
-        var secondCopiedEntry = new DirMetaSnapshotEntryBuilder().From(firstCopiedUnchangedEntry)
+        var secondCopiedEntry = secondFactory.Create(firstCopiedUnchangedEntry)
             .WithPath(RandomPathWithPrefix(secondPrefix, secondSnapshot.DirectorySeparator))
             .Build();
         secondSnapshot.AddEntry(secondCopiedEntry);
 
-        var firstMovedEntry = new DirMetaSnapshotEntryBuilder()
+        var firstMovedEntry = firstFactory.Create()
             .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
             .Build();
         firstSnapshot.AddEntry(firstMovedEntry);
-        var secondMovedEntry = new DirMetaSnapshotEntryBuilder().From(firstMovedEntry)
+        var secondMovedEntry = secondFactory.Create(firstMovedEntry)
             .WithPath(RandomPathWithPrefix(secondPrefix, secondSnapshot.DirectorySeparator))
             .Build();
         secondSnapshot.AddEntry(secondMovedEntry);
 
-        var firstTouchedEntry = new DirMetaSnapshotEntryBuilder()
+        var firstTouchedEntry = firstFactory.Create()
             .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
             .Build();
         firstSnapshot.AddEntry(firstTouchedEntry);
-        var secondTouchedEntry = new DirMetaSnapshotEntryBuilder().From(firstTouchedEntry)
+        var secondTouchedEntry = secondFactory.Create(firstTouchedEntry)
             .WithPath(PathWithDifferentPrefix(firstTouchedEntry.Path, firstPrefix, secondPrefix))
             .WithRandomLastModifiedTime()
             .Build();
         secondSnapshot.AddEntry(secondTouchedEntry);
 
-        var deletedEntry = new DirMetaSnapshotEntryBuilder()
+        var deletedEntry = firstFactory.Create()
             .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
             .Build();
         firstSnapshot.AddEntry(deletedEntry);
