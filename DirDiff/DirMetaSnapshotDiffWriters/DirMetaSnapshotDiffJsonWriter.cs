@@ -78,16 +78,12 @@ public class DirMetaSnapshotDiffJsonWriter : IDirMetaSnapshotDiffWriter
 
         if (entry.CreatedTime.HasValue)
         {
-            dictionary["createdTime"] = JsonWriterOptions.UseUnixTimestamp
-                ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
-                : entry.CreatedTime.Value;
+            dictionary["createdTime"] = entry.CreatedTime.Value;
         }
 
         if (entry.LastModifiedTime.HasValue)
         {
-            dictionary["lastModifiedTime"] = JsonWriterOptions.UseUnixTimestamp
-                ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
-                : entry.LastModifiedTime.Value;
+            dictionary["lastModifiedTime"] = entry.LastModifiedTime.Value;
         }
 
         if (entry.FileSize.HasValue)

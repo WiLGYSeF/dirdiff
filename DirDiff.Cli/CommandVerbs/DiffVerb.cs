@@ -23,7 +23,6 @@ internal static class DiffVerb
             "powershell" => new DirMetaSnapshotDiffPowershellWriter(),
             "json" => new DirMetaSnapshotDiffJsonWriter().Configure(options =>
             {
-                options.UseUnixTimestamp = false;
                 options.WriteIndented = true;
             }),
             _ => null,

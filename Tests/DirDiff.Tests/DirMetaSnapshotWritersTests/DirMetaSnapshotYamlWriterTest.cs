@@ -33,7 +33,6 @@ public class DirMetaSnapshotYamlWriterTest
                 options.WriteCreatedTime = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
-                options.UseUnixTimestamp = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -83,7 +82,6 @@ public class DirMetaSnapshotYamlWriterTest
                 options.WriteCreatedTime = false;
                 options.WriteLastModifiedTime = false;
                 options.WriteFileSize = false;
-                options.UseUnixTimestamp = false;
             });
 
         await writer.WriteAsync(stream, snapshot);
@@ -120,7 +118,6 @@ public class DirMetaSnapshotYamlWriterTest
                 options.WriteHash = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
-                options.UseUnixTimestamp = false;
             });
 
         await writer.WriteAsync(stream, snapshot);

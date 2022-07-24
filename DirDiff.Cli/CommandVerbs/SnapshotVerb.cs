@@ -65,13 +65,9 @@ internal static class SnapshotVerb
                 }),
                 "json" => new DirMetaSnapshotJsonWriter().Configure(options =>
                 {
-                    options.UseUnixTimestamp = false;
                     options.WriteIndented = true;
                 }),
-                "yaml" => new DirMetaSnapshotYamlWriter().Configure(options =>
-                {
-                    options.UseUnixTimestamp = false;
-                }),
+                "yaml" => new DirMetaSnapshotYamlWriter(),
                 _ => null,
             };
 

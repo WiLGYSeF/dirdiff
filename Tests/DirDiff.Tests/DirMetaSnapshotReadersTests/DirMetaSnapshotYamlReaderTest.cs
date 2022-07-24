@@ -30,7 +30,6 @@ public class DirMetaSnapshotYamlReaderTest
                 options.WriteCreatedTime = true;
                 options.WriteLastModifiedTime = true;
                 options.WriteFileSize = true;
-                options.UseUnixTimestamp = false;
             });
 
         await writer.WriteAsync(stream, snapshot);

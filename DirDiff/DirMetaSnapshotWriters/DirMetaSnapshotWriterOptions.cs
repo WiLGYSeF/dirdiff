@@ -7,6 +7,9 @@ public class DirMetaSnapshotWriterOptions
     /// </summary>
     public bool WritePrefix { get; set; } = true;
 
+    /// <summary>
+    /// Directory separator to write paths with.
+    /// </summary>
     public char? DirectorySeparator { get; set; }
 
     /// <summary>
