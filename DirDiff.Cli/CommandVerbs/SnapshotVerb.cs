@@ -83,6 +83,7 @@ internal static class SnapshotVerb
             snapshotWriter.Configure(options =>
             {
                 options.WritePrefix = !opts.RemovePrefix;
+                options.DirectorySeparator = opts.OutputDirectorySeparator;
                 options.WriteHash = opts.UseHash;
                 options.WriteHashAlgorithm = false;
                 options.WriteCreatedTime = false;

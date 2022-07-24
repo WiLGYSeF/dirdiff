@@ -499,7 +499,12 @@ public class DirMetaSnapshot
     {
         if (Prefix == null)
         {
-            return GetDirectoryParts(path)[..^1].Join(DirectorySeparator);
+            var prefix = GetDirectoryParts(path)[..^1].Join(DirectorySeparator);
+            if (prefix.Length > 0)
+            {
+                prefix += DirectorySeparator;
+            }
+            return prefix;
         }
 
         if (Prefix.Length == 0 || path.StartsWith(Prefix))
@@ -528,5 +533,12 @@ public class DirMetaSnapshot
     public string[] GetDirectoryParts(string path)
     {
         return path.Split(DirectorySeparator);
+    }
+
+    public string ChangePathDirectorySeparator(string path, char directorySeparator)
+    {
+        return directorySeparator != DirectorySeparator
+            ? GetDirectoryParts(path).Join(directorySeparator)
+            : path;
     }
 }

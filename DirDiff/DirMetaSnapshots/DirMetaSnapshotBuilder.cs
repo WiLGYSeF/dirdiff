@@ -1,6 +1,5 @@
 ﻿using DirDiff.DirWalkers;
 using DirDiff.Enums;
-using DirDiff.Extensions;
 using DirDiff.FileInfoReaders;
 using DirDiff.FileReaders;
 using DirDiff.Hashers;
@@ -134,11 +133,12 @@ public class DirMetaSnapshotBuilder
         {
             foreach (var entry in snapshot.Entries)
             {
-                var entryPath = snapshot.GetDirectoryParts(entry.Path).Join(Options.DirectorySeparator);
-                if (!newSnapshot.ContainsPath(entryPath))
+                var path = snapshot.ChangePathDirectorySeparator(entry.Path, newSnapshot.DirectorySeparator);
+
+                if (!newSnapshot.ContainsPath(path))
                 {
                     var copy = entry.Copy();
-                    copy.Path = entryPath;
+                    copy.Path = path;
                     newSnapshot.AddEntry(copy);
                 }
             }
@@ -161,7 +161,9 @@ public class DirMetaSnapshotBuilder
     {
         foreach (var file in _walker.Walk(path))
         {
+            var snapshotPath = newSnapshot.ChangePathDirectorySeparator(file.Path, snapshot.DirectorySeparator);
             var newPath = file.Path;
+
             if (Options.UpdatePrefix != null)
             {
                 if (!newPath.StartsWith(Options.UpdatePrefix))
@@ -170,47 +172,52 @@ public class DirMetaSnapshotBuilder
                 }
 
                 newPath = newPath[Options.UpdatePrefix.Length..];
+                snapshotPath = snapshot.Prefix + snapshot.ChangePathDirectorySeparator(newPath, snapshot.DirectorySeparator);
             }
 
-            var snapshotPath = snapshot.Prefix + newSnapshot.GetDirectoryParts(newPath).Join(snapshot.DirectorySeparator);
+            DirMetaSnapshotEntry newEntry;
 
-            if (!snapshot.TryGetEntry(snapshotPath, out var entry))
+            if (snapshot.TryGetEntry(snapshotPath, out var entry))
             {
-                Logger?.LogInformation("updating with new entry: {path}", file.Path);
+                newEntry = await CreateEntryAsync(file, skipHash: true);
 
-                newSnapshot.AddEntry(await CreateEntryAsync(file));
-                continue;
-            }
-
-            var newEntry = await CreateEntryAsync(file, skipHash: true);
-
-            if (newEntry.IsDifferentFrom(entry, timeWindow: Options.TimeWindow))
-            {
-                Logger?.LogInformation("updating existing entry: {path}", file.Path);
-
-                if (Options.HashAlgorithm.HasValue)
+                if (newEntry.IsDifferentFrom(entry, timeWindow: Options.TimeWindow, ignorePath: true))
                 {
-                    await SetEntryHashAsync(newEntry);
+                    Logger?.LogInformation("updating existing entry: {path}", file.Path);
+
+                    if (Options.HashAlgorithm.HasValue)
+                    {
+                        Logger?.LogInformation("hashing contents: {path}", file.Path);
+
+                        await SetEntryHashAsync(newEntry);
+                    }
+                }
+                else
+                {
+                    newEntry.CopyKnownPropertiesFrom(entry);
+                    if (newEntry.Hash == null && Options.HashAlgorithm.HasValue)
+                    {
+                        Logger?.LogInformation("updating existing entry: {path}", file.Path);
+                        Logger?.LogInformation("hashing contents: {path}", file.Path);
+
+                        await SetEntryHashAsync(newEntry);
+                    }
+                    else
+                    {
+                        Logger?.LogInformation("using existing entry: {path}", file.Path);
+                    }
                 }
             }
             else
             {
-                newEntry.CopyKnownPropertiesFrom(entry);
-                if (newEntry.Hash == null && Options.HashAlgorithm.HasValue)
-                {
-                    Logger?.LogInformation("updating existing entry: {path}", file.Path);
+                Logger?.LogInformation("updating with new entry: {path}", file.Path);
 
-                    await SetEntryHashAsync(newEntry);
-                }
-                else
-                {
-                    Logger?.LogInformation("using existing entry: {path}", file.Path);
-                }
+                newEntry = await CreateEntryAsync(file);
             }
 
             if (Options.UpdatePrefix != null)
             {
-                newEntry.Path = snapshot.Prefix + newEntry.Path[Options.UpdatePrefix.Length..];
+                newEntry.Path = snapshot.ChangePathDirectorySeparator(snapshot.Prefix!, newSnapshot.DirectorySeparator) + newPath;
             }
 
             newSnapshot.AddEntry(newEntry);

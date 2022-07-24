@@ -7,6 +7,8 @@ public class DirMetaSnapshotWriterOptions
     /// </summary>
     public bool WritePrefix { get; set; } = true;
 
+    public char? DirectorySeparator { get; set; }
+
     /// <summary>
     /// Whether to write file hashes.
     /// </summary>

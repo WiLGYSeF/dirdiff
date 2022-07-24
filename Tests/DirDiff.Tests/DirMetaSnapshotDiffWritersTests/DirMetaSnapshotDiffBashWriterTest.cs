@@ -46,8 +46,9 @@ public class DirMetaSnapshotDiffBashWriterTest
     [InlineData("abcd\\ef", "'abcd\\ef'")]
     public async Task Write_Escaped_Paths(string path, string expected)
     {
-        var firstSnapshot = new DirMetaSnapshot();
-        var secondSnapshot = new DirMetaSnapshot();
+        var directorySeparator = '/';
+        var firstSnapshot = new DirMetaSnapshot(directorySeparator);
+        var secondSnapshot = new DirMetaSnapshot(directorySeparator);
 
         firstSnapshot.AddEntry(new DirMetaSnapshotEntryBuilder()
             .WithPath(path)

@@ -1346,7 +1346,7 @@ public class DirMetaSnapshotTest
         snapshot.Prefix.ShouldBe(
             snapshot.Entries.First().Path
                 .Split(directorySeparator)[..^1]
-                .Join(directorySeparator));
+                .Join(directorySeparator) + directorySeparator);
 
         snapshot.AddEntry(new DirMetaSnapshotEntryBuilder()
             .WithPath(prefix + TestUtils.RandomPath(3))

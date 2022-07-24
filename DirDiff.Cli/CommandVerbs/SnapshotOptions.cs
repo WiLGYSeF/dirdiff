@@ -41,6 +41,9 @@ internal class SnapshotOptions
     [Option('o', "output", MetaValue = "FILE", HelpText = "Output filename")]
     public string? OutputFilename { get; set; }
 
+    [Option("output-directory-separator")]
+    public char? OutputDirectorySeparator { get; set; }
+
     [Option('v', "verbose", FlagCounter = true, HelpText = "Verbose mode")]
     public int Verbose { get; set; }
 

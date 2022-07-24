@@ -138,6 +138,15 @@ public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
             builder.Append(TextWriterOptions.Separator);
         }
 
-        builder.AppendLine(Options.WritePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path));
+        var path = Options.WritePrefix
+            ? entry.Path
+            : snapshot.PathWithoutPrefix(entry.Path);
+
+        if (Options.DirectorySeparator.HasValue && Options.DirectorySeparator.Value != snapshot.DirectorySeparator)
+        {
+            path = snapshot.ChangePathDirectorySeparator(path, Options.DirectorySeparator.Value);
+        }
+
+        builder.AppendLine(path);
     }
 }

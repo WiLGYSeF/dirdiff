@@ -53,9 +53,18 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
     private Dictionary<string, object> SerializeEntry(DirMetaSnapshot snapshot, DirMetaSnapshotEntry entry)
     {
+        var path = Options.WritePrefix
+            ? entry.Path
+            : snapshot.PathWithoutPrefix(entry.Path);
+
+        if (Options.DirectorySeparator.HasValue && Options.DirectorySeparator.Value != snapshot.DirectorySeparator)
+        {
+            path = snapshot.ChangePathDirectorySeparator(path, Options.DirectorySeparator.Value);
+        }
+
         var dictionary = new Dictionary<string, object>
         {
-            { "path", Options.WritePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path) },
+            { "path", path },
             { "type", entry.Type },
         };
 
