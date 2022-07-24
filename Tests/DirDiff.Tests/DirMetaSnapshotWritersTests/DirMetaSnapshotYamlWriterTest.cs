@@ -214,6 +214,45 @@ public class DirMetaSnapshotYamlWriterTest
         }
     }
 
+    [Fact]
+    public async Task Write_SortByPath()
+    {
+        var directorySeparator = '/';
+
+        var factory = new DirMetaSnapshotEntryBuilderFactory()
+        {
+            DirectorySeparator = directorySeparator,
+        };
+
+        var snapshot = new DirMetaSnapshot(directorySeparator);
+        var entries = new List<DirMetaSnapshotEntry>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var entry = factory.Create().Build();
+            snapshot.AddEntry(entry);
+            entries.Add(entry);
+        }
+
+        var writer = new DirMetaSnapshotYamlWriter()
+            .Configure(options =>
+            {
+                options.SortByPath = true;
+                options.WriteHash = true;
+                options.WriteLastModifiedTime = true;
+                options.WriteFileSize = true;
+            });
+
+        var stream = new MemoryStream();
+        await writer.WriteAsync(stream, snapshot);
+        stream.Position = 0;
+
+        var result = DeserializeSnapshot(Encoding.UTF8.GetString(stream.ToArray()));
+
+        result.Entries!.Select(e => e.Path).ToList()
+            .ShouldBeEquivalentTo(entries.OrderBy(e => e.Path).Select(e => e.Path).ToList());
+    }
+
     private static DirMetaSnapshotSchema DeserializeSnapshot(string text)
     {
         var deserializer = new DeserializerBuilder()

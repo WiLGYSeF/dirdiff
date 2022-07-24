@@ -22,15 +22,20 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
         var schema = new Dictionary<string, object>
         {
             [ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator))] = snapshot.DirectorySeparator,
-            [ToCamelCase(nameof(DirMetaSnapshotSchema.Entries))] = snapshot.Entries
-                .Where(e => e.Type != FileType.Directory)
-                .Select(e => SerializeEntry(snapshot, e))
         };
+        var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
 
         if (Options.WritePrefix)
         {
             schema[ToCamelCase(nameof(DirMetaSnapshotSchema.Prefix))] = snapshot.Prefix!;
         }
+
+        if (Options.SortByPath)
+        {
+            entries = entries.OrderBy(e => e.Path);
+        }
+
+        schema[ToCamelCase(nameof(DirMetaSnapshotSchema.Entries))] = entries.Select(e => SerializeEntry(snapshot, e));
 
         var serializer = new SerializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)

@@ -37,15 +37,20 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
         var schema = new Dictionary<string, object>
         {
             [nameof(DirMetaSnapshotSchema.DirectorySeparator)] = snapshot.DirectorySeparator,
-            [nameof(DirMetaSnapshotSchema.Entries)] = snapshot.Entries
-                .Where(e => e.Type != FileType.Directory)
-                .Select(e => SerializeEntry(snapshot, e))
         };
+        var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
 
         if (Options.WritePrefix)
         {
             schema[nameof(DirMetaSnapshotSchema.Prefix)] = snapshot.Prefix!;
         }
+
+        if (Options.SortByPath)
+        {
+            entries = entries.OrderBy(e => e.Path);
+        }
+
+        schema[nameof(DirMetaSnapshotSchema.Entries)] = entries.Select(e => SerializeEntry(snapshot, e));
 
         var options = new JsonSerializerOptions
         {

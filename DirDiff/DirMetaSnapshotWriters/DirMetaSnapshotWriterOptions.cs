@@ -13,6 +13,11 @@ public class DirMetaSnapshotWriterOptions
     public char? DirectorySeparator { get; set; }
 
     /// <summary>
+    /// Whether to sort by path.
+    /// </summary>
+    public bool SortByPath { get; set; } = false;
+
+    /// <summary>
     /// Whether to write file hashes.
     /// </summary>
     public bool WriteHash { get; set; } = true;
