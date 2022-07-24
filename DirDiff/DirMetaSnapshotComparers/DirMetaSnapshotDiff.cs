@@ -1,4 +1,6 @@
-﻿namespace DirDiff.DirMetaSnapshots;
+﻿using DirDiff.DirMetaSnapshots;
+
+namespace DirDiff.DirMetaSnapshotComparers;
 
 public class DirMetaSnapshotDiff
 {
@@ -66,13 +68,24 @@ public class DirMetaSnapshotDiff
     /// <exception cref="ArgumentException">Entry does not belong to snapshot diff.</exception>
     public string GetEntryPathWithoutPrefix(DirMetaSnapshotEntry entry)
     {
+        return GetEntrySnapshot(entry).PathWithoutPrefix(entry.Path);
+    }
+
+    /// <summary>
+    /// Gets the snapshot the entry belongs to.
+    /// </summary>
+    /// <param name="entry">Entry.</param>
+    /// <returns>Snapshot.</returns>
+    /// <exception cref="ArgumentException">Entry does not belong to snapshot diff.</exception>
+    public DirMetaSnapshot GetEntrySnapshot(DirMetaSnapshotEntry entry)
+    {
         if (_firstSnapshot.Entries.Contains(entry))
         {
-            return _firstSnapshot.PathWithoutPrefix(entry.Path);
+            return _firstSnapshot;
         }
         if (_secondSnapshot.Entries.Contains(entry))
         {
-            return _secondSnapshot.PathWithoutPrefix(entry.Path);
+            return _secondSnapshot;
         }
 
         throw new ArgumentException("Entry does not belong to snapshot diff.", nameof(entry));

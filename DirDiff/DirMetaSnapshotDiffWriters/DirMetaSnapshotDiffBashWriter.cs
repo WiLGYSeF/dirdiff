@@ -7,11 +7,6 @@ public class DirMetaSnapshotDiffBashWriter : DirMetaSnapshotDiffCommandWriter
 {
     public override DirMetaSnapshotDiffWriterOptions Options { get; } = new();
 
-    protected override string CopyCommand(DirMetaSnapshotEntry reference, DirMetaSnapshotEntry subject)
-    {
-        return CopyCommand(reference.Path, subject.Path);
-    }
-
     protected override string CopyCommand(string reference, string subject)
     {
         return $"cp -- {EscapeArgument(reference)} {EscapeArgument(subject)}";
@@ -22,17 +17,17 @@ public class DirMetaSnapshotDiffBashWriter : DirMetaSnapshotDiffCommandWriter
         return $"mv -- {EscapeArgument(oldPath)} {EscapeArgument(newPath)}";
     }
 
-    protected override string TouchCommand(DirMetaSnapshotEntry reference, DirMetaSnapshotEntry subject)
+    protected override string TouchCommand(string reference, string subject)
     {
-        return $"touch -d \"$(stat -c %y -- {EscapeArgument(reference.Path)})\" -- {EscapeArgument(subject.Path)}";
+        return $"touch -d \"$(stat -c %y -- {EscapeArgument(reference)})\" -- {EscapeArgument(subject)}";
     }
 
-    protected override string DeleteCommand(DirMetaSnapshotEntry entry)
+    protected override string DeleteCommand(string path)
     {
-        return $"rm -- {EscapeArgument(entry.Path)}";
+        return $"rm -- {EscapeArgument(path)}";
     }
 
-    private string EscapeArgument(string argument)
+    private static string EscapeArgument(string argument)
     {
         var builder = new StringBuilder();
         builder.Append('\'');

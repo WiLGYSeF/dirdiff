@@ -4,15 +4,15 @@ namespace DirDiff.Hashers;
 
 public class Hasher : IHasher
 {
-    public byte[] HashStream(Enums.HashAlgorithm algorithm, Stream stream)
+    public async Task<byte[]?> HashStreamAsync(Enums.HashAlgorithm algorithm, Stream stream)
     {
         byte[] hash = algorithm switch
         {
-            Enums.HashAlgorithm.MD5 => HashStreamMd5(stream),
-            Enums.HashAlgorithm.SHA1 => HashStreamSha1(stream),
-            Enums.HashAlgorithm.SHA256 => HashStreamSha256(stream),
-            Enums.HashAlgorithm.SHA384 => HashStreamSha384(stream),
-            Enums.HashAlgorithm.SHA512 => HashStreamSha512(stream),
+            Enums.HashAlgorithm.MD5 => await HashStreamMd5Async(stream),
+            Enums.HashAlgorithm.SHA1 => await HashStreamSha1Async(stream),
+            Enums.HashAlgorithm.SHA256 => await HashStreamSha256Async(stream),
+            Enums.HashAlgorithm.SHA384 => await HashStreamSha384Async(stream),
+            Enums.HashAlgorithm.SHA512 => await HashStreamSha512Async(stream),
             _ => throw new NotImplementedException(),
         };
         return hash;
@@ -31,33 +31,33 @@ public class Hasher : IHasher
         };
     }
 
-    private static byte[] HashStreamMd5(Stream stream)
+    private static async Task<byte[]> HashStreamMd5Async(Stream stream)
     {
-        return HashStream(MD5.Create(), stream);
+        return await HashStreamAsync(MD5.Create(), stream);
     }
 
-    private static byte[] HashStreamSha1(Stream stream)
+    private static async Task<byte[]> HashStreamSha1Async(Stream stream)
     {
-        return HashStream(SHA1.Create(), stream);
+        return await HashStreamAsync(SHA1.Create(), stream);
     }
 
-    private static byte[] HashStreamSha256(Stream stream)
+    private static async Task<byte[]> HashStreamSha256Async(Stream stream)
     {
-        return HashStream(SHA256.Create(), stream);
+        return await HashStreamAsync(SHA256.Create(), stream);
     }
 
-    private static byte[] HashStreamSha384(Stream stream)
+    private static async Task<byte[]> HashStreamSha384Async(Stream stream)
     {
-        return HashStream(SHA384.Create(), stream);
+        return await HashStreamAsync(SHA384.Create(), stream);
     }
 
-    private static byte[] HashStreamSha512(Stream stream)
+    private static async Task<byte[]> HashStreamSha512Async(Stream stream)
     {
-        return HashStream(SHA512.Create(), stream);
+        return await HashStreamAsync(SHA512.Create(), stream);
     }
 
-    private static byte[] HashStream(HashAlgorithm algorithm, Stream stream)
+    private static async Task<byte[]> HashStreamAsync(HashAlgorithm algorithm, Stream stream)
     {
-        return algorithm.ComputeHash(stream);
+        return await algorithm.ComputeHashAsync(stream);
     }
 }

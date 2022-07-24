@@ -48,13 +48,15 @@ public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
             await stream.WriteAsync(Encoding.UTF8.GetBytes(builder.ToString()));
         }
 
-        foreach (var entry in snapshot.Entries)
-        {
-            if (entry.Type == FileType.Directory)
-            {
-                continue;
-            }
+        var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
 
+        if (TextWriterOptions.SortByPath)
+        {
+            entries = entries.OrderBy(e => e.Path);
+        }
+
+        foreach (var entry in entries)
+        {
             builder.Clear();
             AppendEntryLine(builder, snapshot, entry);
             await stream.WriteAsync(Encoding.UTF8.GetBytes(builder.ToString()));
@@ -138,6 +140,15 @@ public class DirMetaSnapshotTextWriter : IDirMetaSnapshotWriter
             builder.Append(TextWriterOptions.Separator);
         }
 
-        builder.AppendLine(Options.WritePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path));
+        var path = Options.WritePrefix
+            ? entry.Path
+            : snapshot.PathWithoutPrefix(entry.Path);
+
+        if (Options.DirectorySeparator.HasValue && Options.DirectorySeparator.Value != snapshot.DirectorySeparator)
+        {
+            path = snapshot.ChangePathDirectorySeparator(path, Options.DirectorySeparator.Value);
+        }
+
+        builder.AppendLine(path);
     }
 }

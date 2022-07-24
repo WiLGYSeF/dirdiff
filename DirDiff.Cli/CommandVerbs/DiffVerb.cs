@@ -1,5 +1,8 @@
-﻿using DirDiff.DirMetaSnapshotDiffWriters;
+﻿using DirDiff.Cli.Logging;
+using DirDiff.DirMetaSnapshotComparers;
+using DirDiff.DirMetaSnapshotDiffWriters;
 using DirDiff.DirMetaSnapshots;
+using Microsoft.Extensions.Logging;
 
 namespace DirDiff.Cli.CommandVerbs;
 
@@ -7,7 +10,10 @@ internal static class DiffVerb
 {
     public static async Task Run(DiffOptions opts)
     {
-        if (opts.Arguments.Count() != 2)
+        var loggerFactory = new LoggerFactory();
+        loggerFactory.AddProvider(new ConsoleLoggerProvider());
+
+        if (opts.Arguments.Count != 2)
         {
             throw new CommandVerbException(1, "diff requires exactly two snapshots to compare");
         }
@@ -17,22 +23,16 @@ internal static class DiffVerb
         var firstPath = args[0];
         var secondPath = args[1];
 
-        IDirMetaSnapshotDiffWriter? diffWriter = opts.DiffFormat?.ToLower() switch
+        IDirMetaSnapshotDiffWriter diffWriter = opts.DiffFormat?.ToLower() switch
         {
             "bash" => new DirMetaSnapshotDiffBashWriter(),
             "powershell" => new DirMetaSnapshotDiffPowershellWriter(),
             "json" => new DirMetaSnapshotDiffJsonWriter().Configure(options =>
             {
-                options.UseUnixTimestamp = false;
                 options.WriteIndented = true;
             }),
-            _ => null,
+            _ => throw new CommandVerbException(1, "unknown diff format"),
         };
-
-        if (diffWriter == null)
-        {
-            throw new CommandVerbException(1, "unknown diff format");
-        }
 
         diffWriter.Configure(options =>
         {
@@ -61,12 +61,28 @@ internal static class DiffVerb
             throw new CommandVerbException(1, $"could not read snapshot file: {secondPath}", ex.Message);
         }
 
-        var diff = secondSnapshot.Compare(
-            firstSnapshot,
-            !opts.NoSizeAndTimeMatch,
-            !opts.UnknownNotModified,
-            opts.TimeWindow.HasValue ? TimeSpan.FromSeconds(opts.TimeWindow.Value) : null);
+        var diff = new DirMetaSnapshotComparer().Configure(options =>
+        {
+            options.SizeAndTimeMatch = !opts.NoSizeAndTimeMatch;
+            options.UnknownAssumeModified = !opts.UnknownNotModified;
+            options.TimeWindow = opts.TimeWindow.HasValue ? TimeSpan.FromSeconds(opts.TimeWindow.Value) : TimeSpan.Zero;
+        }).Compare(firstSnapshot, secondSnapshot);
 
-        await diffWriter.WriteAsync(Console.OpenStandardOutput(), diff);
+        FileStream? fileStream = null;
+        Stream outputStream;
+
+        if (opts.OutputFilename != null)
+        {
+            fileStream = File.OpenWrite(opts.OutputFilename);
+            outputStream = fileStream;
+        }
+        else
+        {
+            outputStream = Console.OpenStandardOutput();
+        }
+
+        await diffWriter.WriteAsync(outputStream, diff);
+
+        fileStream?.Close();
     }
 }

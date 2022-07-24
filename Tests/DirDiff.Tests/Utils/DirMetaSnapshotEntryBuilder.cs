@@ -79,6 +79,11 @@ internal class DirMetaSnapshotEntryBuilder
         }
     }
 
+    public char DirectorySeparator { get; set; }
+
+    public long? FileSizeMin { get; set; }
+    public long? FileSizeMax { get; set; }
+
     private long? _fileSize;
     private bool _fileSizeNull;
 
@@ -94,8 +99,16 @@ internal class DirMetaSnapshotEntryBuilder
     private byte[]? _hash;
     private bool _hashNull;
 
-    public long? FileSizeMin { get; set; }
-    public long? FileSizeMax { get; set; }
+    public DirMetaSnapshotEntryBuilder()
+    {
+        DirectorySeparator = System.IO.Path.DirectorySeparatorChar;
+    }
+
+    public DirMetaSnapshotEntryBuilder(DirMetaSnapshotEntry entry)
+    {
+        DirectorySeparator = System.IO.Path.DirectorySeparatorChar;
+        From(entry);
+    }
 
     public DirMetaSnapshotEntry Build()
     {
@@ -120,6 +133,19 @@ internal class DirMetaSnapshotEntryBuilder
         };
     }
 
+    public DirMetaSnapshotEntryBuilder WithDirectorySeparator(char directorySeparator)
+    {
+        DirectorySeparator = directorySeparator;
+        return this;
+    }
+
+    public DirMetaSnapshotEntryBuilder WithFileSizeRange(long min, long max)
+    {
+        FileSizeMin = min;
+        FileSizeMax = max;
+        return this;
+    }
+
     public DirMetaSnapshotEntryBuilder WithPath(string path)
     {
         Path = path;
@@ -129,6 +155,12 @@ internal class DirMetaSnapshotEntryBuilder
     public DirMetaSnapshotEntryBuilder WithRandomPath()
     {
         Path = RandomPath();
+        return this;
+    }
+
+    public DirMetaSnapshotEntryBuilder WithRandomPath(string prefix)
+    {
+        Path = prefix + RandomPath();
         return this;
     }
 
@@ -212,9 +244,26 @@ internal class DirMetaSnapshotEntryBuilder
         return this;
     }
 
+    public DirMetaSnapshotEntryBuilder Clear()
+    {
+        Path = null;
+        Type = FileType.File;
+        _fileSize = null;
+        _fileSizeNull = false;
+        _createdTime = null;
+        _createdTimeNull = false;
+        _lastModifiedTime = null;
+        _lastModifiedTimeNull = false;
+        _hashAlgorithm = null;
+        _hashAlgorithmNull = false;
+        _hash = null;
+        _hashNull = false;
+        return this;
+    }
+
     private string RandomPath()
     {
-        return TestUtils.RandomPath(3) + TestUtils.RandomExtension();
+        return TestUtils.RandomPath(3, DirectorySeparator) + TestUtils.RandomExtension();
     }
 
     private long RandomFileSize()

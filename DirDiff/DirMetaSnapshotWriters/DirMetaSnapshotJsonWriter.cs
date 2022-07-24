@@ -34,12 +34,23 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
     public async Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
     {
-        var schema = new
+        var schema = new Dictionary<string, object>
         {
-            Entries = snapshot.Entries
-                .Where(e => e.Type != FileType.Directory)
-                .Select(e => SerializeEntry(snapshot, e)),
+            [nameof(DirMetaSnapshotSchema.DirectorySeparator)] = snapshot.DirectorySeparator,
         };
+        var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
+
+        if (Options.WritePrefix)
+        {
+            schema[nameof(DirMetaSnapshotSchema.Prefix)] = snapshot.Prefix!;
+        }
+
+        if (Options.SortByPath)
+        {
+            entries = entries.OrderBy(e => e.Path);
+        }
+
+        schema[nameof(DirMetaSnapshotSchema.Entries)] = entries.Select(e => SerializeEntry(snapshot, e));
 
         var options = new JsonSerializerOptions
         {
@@ -53,9 +64,18 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
     private Dictionary<string, object> SerializeEntry(DirMetaSnapshot snapshot, DirMetaSnapshotEntry entry)
     {
+        var path = Options.WritePrefix
+            ? entry.Path
+            : snapshot.PathWithoutPrefix(entry.Path);
+
+        if (Options.DirectorySeparator.HasValue && Options.DirectorySeparator.Value != snapshot.DirectorySeparator)
+        {
+            path = snapshot.ChangePathDirectorySeparator(path, Options.DirectorySeparator.Value);
+        }
+
         var dictionary = new Dictionary<string, object>
         {
-            { "path", Options.WritePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path) },
+            { "path", path },
             { "type", entry.Type },
         };
 
@@ -71,16 +91,12 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
 
         if (Options.WriteCreatedTime && entry.CreatedTime.HasValue)
         {
-            dictionary["createdTime"] = JsonWriterOptions.UseUnixTimestamp
-                ? ((DateTimeOffset)entry.CreatedTime.Value).ToUnixTimeSeconds()
-                : entry.CreatedTime.Value;
+            dictionary["createdTime"] = entry.CreatedTime.Value;
         }
 
         if (Options.WriteLastModifiedTime && entry.LastModifiedTime.HasValue)
         {
-            dictionary["lastModifiedTime"] = JsonWriterOptions.UseUnixTimestamp
-                ? ((DateTimeOffset)entry.LastModifiedTime.Value).ToUnixTimeSeconds()
-                : entry.LastModifiedTime.Value;
+            dictionary["lastModifiedTime"] = entry.LastModifiedTime.Value;
         }
 
         if (Options.WriteFileSize && entry.FileSize.HasValue)

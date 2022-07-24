@@ -1,5 +1,7 @@
 ﻿using DirDiff.DirMetaSnapshotReaders;
 using DirDiff.DirMetaSnapshots;
+using DirDiff.Enums;
+using DirDiff.Utilities;
 using System.Text;
 
 namespace DirDiff.Cli;
@@ -8,27 +10,43 @@ internal static class Shared
 {
     public static async Task<DirMetaSnapshot> ReadSnapshot(string path)
     {
-        var snapshotJsonReader = new DirMetaSnapshotJsonReader();
-
-        var snapshotTextReader = new DirMetaSnapshotTextReader();
-        snapshotTextReader.Configure(options =>
+        var readers = new List<IDirMetaSnapshotReader>
         {
-            options.ReadGuess = true;
+            new DirMetaSnapshotJsonReader(),
+            new DirMetaSnapshotYamlReader(),
+            new DirMetaSnapshotTextReader().Configure(options =>
+            {
+                options.ReadGuess = true;
 
-            options.Separator = "  ";
-            options.NoneValue = "-";
-        });
+                options.Separator = "  ";
+                options.NoneValue = "-";
+            })
+        };
 
-        using var stream = File.OpenRead(path);
-        try
+        DirMetaSnapshot? snapshot = null;
+        Exception? lastException = null;
+
+        foreach (var reader in readers)
         {
-            return await snapshotJsonReader.ReadAsync(stream);
+            try
+            {
+                using var stream = File.OpenRead(path);
+                snapshot = await reader.ReadAsync(stream);
+                lastException = null;
+                break;
+            }
+            catch (Exception exception)
+            {
+                lastException = exception;
+            }
         }
-        catch
+
+        if (lastException != null)
         {
-            stream.Position = 0;
-            return await snapshotTextReader.ReadAsync(stream);
+            throw lastException;
         }
+
+        return snapshot!;
     }
 
     public static IEnumerable<string> InputFromStream(Stream stream, int delimiter)
@@ -56,5 +74,10 @@ internal static class Shared
         {
             yield return input.ToString();
         }
+    }
+
+    public static HashAlgorithm? ParseHashAlgorithm(string algorithm)
+    {
+        return EnumUtils.TryParse<HashAlgorithm>(algorithm, out var result) ? result : null;
     }
 }

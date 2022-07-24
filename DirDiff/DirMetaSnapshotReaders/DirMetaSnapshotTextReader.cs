@@ -34,14 +34,26 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
 
     public async Task<DirMetaSnapshot> ReadAsync(Stream stream)
     {
-        var snapshot = new DirMetaSnapshot(Options.DirectorySeparator);
         var reader = new StreamReader(stream);
+        char directorySeparator;
+
+        if (Options.DirectorySeparator.HasValue)
+        {
+            directorySeparator = Options.DirectorySeparator.Value;
+        }
+        else
+        {
+            directorySeparator = PathUtils.GuessDirectorySeparator(GetLines(reader));
+            reader.BaseStream.Seek(0, SeekOrigin.Begin);
+        }
 
         var minColumns = MinimumExpectedColumnCount(TextReaderOptions);
         var options = TextReaderOptions.Copy();
 
         string? line;
         var firstLine = true;
+
+        var snapshot = new DirMetaSnapshot(directorySeparator);
 
         while ((line = await reader.ReadLineAsync()) != null)
         {
@@ -234,6 +246,15 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
             {
                 throw new ArgumentException($"Unknown header value: {part}", nameof(header));
             }
+        }
+    }
+
+    private static IEnumerable<string> GetLines(StreamReader reader)
+    {
+        string? line;
+        while ((line = reader.ReadLine()) != null)
+        {
+            yield return line;
         }
     }
 

@@ -1,6 +1,8 @@
-﻿namespace DirDiff.Hashers;
+﻿using DirDiff.Enums;
+
+namespace DirDiff.Hashers;
 
 public interface IHasher
 {
-    byte[]? HashStream(Enums.HashAlgorithm algorithm, Stream stream);
+    Task<byte[]?> HashStreamAsync(HashAlgorithm algorithm, Stream stream);
 }

@@ -6,6 +6,10 @@ namespace DirDiff.DirMetaSnapshotWriters;
 
 internal class DirMetaSnapshotSchema
 {
+    public char? DirectorySeparator { get; set; }
+
+    public string? Prefix { get; set; }
+
     public ICollection<DirMetaSnapshotEntrySchema>? Entries { get; set; }
 }
 

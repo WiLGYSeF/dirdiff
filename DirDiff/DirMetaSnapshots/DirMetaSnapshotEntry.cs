@@ -9,7 +9,7 @@ public class DirMetaSnapshotEntry
     /// <summary>
     /// Entry path.
     /// </summary>
-    public string Path { get; }
+    public string Path { get; internal set; }
 
     /// <summary>
     /// Entry file type.
@@ -99,11 +99,14 @@ public class DirMetaSnapshotEntry
         Type = type;
     }
 
-    public bool IsDifferentFrom(DirMetaSnapshotEntry entry, TimeSpan? timeWindow = null)
+    public bool IsDifferentFrom(
+        DirMetaSnapshotEntry entry,
+        TimeSpan? timeWindow = null,
+        bool ignorePath = false)
     {
         timeWindow ??= TimeSpan.Zero;
         return Type != entry.Type
-            || Path != entry.Path
+            || (!ignorePath && Path != entry.Path)
             || NotNullAndDifferent(FileSize, entry.FileSize)
             || NotNullAndDifferent(CreatedTime, entry.CreatedTime, timeWindow.Value)
             || NotNullAndDifferent(LastModifiedTime, entry.LastModifiedTime, timeWindow.Value)
@@ -133,6 +136,22 @@ public class DirMetaSnapshotEntry
         {
             Hash = entry.Hash;
         }
+    }
+
+    /// <summary>
+    /// Copies the entry.
+    /// </summary>
+    /// <returns>Copied entry.</returns>
+    public DirMetaSnapshotEntry Copy()
+    {
+        return new DirMetaSnapshotEntry(Path, Type)
+        {
+            FileSize = FileSize,
+            CreatedTime = CreatedTime,
+            LastModifiedTime = LastModifiedTime,
+            HashAlgorithm = HashAlgorithm,
+            Hash = Hash,
+        };
     }
 
     private static bool NotNullAndDifferent<T>(T? a, T? b) where T : struct

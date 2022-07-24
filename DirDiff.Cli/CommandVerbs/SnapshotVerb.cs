@@ -1,10 +1,12 @@
-﻿using DirDiff.DirMetaSnapshots;
+﻿using DirDiff.Cli.Logging;
+using DirDiff.DirMetaSnapshots;
 using DirDiff.DirMetaSnapshotWriters;
 using DirDiff.DirWalkers;
 using DirDiff.Enums;
 using DirDiff.FileInfoReaders;
 using DirDiff.FileReaders;
 using DirDiff.Hashers;
+using Microsoft.Extensions.Logging;
 
 namespace DirDiff.Cli.CommandVerbs;
 
@@ -12,6 +14,19 @@ internal static class SnapshotVerb
 {
     public static async Task Run(SnapshotOptions opts)
     {
+        var loggerFactory = new LoggerFactory();
+        loggerFactory.AddProvider(new ConsoleLoggerProvider());
+
+        HashAlgorithm? hashAlgorithm = HashAlgorithm.SHA256;
+        if (opts.HashAlgorithm != null)
+        {
+            hashAlgorithm = Shared.ParseHashAlgorithm(opts.HashAlgorithm);
+            if (!hashAlgorithm.HasValue)
+            {
+                throw new CommandVerbException(1, "unknown hash algorithm");
+            }
+        }
+
         var snapshotBuilder = new DirMetaSnapshotBuilder(
             new DirWalker(),
             new FileReader(),
@@ -23,11 +38,18 @@ internal static class SnapshotVerb
             options.UseFileSize = opts.UseFileSize;
             options.UseCreatedTime = true;
             options.UseLastModifiedTime = opts.UseLastModifiedTime;
-            options.HashAlgorithm = opts.UseHash ? HashAlgorithm.SHA256 : null;
+            options.HashAlgorithm = opts.UseHash ? hashAlgorithm.Value : null;
             options.TimeWindow = TimeSpan.FromSeconds(opts.TimeWindow ?? 0);
+            options.UpdateKeepRemoved = opts.UpdateNoRemove;
+            options.UpdatePrefix = opts.UpdatePrefix;
             options.KeepDirectoryOrder = true;
             options.ThrowIfNotFound = true;
         });
+
+        if (opts.Verbose > 0)
+        {
+            snapshotBuilder.Logger = loggerFactory.CreateLogger<DirMetaSnapshotBuilder>();
+        }
 
         foreach (var arg in opts.Arguments)
         {
@@ -44,7 +66,7 @@ internal static class SnapshotVerb
 
         try
         {
-            IDirMetaSnapshotWriter? snapshotWriter = opts.SnapshotFormat?.ToLower() switch
+            IDirMetaSnapshotWriter snapshotWriter = opts.SnapshotFormat?.ToLower() switch
             {
                 "text" => new DirMetaSnapshotTextWriter().Configure(options =>
                 {
@@ -53,26 +75,18 @@ internal static class SnapshotVerb
                 }),
                 "json" => new DirMetaSnapshotJsonWriter().Configure(options =>
                 {
-                    options.UseUnixTimestamp = false;
                     options.WriteIndented = true;
                 }),
-                "yaml" => new DirMetaSnapshotYamlWriter().Configure(options =>
-                {
-                    options.UseUnixTimestamp = false;
-                }),
-                _ => null,
+                "yaml" => new DirMetaSnapshotYamlWriter(),
+                _ => throw new CommandVerbException(1, "unknown snapshot format"),
             };
-
-            if (snapshotWriter == null)
-            {
-                throw new CommandVerbException(1, "unknown snapshot format");
-            }
 
             snapshotWriter.Configure(options =>
             {
                 options.WritePrefix = !opts.RemovePrefix;
+                options.DirectorySeparator = opts.DirectorySeparator;
                 options.WriteHash = opts.UseHash;
-                options.WriteHashAlgorithm = false;
+                options.WriteHashAlgorithm = opts.UseHash;
                 options.WriteCreatedTime = false;
                 options.WriteLastModifiedTime = opts.UseLastModifiedTime;
                 options.WriteFileSize = opts.UseFileSize;
@@ -90,11 +104,30 @@ internal static class SnapshotVerb
                 snapshot = await snapshotBuilder.CreateSnapshotAsync();
             }
 
-            await snapshotWriter.WriteAsync(Console.OpenStandardOutput(), snapshot);
+            FileStream? fileStream = null;
+            Stream outputStream;
+
+            if (opts.OutputFilename != null)
+            {
+                fileStream = File.OpenWrite(opts.OutputFilename);
+                outputStream = fileStream;
+            }
+            else
+            {
+                outputStream = Console.OpenStandardOutput();
+            }
+
+            await snapshotWriter.WriteAsync(outputStream, snapshot);
+
+            fileStream?.Close();
         }
         catch (DirectoryNotFoundException exception)
         {
-            throw new CommandVerbException(1, $"could not find path: {exception.Message}");
+            throw new CommandVerbException(1, $"could not find directory: {exception.Message}");
+        }
+        catch (FileNotFoundException exception)
+        {
+            throw new CommandVerbException(1, $"could not find file: {exception.Message}");
         }
     }
 }
