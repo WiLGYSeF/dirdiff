@@ -1,5 +1,6 @@
 ﻿using DirDiff.DirWalkers;
 using DirDiff.Enums;
+using DirDiff.Extensions;
 using DirDiff.FileInfoReaders;
 using DirDiff.FileReaders;
 using DirDiff.Hashers;
@@ -133,9 +134,12 @@ public class DirMetaSnapshotBuilder
         {
             foreach (var entry in snapshot.Entries)
             {
-                if (!newSnapshot.ContainsPath(entry.Path))
+                var entryPath = snapshot.GetDirectoryParts(entry.Path).Join(Options.DirectorySeparator);
+                if (!newSnapshot.ContainsPath(entryPath))
                 {
-                    newSnapshot.AddEntry(entry.Copy());
+                    var copy = entry.Copy();
+                    copy.Path = entryPath;
+                    newSnapshot.AddEntry(copy);
                 }
             }
         }
@@ -157,7 +161,20 @@ public class DirMetaSnapshotBuilder
     {
         foreach (var file in _walker.Walk(path))
         {
-            if (!snapshot.TryGetEntry(file.Path, out var entry))
+            var newPath = file.Path;
+            if (Options.UpdatePrefix != null)
+            {
+                if (!newPath.StartsWith(Options.UpdatePrefix))
+                {
+                    throw new InvalidOperationException($"Enty path does not start with prefix: {newPath}");
+                }
+
+                newPath = newPath[Options.UpdatePrefix.Length..];
+            }
+
+            var snapshotPath = snapshot.Prefix + newSnapshot.GetDirectoryParts(newPath).Join(snapshot.DirectorySeparator);
+
+            if (!snapshot.TryGetEntry(snapshotPath, out var entry))
             {
                 Logger?.LogInformation("updating with new entry: {path}", file.Path);
 
@@ -189,6 +206,11 @@ public class DirMetaSnapshotBuilder
                 {
                     Logger?.LogInformation("using existing entry: {path}", file.Path);
                 }
+            }
+
+            if (Options.UpdatePrefix != null)
+            {
+                newEntry.Path = snapshot.Prefix + newEntry.Path[Options.UpdatePrefix.Length..];
             }
 
             newSnapshot.AddEntry(newEntry);

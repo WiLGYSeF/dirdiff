@@ -9,7 +9,7 @@ public class DirMetaSnapshotEntry
     /// <summary>
     /// Entry path.
     /// </summary>
-    public string Path { get; }
+    public string Path { get; internal set; }
 
     /// <summary>
     /// Entry file type.

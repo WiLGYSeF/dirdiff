@@ -29,8 +29,14 @@ internal class SnapshotOptions
     [Option('u', "update", MetaValue = "SNAPSHOT", HelpText = "Use snapshot to create an updated snapshot")]
     public string? UpdateSnapshot { get; set; }
 
+    [Option("update-directory-separator")]
+    public char? UpdateDirectorySeparator { get; set; }
+
     [Option("update-no-remove", HelpText = "Do not remove non-existing entries when updating a snapshot")]
     public bool UpdateNoRemove { get; set; }
+
+    [Option("update-prefix", MetaValue = "PREFIX")]
+    public string? UpdatePrefix { get; set; }
 
     [Option('o', "output", MetaValue = "FILE", HelpText = "Output filename")]
     public string? OutputFilename { get; set; }

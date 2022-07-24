@@ -39,6 +39,8 @@ public class DirMetaSnapshotBuilderOptions
     /// </summary>
     public bool UpdateKeepRemoved { get; set; }
 
+    public string? UpdatePrefix { get; set; }
+
     /// <summary>
     /// Minimum directory depth limit.
     /// </summary>

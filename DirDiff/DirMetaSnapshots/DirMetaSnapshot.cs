@@ -525,7 +525,7 @@ public class DirMetaSnapshot
         return builder.ToString();
     }
 
-    private string[] GetDirectoryParts(string path)
+    public string[] GetDirectoryParts(string path)
     {
         return path.Split(DirectorySeparator);
     }
