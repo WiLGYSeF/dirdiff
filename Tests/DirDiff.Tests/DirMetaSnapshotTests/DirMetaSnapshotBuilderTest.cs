@@ -605,7 +605,7 @@ public class DirMetaSnapshotBuilderTest
                 LastWriteTimeUtc = entry.LastModifiedTime,
             });
         });
-        var hasherMock = new HasherMock((algorithm, stream) => null);
+        var hasherMock = new HasherMock((algorithm, stream) => Task.FromResult<byte[]?>(null));
 
         var builder = new DirMetaSnapshotBuilder(
             walkerMock,
@@ -627,12 +627,12 @@ public class DirMetaSnapshotBuilderTest
 
             if (entry.Hash != null)
             {
-                return entry.Hash;
+                return Task.FromResult<byte[]?>(entry.Hash);
             }
 
-            return builder.Options.HashAlgorithm.HasValue
+            return Task.FromResult(builder.Options.HashAlgorithm.HasValue
                 ? TestUtils.RandomBytes(Hasher.GetHashBytes(builder.Options.HashAlgorithm.Value))
-                : null;
+                : null);
         };
 
         return builder;

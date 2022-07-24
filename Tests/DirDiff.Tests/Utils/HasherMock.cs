@@ -5,15 +5,15 @@ namespace DirDiff.Tests.Utils;
 
 internal class HasherMock : IHasher
 {
-    public Func<HashAlgorithm, Stream, byte[]?> Hasher { get; set; }
+    public Func<HashAlgorithm, Stream, Task<byte[]?>> Hasher { get; set; }
 
-    public HasherMock(Func<HashAlgorithm, Stream, byte[]?> hasher)
+    public HasherMock(Func<HashAlgorithm, Stream, Task<byte[]?>> hasher)
     {
         Hasher = hasher;
     }
 
-    public byte[]? HashStream(HashAlgorithm algorithm, Stream stream)
+    public async Task<byte[]?> HashStreamAsync(HashAlgorithm algorithm, Stream stream)
     {
-        return Hasher(algorithm, stream);
+        return await Hasher(algorithm, stream);
     }
 }

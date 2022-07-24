@@ -158,7 +158,7 @@ public class DirMetaSnapshotBuilder
             {
                 if (Options.HashAlgorithm.HasValue)
                 {
-                    SetEntryHash(newEntry);
+                    await SetEntryHashAsync(newEntry);
                 }
             }
             else
@@ -166,7 +166,7 @@ public class DirMetaSnapshotBuilder
                 newEntry.CopyKnownPropertiesFrom(entry);
                 if (newEntry.Hash == null && Options.HashAlgorithm.HasValue)
                 {
-                    SetEntryHash(newEntry);
+                    await SetEntryHashAsync(newEntry);
                 }
             }
 
@@ -211,17 +211,17 @@ public class DirMetaSnapshotBuilder
 
         if (!skipHash && Options.HashAlgorithm.HasValue)
         {
-            SetEntryHash(entry);
+            await SetEntryHashAsync(entry);
         }
 
         return entry;
     }
 
-    private void SetEntryHash(DirMetaSnapshotEntry entry)
+    private async Task SetEntryHashAsync(DirMetaSnapshotEntry entry)
     {
         entry.HashAlgorithm = Options.HashAlgorithm!.Value;
 
         using var stream = _fileReader.Open(entry.Path);
-        entry.Hash = _hasher.HashStream(Options.HashAlgorithm.Value, stream);
+        entry.Hash = await _hasher.HashStreamAsync(Options.HashAlgorithm.Value, stream);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using DirDiff.DirMetaSnapshots;
+using DirDiff.DirMetaSnapshotWriters;
 using DirDiff.Tests.Utils;
 
 namespace DirDiff.Tests.DirMetaSnapshotDiffWritersTests;
@@ -90,19 +91,36 @@ internal static class TestHelper
         return secondPrefix + path[firstPrefix.Length..];
     }
 
+    public class DiffSchema
+    {
+        public ICollection<DirMetaSnapshotEntrySchema>? Created { get; set; }
+        public ICollection<DirMetaSnapshotEntrySchema>? Deleted { get; set; }
+        public ICollection<DiffEntryPairSchema>? Modified { get; set; }
+        public ICollection<DiffEntryPairSchema>? Copied { get; set; }
+        public ICollection<DiffEntryPairSchema>? Moved { get; set; }
+        public ICollection<DiffEntryPairSchema>? Touched { get; set; }
+        public ICollection<DirMetaSnapshotEntrySchema>? Unchanged { get; set; }
+    }
+
+    public class DiffEntryPairSchema
+    {
+        public DirMetaSnapshotEntrySchema? First { get; set; }
+        public DirMetaSnapshotEntrySchema? Second { get; set; }
+    }
+
     public class BasicDiffResult
     {
-        public DirMetaSnapshotEntry CreatedEntry { get; init; }
-        public DirMetaSnapshotEntry DeletedEntry { get; init; }
-        public DirMetaSnapshotEntry FirstModifiedEntry { get; init; }
-        public DirMetaSnapshotEntry SecondModifiedEntry { get; init; }
-        public DirMetaSnapshotEntry FirstCopiedEntry { get; init; }
-        public DirMetaSnapshotEntry SecondCopiedEntry { get; init; }
-        public DirMetaSnapshotEntry FirstMovedEntry { get; init; }
-        public DirMetaSnapshotEntry SecondMovedEntry { get; init; }
-        public DirMetaSnapshotEntry FirstTouchedEntry { get; init; }
-        public DirMetaSnapshotEntry SecondTouchedEntry { get; init; }
-        public DirMetaSnapshotEntry FirstUnchangedEntry { get; init; }
-        public DirMetaSnapshotEntry SecondUnchangedEntry { get; init; }
+        public DirMetaSnapshotEntry? CreatedEntry { get; init; }
+        public DirMetaSnapshotEntry? DeletedEntry { get; init; }
+        public DirMetaSnapshotEntry? FirstModifiedEntry { get; init; }
+        public DirMetaSnapshotEntry? SecondModifiedEntry { get; init; }
+        public DirMetaSnapshotEntry? FirstCopiedEntry { get; init; }
+        public DirMetaSnapshotEntry? SecondCopiedEntry { get; init; }
+        public DirMetaSnapshotEntry? FirstMovedEntry { get; init; }
+        public DirMetaSnapshotEntry? SecondMovedEntry { get; init; }
+        public DirMetaSnapshotEntry? FirstTouchedEntry { get; init; }
+        public DirMetaSnapshotEntry? SecondTouchedEntry { get; init; }
+        public DirMetaSnapshotEntry? FirstUnchangedEntry { get; init; }
+        public DirMetaSnapshotEntry? SecondUnchangedEntry { get; init; }
     }
 }
