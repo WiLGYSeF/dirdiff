@@ -1,5 +1,7 @@
-﻿using DirDiff.DirMetaSnapshotDiffWriters;
+﻿using DirDiff.Cli.Logging;
+using DirDiff.DirMetaSnapshotDiffWriters;
 using DirDiff.DirMetaSnapshots;
+using Microsoft.Extensions.Logging;
 
 namespace DirDiff.Cli.CommandVerbs;
 
@@ -7,6 +9,9 @@ internal static class DiffVerb
 {
     public static async Task Run(DiffOptions opts)
     {
+        var loggerFactory = new LoggerFactory();
+        loggerFactory.AddProvider(new ConsoleLoggerProvider());
+
         if (opts.Arguments.Count != 2)
         {
             throw new CommandVerbException(1, "diff requires exactly two snapshots to compare");

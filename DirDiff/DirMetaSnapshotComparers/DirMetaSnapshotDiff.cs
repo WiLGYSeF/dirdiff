@@ -1,4 +1,6 @@
-﻿namespace DirDiff.DirMetaSnapshots;
+﻿using DirDiff.DirMetaSnapshots;
+
+namespace DirDiff.DirMetaSnapshotComparers;
 
 public class DirMetaSnapshotDiff
 {

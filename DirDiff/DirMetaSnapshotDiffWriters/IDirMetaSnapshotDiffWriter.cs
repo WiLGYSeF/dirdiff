@@ -1,4 +1,4 @@
-﻿using DirDiff.DirMetaSnapshots;
+﻿using DirDiff.DirMetaSnapshotComparers;
 
 namespace DirDiff.DirMetaSnapshotDiffWriters;
 

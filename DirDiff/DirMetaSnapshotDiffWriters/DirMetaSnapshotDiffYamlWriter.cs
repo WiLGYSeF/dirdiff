@@ -1,4 +1,4 @@
-﻿using DirDiff.DirMetaSnapshots;
+﻿using DirDiff.DirMetaSnapshotComparers;
 using System.Text;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
