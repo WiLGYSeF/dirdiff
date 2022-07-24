@@ -41,55 +41,6 @@ public class DirMetaSnapshotDiffYamlWriterTest
         result.Unchanged!.Single().Path.ShouldBe(entries.SecondUnchangedEntry!.Path);
     }
 
-    [Fact]
-    public async Task Write_No_Prefix()
-    {
-        var directorySeparator = '/';
-        var firstPrefix = "test/";
-        var secondPrefix = "abc/";
-
-        var firstSnapshot = new DirMetaSnapshot(directorySeparator);
-        var secondSnapshot = new DirMetaSnapshot(directorySeparator);
-
-        var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
-
-        var diff = secondSnapshot.Compare(firstSnapshot);
-
-        var diffWriter = new DirMetaSnapshotDiffYamlWriter().Configure(options =>
-        {
-            options.WritePrefix = false;
-        });
-
-        var stream = new MemoryStream();
-        await diffWriter.WriteAsync(stream, diff);
-        stream.Position = 0;
-
-        var result = await DeserializeDiffAsync(stream);
-
-        result.Created!.Single().Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.CreatedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Deleted!.Single().Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.DeletedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Modified!.Single().First!.Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.FirstModifiedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Modified!.Single().Second!.Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.SecondModifiedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Copied!.Single().First!.Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.FirstCopiedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Copied!.Single().Second!.Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.SecondCopiedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Moved!.Single().First!.Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.FirstMovedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Moved!.Single().Second!.Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.SecondMovedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Touched!.Single().First!.Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.FirstTouchedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Touched!.Single().Second!.Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.SecondTouchedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-        result.Unchanged!.Single().Path
-            .ShouldBe(TestHelper.GetEntryPath(entries.SecondUnchangedEntry!, firstSnapshot, secondSnapshot, null, "", ""));
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData('/')]

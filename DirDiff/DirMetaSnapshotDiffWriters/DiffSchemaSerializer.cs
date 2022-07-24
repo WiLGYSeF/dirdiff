@@ -41,9 +41,7 @@ internal static class DiffSchemaSerializer
 
         var path = prefix != null
             ? prefix + snapshot.PathWithoutPrefix(entry.Path)
-            : options.WritePrefix
-                ? entry.Path
-                : snapshot.PathWithoutPrefix(entry.Path);
+            : entry.Path;
         if (options.DirectorySeparator.HasValue)
         {
             path = snapshot.ChangePathDirectorySeparator(path, options.DirectorySeparator.Value);

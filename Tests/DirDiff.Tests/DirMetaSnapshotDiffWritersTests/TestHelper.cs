@@ -133,6 +133,35 @@ internal static class TestHelper
         return path;
     }
 
+    public static string GetCommandEntryPath(
+        DirMetaSnapshotEntry entry,
+        DirMetaSnapshot firstSnapshot,
+        DirMetaSnapshot secondSnapshot,
+        char? directorySeparator = null,
+        string? firstPrefix = null,
+        string? secondPrefix = null)
+    {
+        var snapshot = firstSnapshot.ContainsPath(entry.Path) ? firstSnapshot : secondSnapshot;
+        var path = entry.Path;
+
+        if (snapshot == firstSnapshot)
+        {
+            if (firstPrefix != null)
+            {
+                path = firstPrefix + snapshot.PathWithoutPrefix(path);
+            }
+        }
+        else
+        {
+            if (secondPrefix != null)
+            {
+                path = secondPrefix + snapshot.PathWithoutPrefix(path);
+            }
+        }
+
+        return snapshot.ChangePathDirectorySeparator(path, directorySeparator.GetValueOrDefault(secondSnapshot.DirectorySeparator));
+    }
+
     private static string PathWithDifferentPrefix(string path, string firstPrefix, string secondPrefix)
     {
         return secondPrefix + path[firstPrefix.Length..];

@@ -30,17 +30,24 @@ public class DirMetaSnapshotDiffBashWriterTest
 
         var lines = result.Split(Environment.NewLine);
 
+        string First(DirMetaSnapshotEntry entry)
+        {
+            return firstPrefix + secondSnapshot.PathWithoutPrefix(entry.Path);
+        }
+
         lines.Length.ShouldBe(7);
-        ShouldBeCreateCommand(lines[0], entries.CreatedEntry!, firstSnapshot, secondSnapshot);
-        ShouldBeModifyCommand(lines[1], entries.FirstModifiedEntry!, entries.SecondModifiedEntry!);
-        ShouldBeCopyCommand(lines[2], entries.FirstCopiedEntry!, entries.SecondCopiedEntry!, firstSnapshot, secondSnapshot);
-        ShouldBeMoveCommand(lines[3], entries.FirstMovedEntry!, entries.SecondMovedEntry!, firstSnapshot, secondSnapshot);
-        ShouldBeTouchCommand(lines[4], entries.FirstTouchedEntry!, entries.SecondTouchedEntry!);
-        ShouldBeDeleteCommand(lines[5], entries.DeletedEntry!);
+        ShouldBeCreateCommand(lines[0], entries.CreatedEntry!.Path, First(entries.CreatedEntry!));
+        ShouldBeModifyCommand(lines[1], entries.SecondModifiedEntry!.Path, entries.FirstModifiedEntry!.Path);
+        ShouldBeCopyCommand(lines[2], entries.FirstCopiedEntry!.Path, First(entries.SecondCopiedEntry!));
+        ShouldBeMoveCommand(lines[3], entries.FirstMovedEntry!.Path, First(entries.SecondMovedEntry!));
+        ShouldBeTouchCommand(lines[4], entries.SecondTouchedEntry!.Path, entries.FirstTouchedEntry!.Path);
+        ShouldBeDeleteCommand(lines[5], entries.DeletedEntry!.Path);
     }
 
-    [Fact]
-    public async Task Write_Different_DirectorySeparator()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Write_Different_DirectorySeparator(bool forceFirstSeparator)
     {
         var firstDirectorySeparator = '/';
         var secondDirectorySeparator = '\\';
@@ -54,7 +61,11 @@ public class DirMetaSnapshotDiffBashWriterTest
 
         var diff = secondSnapshot.Compare(firstSnapshot);
 
-        var diffWriter = new DirMetaSnapshotDiffBashWriter();
+        var diffWriter = new DirMetaSnapshotDiffBashWriter().Configure(options =>
+        {
+            options.DirectorySeparator = forceFirstSeparator ? firstDirectorySeparator : null;
+        });
+
         var stream = new MemoryStream();
         await diffWriter.WriteAsync(stream, diff);
         stream.Position = 0;
@@ -63,13 +74,86 @@ public class DirMetaSnapshotDiffBashWriterTest
 
         var lines = result.Split(Environment.NewLine);
 
+        string First(DirMetaSnapshotEntry entry)
+        {
+            var snapshot = diff.GetEntrySnapshot(entry);
+            return firstSnapshot.ChangePathDirectorySeparator(firstPrefix, forceFirstSeparator ? firstDirectorySeparator : secondSnapshot.DirectorySeparator)
+                + snapshot.ChangePathDirectorySeparator(
+                    snapshot.PathWithoutPrefix(entry.Path),
+                    forceFirstSeparator ? firstDirectorySeparator : secondSnapshot.DirectorySeparator);
+        }
+
+        string Second(DirMetaSnapshotEntry entry)
+        {
+            return diff.GetEntrySnapshot(entry)
+                .ChangePathDirectorySeparator(entry.Path, forceFirstSeparator ? firstDirectorySeparator : secondSnapshot!.DirectorySeparator);
+        }
+
         lines.Length.ShouldBe(7);
-        ShouldBeCreateCommand(lines[0], entries.CreatedEntry!, firstSnapshot, secondSnapshot);
-        ShouldBeModifyCommand(lines[1], entries.FirstModifiedEntry!, entries.SecondModifiedEntry!);
-        ShouldBeCopyCommand(lines[2], entries.FirstCopiedEntry!, entries.SecondCopiedEntry!, firstSnapshot, secondSnapshot);
-        ShouldBeMoveCommand(lines[3], entries.FirstMovedEntry!, entries.SecondMovedEntry!, firstSnapshot, secondSnapshot);
-        ShouldBeTouchCommand(lines[4], entries.FirstTouchedEntry!, entries.SecondTouchedEntry!);
-        ShouldBeDeleteCommand(lines[5], entries.DeletedEntry!);
+        ShouldBeCreateCommand(lines[0], Second(entries.CreatedEntry!), First(entries.CreatedEntry!));
+        ShouldBeModifyCommand(lines[1], Second(entries.SecondModifiedEntry!), First(entries.FirstModifiedEntry!));
+        ShouldBeCopyCommand(lines[2], First(entries.FirstCopiedEntry!), First(entries.SecondCopiedEntry!));
+        ShouldBeMoveCommand(lines[3], First(entries.FirstMovedEntry!), First(entries.SecondMovedEntry!));
+        ShouldBeTouchCommand(lines[4], Second(entries.SecondTouchedEntry!), First(entries.FirstTouchedEntry!));
+        ShouldBeDeleteCommand(lines[5], First(entries.DeletedEntry!));
+    }
+
+    [Fact]
+    public async Task Write_Different_Prefix()
+    {
+        var firstDirectorySeparator = '/';
+        var secondDirectorySeparator = '\\';
+        var firstPrefix = "test/";
+        var secondPrefix = "abc\\";
+        var firstNewPrefix = "newtest/";
+        var secondNewPrefix = "newabc\\";
+
+        var firstSnapshot = new DirMetaSnapshot(firstDirectorySeparator);
+        var secondSnapshot = new DirMetaSnapshot(secondDirectorySeparator);
+
+        var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
+
+        var diff = secondSnapshot.Compare(firstSnapshot);
+
+        var diffWriter = new DirMetaSnapshotDiffBashWriter().Configure(options =>
+        {
+            options.FirstPrefix = firstNewPrefix;
+            options.SecondPrefix = secondNewPrefix;
+        });
+
+        var stream = new MemoryStream();
+        await diffWriter.WriteAsync(stream, diff);
+        stream.Position = 0;
+
+        var result = Encoding.UTF8.GetString(stream.ToArray());
+
+        var lines = result.Split(Environment.NewLine);
+
+        string First(DirMetaSnapshotEntry entry)
+        {
+            var snapshot = diff.GetEntrySnapshot(entry);
+            return firstSnapshot.ChangePathDirectorySeparator(firstNewPrefix, secondSnapshot.DirectorySeparator)
+                + snapshot.ChangePathDirectorySeparator(
+                    snapshot.PathWithoutPrefix(entry.Path),
+                    secondSnapshot!.DirectorySeparator);
+        }
+
+        string Second(DirMetaSnapshotEntry entry)
+        {
+            var snapshot = diff.GetEntrySnapshot(entry);
+            return secondNewPrefix
+                + snapshot.ChangePathDirectorySeparator(
+                    snapshot.PathWithoutPrefix(entry.Path),
+                    secondSnapshot!.DirectorySeparator);
+        }
+
+        lines.Length.ShouldBe(7);
+        ShouldBeCreateCommand(lines[0], Second(entries.CreatedEntry!), First(entries.CreatedEntry!));
+        ShouldBeModifyCommand(lines[1], Second(entries.SecondModifiedEntry!), First(entries.FirstModifiedEntry!));
+        ShouldBeCopyCommand(lines[2], First(entries.FirstCopiedEntry!), First(entries.SecondCopiedEntry!));
+        ShouldBeMoveCommand(lines[3], First(entries.FirstMovedEntry!), First(entries.SecondMovedEntry!));
+        ShouldBeTouchCommand(lines[4], Second(entries.SecondTouchedEntry!), First(entries.FirstTouchedEntry!));
+        ShouldBeDeleteCommand(lines[5], First(entries.DeletedEntry!));
     }
 
     [Theory]
@@ -102,33 +186,33 @@ public class DirMetaSnapshotDiffBashWriterTest
         lines[0].EndsWith(expected).ShouldBeTrue($"Line does not end with '{expected}': {lines[0]}");
     }
 
-    private static void ShouldBeCreateCommand(string command, DirMetaSnapshotEntry entry, DirMetaSnapshot firstSnapshot, DirMetaSnapshot secondSnapshot)
+    private static void ShouldBeCreateCommand(string command, string reference, string subject)
     {
-        command.ShouldBe($"cp -- '{entry.Path}' '{firstSnapshot.ChangePathDirectorySeparator(firstSnapshot.Prefix, secondSnapshot.DirectorySeparator) + secondSnapshot.PathWithoutPrefix(entry.Path)}'");
+        command.ShouldBe($"cp -- '{reference}' '{subject}'");
     }
 
-    private static void ShouldBeModifyCommand(string command, DirMetaSnapshotEntry firstEntry, DirMetaSnapshotEntry secondEntry)
+    private static void ShouldBeModifyCommand(string command, string reference, string subject)
     {
-        command.ShouldBe($"cp -- '{secondEntry.Path}' '{firstEntry.Path}'");
+        command.ShouldBe($"cp -- '{reference}' '{subject}'");
     }
 
-    private static void ShouldBeCopyCommand(string command, DirMetaSnapshotEntry firstEntry, DirMetaSnapshotEntry secondEntry, DirMetaSnapshot firstSnapshot, DirMetaSnapshot secondSnapshot)
+    private static void ShouldBeCopyCommand(string command, string reference, string subject)
     {
-        command.ShouldBe($"cp -- '{firstEntry.Path}' '{firstSnapshot.Prefix + secondSnapshot.PathWithoutPrefix(secondEntry.Path)}'");
+        command.ShouldBe($"cp -- '{reference}' '{subject}'");
     }
 
-    private static void ShouldBeMoveCommand(string command, DirMetaSnapshotEntry firstEntry, DirMetaSnapshotEntry secondEntry, DirMetaSnapshot firstSnapshot, DirMetaSnapshot secondSnapshot)
+    private static void ShouldBeMoveCommand(string command, string oldPath, string newPath)
     {
-        command.ShouldBe($"mv -- '{firstEntry.Path}' '{firstSnapshot.Prefix + secondSnapshot.PathWithoutPrefix(secondEntry.Path)}'");
+        command.ShouldBe($"mv -- '{oldPath}' '{newPath}'");
     }
 
-    private static void ShouldBeTouchCommand(string command, DirMetaSnapshotEntry firstEntry, DirMetaSnapshotEntry secondEntry)
+    private static void ShouldBeTouchCommand(string command, string reference, string subject)
     {
-        command.ShouldBe($"touch -d \"$(stat -c %y -- '{secondEntry.Path}')\" -- '{firstEntry.Path}'");
+        command.ShouldBe($"touch -d \"$(stat -c %y -- '{reference}')\" -- '{subject}'");
     }
 
-    private static void ShouldBeDeleteCommand(string command, DirMetaSnapshotEntry entry)
+    private static void ShouldBeDeleteCommand(string command, string path)
     {
-        command.ShouldBe($"rm -- '{entry.Path}'");
+        command.ShouldBe($"rm -- '{path}'");
     }
 }

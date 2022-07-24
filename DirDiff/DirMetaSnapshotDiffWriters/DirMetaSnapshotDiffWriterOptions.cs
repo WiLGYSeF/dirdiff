@@ -8,11 +8,6 @@ public class DirMetaSnapshotDiffWriterOptions
     public char? DirectorySeparator { get; set; }
 
     /// <summary>
-    /// Whether to write snapshot file prefixes.
-    /// </summary>
-    public bool WritePrefix { get; set; } = true;
-
-    /// <summary>
     /// Replace first snapshot prefixes.
     /// </summary>
     public string? FirstPrefix { get; set; }
