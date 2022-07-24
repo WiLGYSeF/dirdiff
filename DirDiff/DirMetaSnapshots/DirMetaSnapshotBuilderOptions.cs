@@ -20,7 +20,7 @@ public class DirMetaSnapshotBuilderOptions
     public bool UseCreatedTime { get; set; }
 
     /// <summary>
-    /// Wether to get file last modified times.
+    /// Whether to get file last modified times.
     /// </summary>
     public bool UseLastModifiedTime { get; set; }
 
@@ -33,6 +33,11 @@ public class DirMetaSnapshotBuilderOptions
     /// Maximum difference in times before entries are considered different.
     /// </summary>
     public TimeSpan TimeWindow { get; set; } = TimeSpan.Zero;
+
+    /// <summary>
+    /// Whether to keep non-existing entries when updating a snapshot.
+    /// </summary>
+    public bool UpdateKeepRemoved { get; set; }
 
     /// <summary>
     /// Minimum directory depth limit.

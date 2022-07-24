@@ -23,11 +23,14 @@ internal class SnapshotOptions
     [Option("remove-prefix", HelpText = "Remove snapshot file prefixes when writing")]
     public bool RemovePrefix { get; set; }
 
+    [Option("time-window", HelpText = "Maximum difference in times before entries are considered different (seconds)")]
+    public double? TimeWindow { get; set; }
+
     [Option('u', "update", MetaValue = "SNAPSHOT", HelpText = "Use snapshot to create an updated snapshot")]
     public string? UpdateSnapshot { get; set; }
 
-    [Option("time-window", HelpText = "Maximum difference in times before entries are considered different (seconds)")]
-    public double? TimeWindow { get; set; }
+    [Option("update-no-remove", HelpText = "Do not remove non-existing entries when updating a snapshot")]
+    public bool UpdateNoRemove { get; set; }
 
     [Value(0)]
     public ICollection<string> Arguments { get; set; } = Array.Empty<string>();

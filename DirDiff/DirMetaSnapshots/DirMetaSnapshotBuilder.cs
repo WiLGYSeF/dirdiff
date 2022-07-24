@@ -1,4 +1,5 @@
 ﻿using DirDiff.DirWalkers;
+using DirDiff.Enums;
 using DirDiff.FileInfoReaders;
 using DirDiff.FileReaders;
 using DirDiff.Hashers;
@@ -119,6 +120,17 @@ public class DirMetaSnapshotBuilder
             await UpdateSnapshotAsync(snapshot, newSnapshot, path);
         }
 
+        if (Options.UpdateKeepRemoved)
+        {
+            foreach (var entry in snapshot.Entries)
+            {
+                if (!newSnapshot.ContainsPath(entry.Path))
+                {
+                    newSnapshot.AddEntry(await CreateEntryAsync(entry));
+                }
+            }
+        }
+
         return newSnapshot;
     }
 
@@ -126,7 +138,7 @@ public class DirMetaSnapshotBuilder
     {
         foreach (var file in _walker.Walk(path))
         {
-            snapshot.AddEntry(await CreateEntryFromResultAsync(file, skipHash: false));
+            snapshot.AddEntry(await CreateEntryAsync(file));
         }
     }
 
@@ -136,11 +148,11 @@ public class DirMetaSnapshotBuilder
         {
             if (!snapshot.TryGetEntry(file.Path, out var entry))
             {
-                newSnapshot.AddEntry(await CreateEntryFromResultAsync(file));
+                newSnapshot.AddEntry(await CreateEntryAsync(file));
                 continue;
             }
 
-            var newEntry = await CreateEntryFromResultAsync(file, skipHash: true);
+            var newEntry = await CreateEntryAsync(file, skipHash: true);
 
             if (newEntry.IsDifferentFrom(entry, timeWindow: Options.TimeWindow))
             {
@@ -162,15 +174,25 @@ public class DirMetaSnapshotBuilder
         }
     }
 
-    private async Task<DirMetaSnapshotEntry> CreateEntryFromResultAsync(DirWalkerResult result, bool skipHash = false)
+    private async Task<DirMetaSnapshotEntry> CreateEntryAsync(DirWalkerResult result, bool skipHash = false)
     {
-        var entry = new DirMetaSnapshotEntry(result.Path, result.Type);
+        return await CreateEntryAsync(result.Path, result.Type, skipHash);
+    }
+
+    private async Task<DirMetaSnapshotEntry> CreateEntryAsync(DirMetaSnapshotEntry entry, bool skipHash = false)
+    {
+        return await CreateEntryAsync(entry.Path, entry.Type, skipHash);
+    }
+
+    private async Task<DirMetaSnapshotEntry> CreateEntryAsync(string path, FileType type, bool skipHash = false)
+    {
+        var entry = new DirMetaSnapshotEntry(path, type);
 
         if (Options.UseFileSize
             || Options.UseCreatedTime
             || Options.UseLastModifiedTime)
         {
-            var info = await _fileInfoReader.GetInfoAsync(result.Path);
+            var info = await _fileInfoReader.GetInfoAsync(path);
 
             if (Options.UseFileSize)
             {

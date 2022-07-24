@@ -107,6 +107,77 @@ public class DirMetaSnapshotBuilderTest
     }
 
     [Fact]
+    public async Task Update_Snapshot_Created_Updated_Keep_Removed()
+    {
+        var directorySeparator = '/';
+
+        var entries = new List<DirMetaSnapshotEntry>();
+
+        entries.Add(new DirMetaSnapshotEntryBuilder().Build());
+        entries.Add(new DirMetaSnapshotEntryBuilder().Build());
+        entries.Add(new DirMetaSnapshotEntryBuilder().Build());
+        entries.Add(new DirMetaSnapshotEntryBuilder().Build());
+
+        var builder = CreateMockedBuilder(entries, directorySeparator)
+            .Configure(options =>
+            {
+                options.UseFileSize = true;
+                options.UseCreatedTime = true;
+                options.UseLastModifiedTime = true;
+                options.HashAlgorithm = HashAlgorithm.SHA256;
+            });
+
+        foreach (var entry in entries)
+        {
+            builder.AddPath(entry.Path);
+        }
+
+        var snapshot = await builder.CreateSnapshotAsync();
+
+        var newEntries = new List<DirMetaSnapshotEntry>();
+        var otherEntries = new List<DirMetaSnapshotEntry>();
+
+        foreach (var entry in entries.Take(2))
+        {
+            newEntries.Add(new DirMetaSnapshotEntryBuilder().From(entry).Build());
+        }
+
+        foreach (var entry in entries.Skip(2))
+        {
+            otherEntries.Add(new DirMetaSnapshotEntryBuilder().From(entry).Build());
+        }
+
+        var newAddedEntry = new DirMetaSnapshotEntryBuilder().Build();
+        newEntries.Add(newAddedEntry);
+
+        builder = CreateMockedBuilder(newEntries.Concat(otherEntries), directorySeparator)
+            .Configure(options =>
+            {
+                options.UseFileSize = true;
+                options.UseCreatedTime = true;
+                options.UseLastModifiedTime = true;
+                options.HashAlgorithm = HashAlgorithm.SHA256;
+                options.UpdateKeepRemoved = true;
+            });
+
+        foreach (var entry in newEntries)
+        {
+            builder.AddPath(entry.Path);
+        }
+
+        var newSnapshot = await builder.UpdateSnapshotAsync(snapshot);
+
+        newSnapshot.Entries.Count.ShouldBe(5);
+
+        foreach (var expected in entries)
+        {
+            ShouldBeEntry(newSnapshot.Entries.Single(e => e.Path == expected.Path), expected);
+        }
+
+        ShouldBeEntry(newSnapshot.Entries.Single(e => e.Path == newAddedEntry.Path), newAddedEntry);
+    }
+
+    [Fact]
     public async Task Update_Snapshot_Updated_Contents()
     {
         var directorySeparator = '/';
