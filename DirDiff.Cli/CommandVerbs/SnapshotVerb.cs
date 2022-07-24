@@ -74,9 +74,9 @@ internal static class SnapshotVerb
             snapshotWriter.Configure(options =>
             {
                 options.WritePrefix = !opts.RemovePrefix;
-                options.DirectorySeparator = opts.OutputDirectorySeparator;
+                options.DirectorySeparator = opts.DirectorySeparator;
                 options.WriteHash = opts.UseHash;
-                options.WriteHashAlgorithm = true;
+                options.WriteHashAlgorithm = opts.UseHash;
                 options.WriteCreatedTime = false;
                 options.WriteLastModifiedTime = opts.UseLastModifiedTime;
                 options.WriteFileSize = opts.UseFileSize;
@@ -113,11 +113,11 @@ internal static class SnapshotVerb
         }
         catch (DirectoryNotFoundException exception)
         {
-            throw new CommandVerbException(1, exception.Message);
+            throw new CommandVerbException(1, $"could not find directory: {exception.Message}");
         }
         catch (FileNotFoundException exception)
         {
-            throw new CommandVerbException(1, exception.Message);
+            throw new CommandVerbException(1, $"could not find file: {exception.Message}");
         }
     }
 }

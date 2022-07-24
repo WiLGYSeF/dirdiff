@@ -7,7 +7,7 @@ internal static class DiffVerb
 {
     public static async Task Run(DiffOptions opts)
     {
-        if (opts.Arguments.Count() != 2)
+        if (opts.Arguments.Count != 2)
         {
             throw new CommandVerbException(1, "diff requires exactly two snapshots to compare");
         }
@@ -61,6 +61,21 @@ internal static class DiffVerb
             !opts.UnknownNotModified,
             opts.TimeWindow.HasValue ? TimeSpan.FromSeconds(opts.TimeWindow.Value) : null);
 
-        await diffWriter.WriteAsync(Console.OpenStandardOutput(), diff);
+        FileStream? fileStream = null;
+        Stream outputStream;
+
+        if (opts.OutputFilename != null)
+        {
+            fileStream = File.OpenWrite(opts.OutputFilename);
+            outputStream = fileStream;
+        }
+        else
+        {
+            outputStream = Console.OpenStandardOutput();
+        }
+
+        await diffWriter.WriteAsync(outputStream, diff);
+
+        fileStream?.Close();
     }
 }
