@@ -22,54 +22,63 @@ internal static class TestHelper
         };
 
         var createdEntry = secondFactory.Create()
-            .WithPath(RandomPathWithPrefix(secondPrefix, firstSnapshot.DirectorySeparator))
+            .WithRandomPath(secondPrefix)
             .Build();
         secondSnapshot.AddEntry(createdEntry);
 
         var firstModifiedEntry = firstFactory.Create()
-            .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
+            .WithRandomPath(firstPrefix)
             .Build();
         firstSnapshot.AddEntry(firstModifiedEntry);
         var secondModifiedEntry = secondFactory.Create(firstModifiedEntry)
-            .WithPath(PathWithDifferentPrefix(firstModifiedEntry.Path, firstPrefix, secondPrefix))
+            .WithPath(PathWithDifferentPrefix(
+                firstSnapshot.ChangePathDirectorySeparator(firstModifiedEntry.Path, secondSnapshot.DirectorySeparator),
+                firstPrefix,
+                secondPrefix))
             .WithRandomHash()
             .Build();
         secondSnapshot.AddEntry(secondModifiedEntry);
 
         var firstCopiedUnchangedEntry = firstFactory.Create()
-            .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
+            .WithRandomPath(firstPrefix)
             .Build();
         firstSnapshot.AddEntry(firstCopiedUnchangedEntry);
         var secondUnchangedEntry = secondFactory.Create(firstCopiedUnchangedEntry)
-            .WithPath(PathWithDifferentPrefix(firstCopiedUnchangedEntry.Path, firstPrefix, secondPrefix))
+            .WithPath(PathWithDifferentPrefix(
+                firstSnapshot.ChangePathDirectorySeparator(firstCopiedUnchangedEntry.Path, secondSnapshot.DirectorySeparator),
+                firstPrefix,
+                secondPrefix))
             .Build();
         secondSnapshot.AddEntry(secondUnchangedEntry);
         var secondCopiedEntry = secondFactory.Create(firstCopiedUnchangedEntry)
-            .WithPath(RandomPathWithPrefix(secondPrefix, secondSnapshot.DirectorySeparator))
+            .WithRandomPath(secondPrefix)
             .Build();
         secondSnapshot.AddEntry(secondCopiedEntry);
 
         var firstMovedEntry = firstFactory.Create()
-            .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
+            .WithRandomPath(firstPrefix)
             .Build();
         firstSnapshot.AddEntry(firstMovedEntry);
         var secondMovedEntry = secondFactory.Create(firstMovedEntry)
-            .WithPath(RandomPathWithPrefix(secondPrefix, secondSnapshot.DirectorySeparator))
+            .WithRandomPath(secondPrefix)
             .Build();
         secondSnapshot.AddEntry(secondMovedEntry);
 
         var firstTouchedEntry = firstFactory.Create()
-            .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
+            .WithRandomPath(firstPrefix)
             .Build();
         firstSnapshot.AddEntry(firstTouchedEntry);
         var secondTouchedEntry = secondFactory.Create(firstTouchedEntry)
-            .WithPath(PathWithDifferentPrefix(firstTouchedEntry.Path, firstPrefix, secondPrefix))
+            .WithPath(PathWithDifferentPrefix(
+                firstSnapshot.ChangePathDirectorySeparator(firstTouchedEntry.Path, secondSnapshot.DirectorySeparator),
+                firstPrefix,
+                secondPrefix))
             .WithRandomLastModifiedTime()
             .Build();
         secondSnapshot.AddEntry(secondTouchedEntry);
 
         var deletedEntry = firstFactory.Create()
-            .WithPath(RandomPathWithPrefix(firstPrefix, firstSnapshot.DirectorySeparator))
+            .WithRandomPath(firstPrefix)
             .Build();
         firstSnapshot.AddEntry(deletedEntry);
 
@@ -90,9 +99,38 @@ internal static class TestHelper
         };
     }
 
-    private static string RandomPathWithPrefix(string prefix, char separator)
+    public static string GetEntryPath(
+        DirMetaSnapshotEntry entry,
+        DirMetaSnapshot firstSnapshot,
+        DirMetaSnapshot secondSnapshot,
+        char? directorySeparator = null,
+        string? firstPrefix = null,
+        string? secondPrefix = null)
     {
-        return prefix + TestUtils.RandomPath(3, separator);
+        var snapshot = firstSnapshot.ContainsPath(entry.Path) ? firstSnapshot : secondSnapshot;
+        var path = entry.Path;
+
+        if (snapshot == firstSnapshot)
+        {
+            if (firstPrefix != null)
+            {
+                path = firstPrefix + snapshot.PathWithoutPrefix(path);
+            }
+        }
+        else
+        {
+            if (secondPrefix != null)
+            {
+                path = secondPrefix + snapshot.PathWithoutPrefix(path);
+            }
+        }
+
+        if (directorySeparator.HasValue)
+        {
+            path = snapshot.ChangePathDirectorySeparator(path, directorySeparator.Value);
+        }
+
+        return path;
     }
 
     private static string PathWithDifferentPrefix(string path, string firstPrefix, string secondPrefix)

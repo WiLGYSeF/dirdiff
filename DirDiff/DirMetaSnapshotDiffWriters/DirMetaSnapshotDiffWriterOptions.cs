@@ -3,6 +3,11 @@
 public class DirMetaSnapshotDiffWriterOptions
 {
     /// <summary>
+    /// Directory separator. If <see langword="null"/>, use the respective snapshot directory separators.
+    /// </summary>
+    public char? DirectorySeparator { get; set; }
+
+    /// <summary>
     /// Whether to write snapshot file prefixes.
     /// </summary>
     public bool WritePrefix { get; set; } = true;

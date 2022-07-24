@@ -39,6 +39,39 @@ public class DirMetaSnapshotDiffPowershellWriterTest
         ShouldBeDeleteCommand(lines[5], entries.DeletedEntry!);
     }
 
+    [Fact]
+    public async Task Write_Different_DirectorySeparator()
+    {
+        var firstDirectorySeparator = '/';
+        var secondDirectorySeparator = '\\';
+        var firstPrefix = "test/";
+        var secondPrefix = "abc\\";
+
+        var firstSnapshot = new DirMetaSnapshot(firstDirectorySeparator);
+        var secondSnapshot = new DirMetaSnapshot(secondDirectorySeparator);
+
+        var entries = TestHelper.SetUpBasicDiff(firstSnapshot, secondSnapshot, firstPrefix, secondPrefix);
+
+        var diff = secondSnapshot.Compare(firstSnapshot);
+
+        var diffWriter = new DirMetaSnapshotDiffPowershellWriter();
+        var stream = new MemoryStream();
+        await diffWriter.WriteAsync(stream, diff);
+        stream.Position = 0;
+
+        var result = Encoding.UTF8.GetString(stream.ToArray());
+
+        var lines = result.Split(Environment.NewLine);
+
+        lines.Length.ShouldBe(7);
+        ShouldBeCreateCommand(lines[0], entries.CreatedEntry!, firstSnapshot, secondSnapshot);
+        ShouldBeModifyCommand(lines[1], entries.FirstModifiedEntry!, entries.SecondModifiedEntry!);
+        ShouldBeCopyCommand(lines[2], entries.FirstCopiedEntry!, entries.SecondCopiedEntry!, firstSnapshot, secondSnapshot);
+        ShouldBeMoveCommand(lines[3], entries.FirstMovedEntry!, entries.SecondMovedEntry!, firstSnapshot, secondSnapshot);
+        ShouldBeTouchCommand(lines[4], entries.FirstTouchedEntry!, entries.SecondTouchedEntry!);
+        ShouldBeDeleteCommand(lines[5], entries.DeletedEntry!);
+    }
+
     [Theory]
     [InlineData("abc def", "\"abc def\"")]
     [InlineData("abcd\"ef", "\"abcd`\"ef\"")]
