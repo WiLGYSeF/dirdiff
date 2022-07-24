@@ -11,6 +11,9 @@ internal class SnapshotOptions
     [Option("hash", HelpText = "Calculate file hashes")]
     public bool UseHash { get; set; }
 
+    [Option("hash-algorithm", MetaValue = "ALGO", HelpText = "Hash algorithm, defaults to SHA256 (MD5, SHA1, SHA256, SHA384, SHA512)")]
+    public string? HashAlgorithm { get; set; }
+
     [Option('m', "last-modified-time", HelpText = "Get file last modified times")]
     public bool UseLastModifiedTime { get; set; }
 
@@ -26,7 +29,7 @@ internal class SnapshotOptions
     [Option('o', "output", MetaValue = "FILE", HelpText = "Output filename")]
     public string? OutputFilename { get; set; }
 
-    [Option('f', "format", MetaValue = "FORMAT", Default = "json", HelpText = "Snapshot format (text, json, yaml)")]
+    [Option('f', "format", MetaValue = "FORMAT", Default = "json", HelpText = "Snapshot format, defaults to JSON (text, json, yaml)")]
     public string? SnapshotFormat { get; set; }
 
     [Option('s', "directory-separator", MetaValue = "SEP", HelpText = "Use this directory separator for snapshot output")]

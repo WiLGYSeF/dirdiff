@@ -23,7 +23,7 @@ internal class DiffOptions
     [Option('o', "output", MetaValue = "FILE", HelpText = "Output filename")]
     public string? OutputFilename { get; set; }
 
-    [Option('f', "format", MetaValue = "FORMAT", Default = "json", HelpText = "Snapshot diff format (bash, powershell, json, yaml)")]
+    [Option('f', "format", MetaValue = "FORMAT", Default = "json", HelpText = "Snapshot diff format, defaults to JSON (bash, powershell, json, yaml)")]
     public string? DiffFormat { get; set; }
 
     [Option('v', "verbose", FlagCounter = true, HelpText = "Verbose mode")]

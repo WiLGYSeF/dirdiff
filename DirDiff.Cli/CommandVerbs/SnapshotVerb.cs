@@ -14,6 +14,19 @@ internal static class SnapshotVerb
 {
     public static async Task Run(SnapshotOptions opts)
     {
+        var loggerFactory = new LoggerFactory();
+        loggerFactory.AddProvider(new ConsoleLoggerProvider());
+
+        HashAlgorithm? hashAlgorithm = HashAlgorithm.SHA256;
+        if (opts.HashAlgorithm != null)
+        {
+            hashAlgorithm = Shared.ParseHashAlgorithm(opts.HashAlgorithm);
+            if (!hashAlgorithm.HasValue)
+            {
+                throw new CommandVerbException(1, "unknown hash algorithm");
+            }
+        }
+
         var snapshotBuilder = new DirMetaSnapshotBuilder(
             new DirWalker(),
             new FileReader(),
@@ -25,16 +38,13 @@ internal static class SnapshotVerb
             options.UseFileSize = opts.UseFileSize;
             options.UseCreatedTime = true;
             options.UseLastModifiedTime = opts.UseLastModifiedTime;
-            options.HashAlgorithm = opts.UseHash ? HashAlgorithm.SHA256 : null;
+            options.HashAlgorithm = opts.UseHash ? hashAlgorithm.Value : null;
             options.TimeWindow = TimeSpan.FromSeconds(opts.TimeWindow ?? 0);
             options.UpdateKeepRemoved = opts.UpdateNoRemove;
             options.UpdatePrefix = opts.UpdatePrefix;
             options.KeepDirectoryOrder = true;
             options.ThrowIfNotFound = true;
         });
-
-        var loggerFactory = new LoggerFactory();
-        loggerFactory.AddProvider(new ConsoleLoggerProvider());
 
         if (opts.Verbose > 0)
         {

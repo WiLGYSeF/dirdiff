@@ -1,5 +1,7 @@
 ﻿using DirDiff.DirMetaSnapshotReaders;
 using DirDiff.DirMetaSnapshots;
+using DirDiff.Enums;
+using DirDiff.Utilities;
 using System.Text;
 
 namespace DirDiff.Cli;
@@ -72,5 +74,10 @@ internal static class Shared
         {
             yield return input.ToString();
         }
+    }
+
+    public static HashAlgorithm? ParseHashAlgorithm(string algorithm)
+    {
+        return EnumUtils.TryParse<HashAlgorithm>(algorithm, out var result) ? result : null;
     }
 }
