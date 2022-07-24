@@ -1,10 +1,12 @@
-﻿using DirDiff.DirMetaSnapshots;
+﻿using DirDiff.Cli.Logging;
+using DirDiff.DirMetaSnapshots;
 using DirDiff.DirMetaSnapshotWriters;
 using DirDiff.DirWalkers;
 using DirDiff.Enums;
 using DirDiff.FileInfoReaders;
 using DirDiff.FileReaders;
 using DirDiff.Hashers;
+using Microsoft.Extensions.Logging;
 
 namespace DirDiff.Cli.CommandVerbs;
 
@@ -29,6 +31,14 @@ internal static class SnapshotVerb
             options.KeepDirectoryOrder = true;
             options.ThrowIfNotFound = true;
         });
+
+        var loggerFactory = new LoggerFactory();
+        loggerFactory.AddProvider(new ConsoleLoggerProvider());
+
+        if (opts.Verbose > 0)
+        {
+            snapshotBuilder.Logger = loggerFactory.CreateLogger<DirMetaSnapshotBuilder>();
+        }
 
         foreach (var arg in opts.Arguments)
         {
@@ -91,11 +101,30 @@ internal static class SnapshotVerb
                 snapshot = await snapshotBuilder.CreateSnapshotAsync();
             }
 
-            await snapshotWriter.WriteAsync(Console.OpenStandardOutput(), snapshot);
+            FileStream? fileStream = null;
+            Stream outputStream;
+
+            if (opts.OutputFilename != null)
+            {
+                fileStream = File.OpenWrite(opts.OutputFilename);
+                outputStream = fileStream;
+            }
+            else
+            {
+                outputStream = Console.OpenStandardOutput();
+            }
+
+            await snapshotWriter.WriteAsync(outputStream, snapshot);
+
+            fileStream?.Close();
         }
         catch (DirectoryNotFoundException exception)
         {
-            throw new CommandVerbException(1, $"could not find path: {exception.Message}");
+            throw new CommandVerbException(1, exception.Message);
+        }
+        catch (FileNotFoundException exception)
+        {
+            throw new CommandVerbException(1, exception.Message);
         }
     }
 }

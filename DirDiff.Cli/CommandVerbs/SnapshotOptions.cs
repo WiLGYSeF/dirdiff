@@ -32,6 +32,12 @@ internal class SnapshotOptions
     [Option("update-no-remove", HelpText = "Do not remove non-existing entries when updating a snapshot")]
     public bool UpdateNoRemove { get; set; }
 
+    [Option('o', "output", MetaValue = "FILE", HelpText = "Output filename")]
+    public string? OutputFilename { get; set; }
+
+    [Option('v', "verbose", FlagCounter = true, HelpText = "Verbose mode")]
+    public int Verbose { get; set; }
+
     [Value(0)]
     public ICollection<string> Arguments { get; set; } = Array.Empty<string>();
 }

@@ -135,6 +135,22 @@ public class DirMetaSnapshotEntry
         }
     }
 
+    /// <summary>
+    /// Copies the entry.
+    /// </summary>
+    /// <returns>Copied entry.</returns>
+    public DirMetaSnapshotEntry Copy()
+    {
+        return new DirMetaSnapshotEntry(Path, Type)
+        {
+            FileSize = FileSize,
+            CreatedTime = CreatedTime,
+            LastModifiedTime = LastModifiedTime,
+            HashAlgorithm = HashAlgorithm,
+            Hash = Hash,
+        };
+    }
+
     private static bool NotNullAndDifferent<T>(T? a, T? b) where T : struct
     {
         return a.HasValue && b.HasValue && !a.Value.Equals(b.Value);

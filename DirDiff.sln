@@ -5,11 +5,13 @@ VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DirDiff.Cli", "DirDiff.Cli\DirDiff.Cli.csproj", "{81B4D266-3BDA-42C2-8B85-7EB4BCAF74AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirDiff", "DirDiff\DirDiff.csproj", "{11BD7319-0FA4-4470-BC13-659ED7654BD7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DirDiff", "DirDiff\DirDiff.csproj", "{11BD7319-0FA4-4470-BC13-659ED7654BD7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{4A420B52-928A-4CD7-B22E-96C35926F749}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirDiff.Tests", "Tests\DirDiff.Tests\DirDiff.Tests.csproj", "{2E21BEDF-F787-477F-84B3-42C92E82E981}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DirDiff.Tests", "Tests\DirDiff.Tests\DirDiff.Tests.csproj", "{2E21BEDF-F787-477F-84B3-42C92E82E981}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirDiff.Cli.Tests", "Tests\DirDiff.Cli.Tests\DirDiff.Cli.Tests.csproj", "{F1498327-1286-4F1A-AA1F-9451F24AC3FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,12 +31,17 @@ Global
 		{2E21BEDF-F787-477F-84B3-42C92E82E981}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E21BEDF-F787-477F-84B3-42C92E82E981}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E21BEDF-F787-477F-84B3-42C92E82E981}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1498327-1286-4F1A-AA1F-9451F24AC3FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1498327-1286-4F1A-AA1F-9451F24AC3FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1498327-1286-4F1A-AA1F-9451F24AC3FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1498327-1286-4F1A-AA1F-9451F24AC3FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2E21BEDF-F787-477F-84B3-42C92E82E981} = {4A420B52-928A-4CD7-B22E-96C35926F749}
+		{F1498327-1286-4F1A-AA1F-9451F24AC3FF} = {4A420B52-928A-4CD7-B22E-96C35926F749}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F6DF0708-30C9-4DDD-98E5-79B2FEDDC6B6}
