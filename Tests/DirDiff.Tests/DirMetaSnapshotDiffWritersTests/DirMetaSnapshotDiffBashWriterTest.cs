@@ -32,16 +32,22 @@ public class DirMetaSnapshotDiffBashWriterTest
 
         string First(DirMetaSnapshotEntry entry)
         {
-            return firstPrefix + secondSnapshot.PathWithoutPrefix(entry.Path);
+            return firstPrefix + diff.GetEntryPathWithoutPrefix(entry);
+        }
+
+        string Second(DirMetaSnapshotEntry entry)
+        {
+            return diff.GetEntrySnapshot(entry)
+                .ChangePathDirectorySeparator(entry.Path, secondSnapshot.DirectorySeparator);
         }
 
         lines.Length.ShouldBe(7);
-        ShouldBeCreateCommand(lines[0], entries.CreatedEntry!.Path, First(entries.CreatedEntry!));
-        ShouldBeModifyCommand(lines[1], entries.SecondModifiedEntry!.Path, entries.FirstModifiedEntry!.Path);
-        ShouldBeCopyCommand(lines[2], entries.FirstCopiedEntry!.Path, First(entries.SecondCopiedEntry!));
-        ShouldBeMoveCommand(lines[3], entries.FirstMovedEntry!.Path, First(entries.SecondMovedEntry!));
-        ShouldBeTouchCommand(lines[4], entries.SecondTouchedEntry!.Path, entries.FirstTouchedEntry!.Path);
-        ShouldBeDeleteCommand(lines[5], entries.DeletedEntry!.Path);
+        ShouldBeCreateCommand(lines[0], Second(entries.CreatedEntry!), First(entries.CreatedEntry!));
+        ShouldBeModifyCommand(lines[1], Second(entries.SecondModifiedEntry!), First(entries.FirstModifiedEntry!));
+        ShouldBeCopyCommand(lines[2], First(entries.FirstCopiedEntry!), First(entries.SecondCopiedEntry!));
+        ShouldBeMoveCommand(lines[3], First(entries.FirstMovedEntry!), First(entries.SecondMovedEntry!));
+        ShouldBeTouchCommand(lines[4], Second(entries.SecondTouchedEntry!), First(entries.FirstTouchedEntry!));
+        ShouldBeDeleteCommand(lines[5], First(entries.DeletedEntry!));
     }
 
     [Theory]
@@ -86,7 +92,7 @@ public class DirMetaSnapshotDiffBashWriterTest
         string Second(DirMetaSnapshotEntry entry)
         {
             return diff.GetEntrySnapshot(entry)
-                .ChangePathDirectorySeparator(entry.Path, forceFirstSeparator ? firstDirectorySeparator : secondSnapshot!.DirectorySeparator);
+                .ChangePathDirectorySeparator(entry.Path, forceFirstSeparator ? firstDirectorySeparator : secondSnapshot.DirectorySeparator);
         }
 
         lines.Length.ShouldBe(7);
