@@ -76,7 +76,7 @@ internal static class SnapshotVerb
                 options.WritePrefix = !opts.RemovePrefix;
                 options.DirectorySeparator = opts.OutputDirectorySeparator;
                 options.WriteHash = opts.UseHash;
-                options.WriteHashAlgorithm = false;
+                options.WriteHashAlgorithm = true;
                 options.WriteCreatedTime = false;
                 options.WriteLastModifiedTime = opts.UseLastModifiedTime;
                 options.WriteFileSize = opts.UseFileSize;

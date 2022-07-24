@@ -8,33 +8,33 @@ internal static class Shared
 {
     public static async Task<DirMetaSnapshot> ReadSnapshot(string path)
     {
-        var snapshotJsonReader = new DirMetaSnapshotJsonReader();
-
-        var snapshotYamlReader = new DirMetaSnapshotYamlReader();
-
-        var snapshotTextReader = new DirMetaSnapshotTextReader();
-        snapshotTextReader.Configure(options =>
+        var readers = new List<IDirMetaSnapshotReader>
         {
-            options.ReadGuess = true;
+            new DirMetaSnapshotJsonReader(),
+            new DirMetaSnapshotYamlReader(),
+            new DirMetaSnapshotTextReader().Configure(options =>
+            {
+                options.ReadGuess = true;
 
-            options.Separator = "  ";
-            options.NoneValue = "-";
-        });
+                options.Separator = "  ";
+                options.NoneValue = "-";
+            })
+        };
 
         DirMetaSnapshot? snapshot = null;
         Exception? lastException = null;
 
-        using var stream = File.OpenRead(path);
-        foreach (var reader in new IDirMetaSnapshotReader[] { snapshotJsonReader, snapshotYamlReader, snapshotTextReader })
+        foreach (var reader in readers)
         {
             try
             {
+                using var stream = File.OpenRead(path);
                 snapshot = await reader.ReadAsync(stream);
+                lastException = null;
                 break;
             }
             catch (Exception exception)
             {
-                stream.Position = 0;
                 lastException = exception;
             }
         }
