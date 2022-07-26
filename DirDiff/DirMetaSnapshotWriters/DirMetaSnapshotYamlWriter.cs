@@ -56,33 +56,33 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
 
         var dictionary = new Dictionary<string, object>
         {
-            { "path", path },
-            { "type", entry.Type },
+            [ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Path))] = path,
+            [ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Type))] = entry.Type,
         };
 
         if (Options.WriteHash && entry.Hash != null)
         {
-            dictionary["hash"] = entry.HashHex!;
+            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Hash))] = entry.HashHex!;
 
             if (Options.WriteHashAlgorithm && entry.HashAlgorithm.HasValue)
             {
-                dictionary["hashAlgorithm"] = entry.HashAlgorithm.Value.ToEnumMemberValue();
+                dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.HashAlgorithm))] = entry.HashAlgorithm.Value.ToEnumMemberValue();
             }
         }
 
         if (Options.WriteCreatedTime && entry.CreatedTime.HasValue)
         {
-            dictionary["createdTime"] = entry.CreatedTime.Value;
+            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.CreatedTime))] = entry.CreatedTime.Value;
         }
 
         if (Options.WriteLastModifiedTime && entry.LastModifiedTime.HasValue)
         {
-            dictionary["lastModifiedTime"] = entry.LastModifiedTime.Value;
+            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.LastModifiedTime))] = entry.LastModifiedTime.Value;
         }
 
         if (Options.WriteFileSize && entry.FileSize.HasValue)
         {
-            dictionary["fileSize"] = entry.FileSize.Value;
+            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.FileSize))] = entry.FileSize.Value;
         }
 
         return dictionary;
