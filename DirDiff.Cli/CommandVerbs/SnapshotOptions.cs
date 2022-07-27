@@ -35,6 +35,9 @@ internal class SnapshotOptions
     [Option('s', "directory-separator", MetaValue = "SEP", HelpText = "Use this directory separator for snapshot output")]
     public char? DirectorySeparator { get; set; }
 
+    [Option("sort", HelpText = "Sorts the snapshot entries by path")]
+    public bool SortByPath { get; set; }
+
     #region Update
 
     [Option('u', "update", MetaValue = "SNAPSHOT", HelpText = "Use snapshot to create an updated snapshot")]
