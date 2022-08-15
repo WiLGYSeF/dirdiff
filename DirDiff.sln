@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DirDiff.Cli", "DirDiff.Cli\DirDiff.Cli.csproj", "{81B4D266-3BDA-42C2-8B85-7EB4BCAF74AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wilgysef.DirDiff.Cli", "Wilgysef.DirDiff.Cli\Wilgysef.DirDiff.Cli.csproj", "{81B4D266-3BDA-42C2-8B85-7EB4BCAF74AA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DirDiff", "DirDiff\DirDiff.csproj", "{11BD7319-0FA4-4470-BC13-659ED7654BD7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wilgysef.DirDiff", "Wilgysef.DirDiff\Wilgysef.DirDiff.csproj", "{11BD7319-0FA4-4470-BC13-659ED7654BD7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{4A420B52-928A-4CD7-B22E-96C35926F749}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DirDiff.Tests", "Tests\DirDiff.Tests\DirDiff.Tests.csproj", "{2E21BEDF-F787-477F-84B3-42C92E82E981}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wilgysef.DirDiff.Tests", "Tests\Wilgysef.DirDiff.Tests\Wilgysef.DirDiff.Tests.csproj", "{2E21BEDF-F787-477F-84B3-42C92E82E981}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirDiff.Cli.Tests", "Tests\DirDiff.Cli.Tests\DirDiff.Cli.Tests.csproj", "{F1498327-1286-4F1A-AA1F-9451F24AC3FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wilgysef.DirDiff.Cli.Tests", "Tests\Wilgysef.DirDiff.Cli.Tests\Wilgysef.DirDiff.Cli.Tests.csproj", "{F1498327-1286-4F1A-AA1F-9451F24AC3FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
