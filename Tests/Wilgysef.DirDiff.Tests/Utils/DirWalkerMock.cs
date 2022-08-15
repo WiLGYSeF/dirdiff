@@ -23,4 +23,9 @@ internal class DirWalkerMock : IDirWalker
     {
         return Walker(path);
     }
+
+    public char GetDirectorySeparator()
+    {
+        return '/';
+    }
 }

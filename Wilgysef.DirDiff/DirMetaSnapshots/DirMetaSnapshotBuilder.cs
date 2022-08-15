@@ -4,6 +4,7 @@ using Wilgysef.DirDiff.FileInfoReaders;
 using Wilgysef.DirDiff.FileReaders;
 using Wilgysef.DirDiff.Hashers;
 using Microsoft.Extensions.Logging;
+using Wilgysef.DirDiff.Utilities;
 
 namespace Wilgysef.DirDiff.DirMetaSnapshots;
 
@@ -163,9 +164,14 @@ public class DirMetaSnapshotBuilder
 
     private async Task UpdateSnapshotAsync(DirMetaSnapshot snapshot, DirMetaSnapshot newSnapshot, string path)
     {
+        var directorySeparator = _walker.GetDirectorySeparator();
+
         foreach (var file in _walker.Walk(path))
         {
-            var snapshotPath = newSnapshot.ChangePathDirectorySeparator(file.Path, snapshot.DirectorySeparator);
+            var snapshotPath = PathUtils.ChangePathDirectorySeparator(
+                file.Path,
+                directorySeparator,
+                snapshot.DirectorySeparator);
             var newPath = file.Path;
 
             if (Options.UpdatePrefix != null)
@@ -176,7 +182,10 @@ public class DirMetaSnapshotBuilder
                 }
 
                 newPath = newPath[Options.UpdatePrefix.Length..];
-                snapshotPath = snapshot.Prefix + snapshot.ChangePathDirectorySeparator(newPath, snapshot.DirectorySeparator);
+                snapshotPath = snapshot.Prefix + PathUtils.ChangePathDirectorySeparator(
+                    newPath,
+                    directorySeparator,
+                    snapshot.DirectorySeparator);
             }
 
             DirMetaSnapshotEntry newEntry;

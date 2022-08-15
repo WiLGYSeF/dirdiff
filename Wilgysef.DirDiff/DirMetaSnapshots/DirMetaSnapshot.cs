@@ -3,6 +3,7 @@ using Wilgysef.DirDiff.Enums;
 using Wilgysef.DirDiff.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Wilgysef.DirDiff.Utilities;
 
 namespace Wilgysef.DirDiff.DirMetaSnapshots;
 
@@ -104,7 +105,7 @@ public class DirMetaSnapshot
     public string ChangePathDirectorySeparator(string path, char directorySeparator)
     {
         return directorySeparator != DirectorySeparator
-            ? GetDirectoryParts(path).Join(directorySeparator)
+            ? PathUtils.ChangePathDirectorySeparator(path, DirectorySeparator, directorySeparator)
             : path;
     }
 
@@ -145,6 +146,6 @@ public class DirMetaSnapshot
 
     private string[] GetDirectoryParts(string path)
     {
-        return path.Split(DirectorySeparator);
+        return PathUtils.GetDirectoryParts(path, DirectorySeparator);
     }
 }

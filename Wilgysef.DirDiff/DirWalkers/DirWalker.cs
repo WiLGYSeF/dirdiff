@@ -71,4 +71,9 @@ public class DirWalker : IDirWalker
             }
         }
     }
+
+    public char GetDirectorySeparator()
+    {
+        return Path.DirectorySeparatorChar;
+    }
 }

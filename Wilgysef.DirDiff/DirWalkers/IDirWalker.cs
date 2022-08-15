@@ -7,4 +7,6 @@ public interface IDirWalker
     IDirWalker Configure(Action<DirWalkerOptions> action);
 
     IEnumerable<DirWalkerResult> Walk(string path);
+
+    char GetDirectorySeparator();
 }
