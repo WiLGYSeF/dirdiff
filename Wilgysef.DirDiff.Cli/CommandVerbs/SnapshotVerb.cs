@@ -34,6 +34,7 @@ internal static class SnapshotVerb
             new Hasher());
         snapshotBuilder.Configure(options =>
         {
+            // TODO: check this?
             options.DirectorySeparator = Path.DirectorySeparatorChar;
             options.UseFileSize = opts.UseFileSize;
             options.UseCreatedTime = true;

@@ -21,7 +21,7 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
     {
         var schema = new Dictionary<string, object>
         {
-            [ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator))] = snapshot.DirectorySeparator,
+            [ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator))] = Options.DirectorySeparator ?? snapshot.DirectorySeparator,
         };
         var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
 

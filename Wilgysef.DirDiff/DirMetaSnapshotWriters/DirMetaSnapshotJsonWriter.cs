@@ -36,7 +36,7 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
     {
         var schema = new Dictionary<string, object>
         {
-            [ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator))] = snapshot.DirectorySeparator,
+            [ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator))] = JsonWriterOptions.DirectorySeparator ?? snapshot.DirectorySeparator,
         };
         var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
 
