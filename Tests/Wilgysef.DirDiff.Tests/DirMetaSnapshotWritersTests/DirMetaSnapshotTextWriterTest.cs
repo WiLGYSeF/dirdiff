@@ -60,15 +60,17 @@ public class DirMetaSnapshotTextWriterTest
         {
             var entry = entriesEnumerator.Current;
 
-            var expected = new string[]
-            {
-                entry.HashHex!,
-                entry.HashAlgorithm!.Value.ToEnumMemberValue(),
-                ((DateTimeOffset)entry.CreatedTime!.Value).ToUnixTimeSeconds().ToString(),
-                ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
-                entry.FileSize!.Value.ToString(),
-                entry.Path,
-            }.Join(writer.TextWriterOptions.Separator);
+            var expected = string.Join(
+                writer.TextWriterOptions.Separator,
+                new string[]
+                {
+                    entry.HashHex!,
+                    entry.HashAlgorithm!.Value.ToEnumMemberValue(),
+                    ((DateTimeOffset)entry.CreatedTime!.Value).ToUnixTimeSeconds().ToString(),
+                    ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
+                    entry.FileSize!.Value.ToString(),
+                    entry.Path,
+                });
 
             linesEnumerator.Current.ShouldBe(expected);
         }
@@ -131,15 +133,17 @@ public class DirMetaSnapshotTextWriterTest
         {
             var entry = entriesEnumerator.Current;
 
-            var expected = new string[]
-            {
-                writer.TextWriterOptions.NoneValue,
-                writer.TextWriterOptions.NoneValue,
-                writer.TextWriterOptions.NoneValue,
-                writer.TextWriterOptions.NoneValue,
-                writer.TextWriterOptions.NoneValue,
-                entry.Path,
-            }.Join(writer.TextWriterOptions.Separator);
+            var expected = string.Join(
+                writer.TextWriterOptions.Separator,
+                new string[]
+                {
+                    writer.TextWriterOptions.NoneValue,
+                    writer.TextWriterOptions.NoneValue,
+                    writer.TextWriterOptions.NoneValue,
+                    writer.TextWriterOptions.NoneValue,
+                    writer.TextWriterOptions.NoneValue,
+                    entry.Path,
+                });
 
             linesEnumerator.Current.ShouldBe(expected);
         }
@@ -195,13 +199,15 @@ public class DirMetaSnapshotTextWriterTest
         {
             var entry = entriesEnumerator.Current;
 
-            var expected = new string[]
-            {
-                entry.HashHex!,
-                ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
-                entry.FileSize!.Value.ToString(),
-                entry.Path,
-            }.Join(writer.TextWriterOptions.Separator);
+            var expected = string.Join(
+                writer.TextWriterOptions.Separator,
+                new string[]
+                {
+                    entry.HashHex!,
+                    ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
+                    entry.FileSize!.Value.ToString(),
+                    entry.Path,
+                });
 
             linesEnumerator.Current.ShouldBe(expected);
         }
@@ -261,13 +267,15 @@ public class DirMetaSnapshotTextWriterTest
         {
             var entry = entriesEnumerator.Current;
 
-            var expected = new string[]
-            {
-                entry.HashHex!,
-                ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
-                entry.FileSize!.Value.ToString(),
-                writePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path),
-            }.Join(writer.TextWriterOptions.Separator);
+            var expected = string.Join(
+                writer.TextWriterOptions.Separator,
+                new string[]
+                {
+                    entry.HashHex!,
+                    ((DateTimeOffset)entry.LastModifiedTime!.Value).ToUnixTimeSeconds().ToString(),
+                    entry.FileSize!.Value.ToString(),
+                    writePrefix ? entry.Path : snapshot.PathWithoutPrefix(entry.Path),
+                });
 
             linesEnumerator.Current.ShouldBe(expected);
         }

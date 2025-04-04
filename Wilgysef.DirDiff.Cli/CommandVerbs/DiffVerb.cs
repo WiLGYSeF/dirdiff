@@ -49,7 +49,7 @@ internal static class DiffVerb
         }
         catch (Exception ex)
         {
-            throw new CommandVerbException(1, $"could not read snapshot file: {firstPath}", ex.Message);
+            throw new CommandVerbException(1, $"could not read snapshot file: {firstPath}", ex.Message, ex);
         }
 
         try
@@ -58,7 +58,7 @@ internal static class DiffVerb
         }
         catch (Exception ex)
         {
-            throw new CommandVerbException(1, $"could not read snapshot file: {secondPath}", ex.Message);
+            throw new CommandVerbException(1, $"could not read snapshot file: {secondPath}", ex.Message, ex);
         }
 
         var diff = new DirMetaSnapshotComparer().Configure(options =>

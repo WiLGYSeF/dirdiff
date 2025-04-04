@@ -113,7 +113,7 @@ public class DirMetaSnapshot
     {
         if (Prefix == null)
         {
-            var prefix = GetDirectoryParts(path)[..^1].Join(DirectorySeparator);
+            var prefix = string.Join(DirectorySeparator, GetDirectoryParts(path)[..^1]);
             if (prefix.Length > 0)
             {
                 prefix += DirectorySeparator;
