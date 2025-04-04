@@ -35,12 +35,12 @@ internal class DirMetaSnapshotEntrySchema
         {
             throw new InvalidOperationException($"Entry does not have \"{nameof(Path)}\" value.");
         }
-        if (Type == null)
-        {
-            throw new InvalidOperationException($"Entry does not have \"{nameof(Type)}\" value.");
-        }
 
-        var entry = new DirMetaSnapshotEntry(Path, EnumUtils.Parse<FileType>(Type))
+        var type = Type != null
+            ? EnumUtils.Parse<FileType>(Type)
+            : FileType.File;
+
+        var entry = new DirMetaSnapshotEntry(Path, type)
         {
             FileSize = FileSize,
             CreatedTime = CreatedTime,
