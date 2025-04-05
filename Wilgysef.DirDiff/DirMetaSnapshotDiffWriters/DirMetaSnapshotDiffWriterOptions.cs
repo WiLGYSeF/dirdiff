@@ -16,4 +16,14 @@ public class DirMetaSnapshotDiffWriterOptions
     /// Replace second snapshot prefixes.
     /// </summary>
     public string? SecondPrefix { get; set; }
+
+    /// <summary>
+    /// Whether to write unchanged entries.
+    /// </summary>
+    public bool WriteUnchanged { get; set; }
+
+    /// <summary>
+    /// Whether to write file types.
+    /// </summary>
+    public bool WriteType { get; set; }
 }
