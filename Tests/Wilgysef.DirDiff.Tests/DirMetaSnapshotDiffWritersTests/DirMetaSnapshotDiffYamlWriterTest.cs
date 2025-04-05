@@ -23,6 +23,8 @@ public class DirMetaSnapshotDiffYamlWriterTest
         var diff = new DirMetaSnapshotComparer().Compare(firstSnapshot, secondSnapshot);
 
         var diffWriter = new DirMetaSnapshotDiffYamlWriter();
+        diffWriter.Options.WriteUnchanged = true;
+
         var stream = new MemoryStream();
         await diffWriter.WriteAsync(stream, diff);
         stream.Position = 0;
@@ -62,6 +64,7 @@ public class DirMetaSnapshotDiffYamlWriterTest
         var diffWriter = new DirMetaSnapshotDiffYamlWriter().Configure(options =>
         {
             options.DirectorySeparator = writerDirectorySeparator;
+            options.WriteUnchanged = true;
         });
 
         var stream = new MemoryStream();
@@ -115,6 +118,7 @@ public class DirMetaSnapshotDiffYamlWriterTest
         {
             options.FirstPrefix = firstNewPrefix;
             options.SecondPrefix = secondNewPrefix;
+            options.WriteUnchanged = true;
         });
 
         var stream = new MemoryStream();

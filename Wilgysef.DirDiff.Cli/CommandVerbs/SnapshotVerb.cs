@@ -125,11 +125,11 @@ internal static class SnapshotVerb
         }
         catch (DirectoryNotFoundException exception)
         {
-            throw new CommandVerbException(1, $"could not find directory: {exception.Message}");
+            throw new CommandVerbException(1, $"could not find directory: {exception.Message}", exception);
         }
         catch (FileNotFoundException exception)
         {
-            throw new CommandVerbException(1, $"could not find file: {exception.Message}");
+            throw new CommandVerbException(1, $"could not find file: {exception.Message}", exception);
         }
     }
 }

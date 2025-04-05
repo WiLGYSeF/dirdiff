@@ -1451,9 +1451,7 @@ public class DirMetaSnapshotComparerTest
             .WithRandomPath(prefix)
             .Build());
         snapshot.Prefix.ShouldBe(
-            snapshot.Entries.First().Path
-                .Split(directorySeparator)[..^1]
-                .Join(directorySeparator) + directorySeparator);
+            string.Join(directorySeparator, snapshot.Entries.First().Path.Split(directorySeparator)[..^1]) + directorySeparator);
 
         snapshot.AddEntry(factory.Create()
             .WithRandomPath(prefix)

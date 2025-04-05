@@ -258,13 +258,8 @@ public class DirMetaSnapshotYamlWriterTest
         var deserializer = new DeserializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .Build();
-        var result = deserializer.Deserialize<DirMetaSnapshotSchema>(text);
-
-        if (result == null)
-        {
-            throw new ArgumentException("Text could not be deserialized to snapshot.", nameof(text));
-        }
-
+        var result = deserializer.Deserialize<DirMetaSnapshotSchema>(text)
+            ?? throw new ArgumentException("Text could not be deserialized to snapshot.", nameof(text));
         return result;
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Wilgysef.DirDiff.DirMetaSnapshots;
 using Wilgysef.DirDiff.DirMetaSnapshotWriters;
 using Wilgysef.DirDiff.Enums;
-using Wilgysef.DirDiff.Extensions;
 using Wilgysef.DirDiff.Utilities;
 
 namespace Wilgysef.DirDiff.DirMetaSnapshotReaders;
@@ -130,7 +129,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
             }
         }
 
-        var path = split[column..].Join(TextReaderOptions.Separator);
+        var path = string.Join(TextReaderOptions.Separator, split[column..]);
 
         return new DirMetaSnapshotEntry(path, FileType.File)
         {
@@ -142,7 +141,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         };
     }
 
-    private DirMetaSnapshotEntry ParseLine(string line, int minColumns, DirMetaSnapshotTextReaderOptions options)
+    private static DirMetaSnapshotEntry ParseLine(string line, int minColumns, DirMetaSnapshotTextReaderOptions options)
     {
         var split = line.Split(options.Separator);
         if (split.Length < minColumns)
@@ -194,7 +193,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
             column++;
         }
 
-        var path = split[column..].Join(options.Separator);
+        var path = string.Join(options.Separator, split[column..]);
 
         return new DirMetaSnapshotEntry(path, FileType.File)
         {
@@ -206,7 +205,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         };
     }
 
-    private void SetReadOptionsFromHeader(DirMetaSnapshotTextReaderOptions options, string header)
+    private static void SetReadOptionsFromHeader(DirMetaSnapshotTextReaderOptions options, string header)
     {
         if (!header.StartsWith('#'))
         {
@@ -263,29 +262,38 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
         return DateTimeOffset.FromUnixTimeSeconds(seconds).DateTime;
     }
 
-    private int MinimumExpectedColumnCount(DirMetaSnapshotTextReaderOptions options)
+    private static int MinimumExpectedColumnCount(DirMetaSnapshotTextReaderOptions options)
     {
         if (options.ReadGuess)
         {
             return 1;
         }
 
-        var bools = new[]
-        {
-            options.ReadHash,
-            options.ReadHashAlgorithm,
-            options.ReadCreatedTime,
-            options.ReadLastModifiedTime,
-            options.ReadFileSize,
-        };
         var columnCount = 1;
 
-        foreach (var b in bools)
+        if (options.ReadHash)
         {
-            if (b)
-            {
-                columnCount++;
-            }
+            columnCount++;
+        }
+
+        if (options.ReadHashAlgorithm)
+        {
+            columnCount++;
+        }
+
+        if (options.ReadCreatedTime)
+        {
+            columnCount++;
+        }
+
+        if (options.ReadLastModifiedTime)
+        {
+            columnCount++;
+        }
+
+        if (options.ReadFileSize)
+        {
+            columnCount++;
         }
 
         return columnCount;
@@ -324,6 +332,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
                     return false;
             }
         }
+
         return true;
     }
 
@@ -348,6 +357,7 @@ public class DirMetaSnapshotTextReader : IDirMetaSnapshotReader
                     return false;
             }
         }
+
         return true;
     }
 }

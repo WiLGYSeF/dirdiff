@@ -18,6 +18,11 @@ public class DirMetaSnapshotWriterOptions
     public bool SortByPath { get; set; } = false;
 
     /// <summary>
+    /// Whether to write file types.
+    /// </summary>
+    public bool WriteType { get; set; } = false;
+
+    /// <summary>
     /// Whether to write file hashes.
     /// </summary>
     public bool WriteHash { get; set; } = true;

@@ -1,9 +1,9 @@
-﻿using Wilgysef.DirDiff.DirMetaSnapshots;
+﻿using System.Text;
+using Wilgysef.DirDiff.DirMetaSnapshots;
 using Wilgysef.DirDiff.Enums;
 using Wilgysef.DirDiff.Extensions;
-using System.Text;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+using YamlDotNet.Core;
+using YamlDotNet.Core.Events;
 
 namespace Wilgysef.DirDiff.DirMetaSnapshotWriters;
 
@@ -17,34 +17,52 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
         return this;
     }
 
-    public async Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
+    public Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
     {
-        var schema = new Dictionary<string, object>
-        {
-            [ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator))] = Options.DirectorySeparator ?? snapshot.DirectorySeparator,
-        };
-        var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
+        using var streamWriter = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true);
+        var emitter = new Emitter(streamWriter);
+
+        emitter.Emit(new StreamStart());
+        emitter.Emit(new DocumentStart());
+        emitter.Emit(new MappingStart());
+
+        emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator))));
+        emitter.Emit(new Scalar((Options.DirectorySeparator ?? snapshot.DirectorySeparator).ToString()));
 
         if (Options.WritePrefix)
         {
-            schema[ToCamelCase(nameof(DirMetaSnapshotSchema.Prefix))] = snapshot.Prefix!;
+            emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotSchema.Prefix))));
+            emitter.Emit(new Scalar(snapshot.Prefix ?? ""));
         }
+
+        var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
 
         if (Options.SortByPath)
         {
             entries = entries.OrderBy(e => e.Path);
         }
 
-        schema[ToCamelCase(nameof(DirMetaSnapshotSchema.Entries))] = entries.Select(e => SerializeEntry(snapshot, e));
+        emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotSchema.Entries))));
+        emitter.Emit(new SequenceStart(null, null, false, SequenceStyle.Block));
 
-        var serializer = new SerializerBuilder()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            .Build();
-        await stream.WriteAsync(Encoding.UTF8.GetBytes(serializer.Serialize(schema)));
+        foreach (var entry in entries)
+        {
+            SerializeEntry(snapshot, entry, emitter);
+        }
+
+        emitter.Emit(new SequenceEnd());
+
+        emitter.Emit(new MappingEnd());
+        emitter.Emit(new DocumentEnd(true));
+        emitter.Emit(new StreamEnd());
+
+        return Task.CompletedTask;
     }
 
-    private Dictionary<string, object> SerializeEntry(DirMetaSnapshot snapshot, DirMetaSnapshotEntry entry)
+    private void SerializeEntry(DirMetaSnapshot snapshot, DirMetaSnapshotEntry entry, Emitter emitter)
     {
+        emitter.Emit(new MappingStart());
+
         var path = Options.WritePrefix
             ? entry.Path
             : snapshot.PathWithoutPrefix(entry.Path);
@@ -54,38 +72,46 @@ public class DirMetaSnapshotYamlWriter : IDirMetaSnapshotWriter
             path = snapshot.ChangePathDirectorySeparator(path, Options.DirectorySeparator.Value);
         }
 
-        var dictionary = new Dictionary<string, object>
+        emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Path))));
+        emitter.Emit(new Scalar(path));
+
+        if (Options.WriteType)
         {
-            [ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Path))] = path,
-            [ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Type))] = entry.Type,
-        };
+            emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Type))));
+            emitter.Emit(new Scalar(entry.Type.ToString()));
+        }
 
         if (Options.WriteHash && entry.Hash != null)
         {
-            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Hash))] = entry.HashHex!;
+            emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Hash))));
+            emitter.Emit(new Scalar(entry.HashHex!));
 
             if (Options.WriteHashAlgorithm && entry.HashAlgorithm.HasValue)
             {
-                dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.HashAlgorithm))] = entry.HashAlgorithm.Value.ToEnumMemberValue();
+                emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.HashAlgorithm))));
+                emitter.Emit(new Scalar(entry.HashAlgorithm.Value.ToEnumMemberValue()));
             }
         }
 
         if (Options.WriteCreatedTime && entry.CreatedTime.HasValue)
         {
-            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.CreatedTime))] = entry.CreatedTime.Value;
+            emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.CreatedTime))));
+            emitter.Emit(new Scalar(entry.CreatedTime.Value.ToString("o")));
         }
 
         if (Options.WriteLastModifiedTime && entry.LastModifiedTime.HasValue)
         {
-            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.LastModifiedTime))] = entry.LastModifiedTime.Value;
+            emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.LastModifiedTime))));
+            emitter.Emit(new Scalar(entry.LastModifiedTime.Value.ToString("o")));
         }
 
         if (Options.WriteFileSize && entry.FileSize.HasValue)
         {
-            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.FileSize))] = entry.FileSize.Value;
+            emitter.Emit(new Scalar(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.FileSize))));
+            emitter.Emit(new Scalar(entry.FileSize.Value.ToString()));
         }
 
-        return dictionary;
+        emitter.Emit(new MappingEnd());
     }
 
     private static string ToCamelCase(string a)

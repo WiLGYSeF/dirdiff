@@ -32,38 +32,48 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
         return this;
     }
 
-    public async Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
+    public Task WriteAsync(Stream stream, DirMetaSnapshot snapshot)
     {
-        var schema = new Dictionary<string, object>
+        var options = new JsonWriterOptions
         {
-            [ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator))] = JsonWriterOptions.DirectorySeparator ?? snapshot.DirectorySeparator,
+            Indented = JsonWriterOptions.WriteIndented,
         };
-        var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
+
+        using var jsonWriter = new Utf8JsonWriter(stream, options);
+
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString(ToCamelCase(nameof(DirMetaSnapshotSchema.DirectorySeparator)), (JsonWriterOptions.DirectorySeparator ?? snapshot.DirectorySeparator).ToString());
 
         if (Options.WritePrefix)
         {
-            schema[ToCamelCase(nameof(DirMetaSnapshotSchema.Prefix))] = snapshot.Prefix!;
+            jsonWriter.WriteString(ToCamelCase(nameof(DirMetaSnapshotSchema.Prefix)), snapshot.Prefix);
         }
+
+        var entries = snapshot.Entries.Where(e => e.Type != FileType.Directory);
 
         if (Options.SortByPath)
         {
             entries = entries.OrderBy(e => e.Path);
         }
 
-        schema[ToCamelCase(nameof(DirMetaSnapshotSchema.Entries))] = entries.Select(e => SerializeEntry(snapshot, e));
+        jsonWriter.WriteStartArray(ToCamelCase(nameof(DirMetaSnapshotSchema.Entries)));
 
-        var options = new JsonSerializerOptions
+        foreach (var entry in entries)
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = JsonWriterOptions.WriteIndented,
+            SerializeEntry(snapshot, entry, jsonWriter);
+        }
 
-        };
-        options.Converters.Add(new JsonStringEnumConverter());
-        await stream.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(schema, options));
+        jsonWriter.WriteEndArray();
+
+        jsonWriter.WriteEndObject();
+
+        return Task.CompletedTask;
     }
 
-    private Dictionary<string, object> SerializeEntry(DirMetaSnapshot snapshot, DirMetaSnapshotEntry entry)
+    private void SerializeEntry(DirMetaSnapshot snapshot, DirMetaSnapshotEntry entry, Utf8JsonWriter jsonWriter)
     {
+        jsonWriter.WriteStartObject();
+
         var path = Options.WritePrefix
             ? entry.Path
             : snapshot.PathWithoutPrefix(entry.Path);
@@ -73,38 +83,39 @@ public class DirMetaSnapshotJsonWriter : IDirMetaSnapshotWriter
             path = snapshot.ChangePathDirectorySeparator(path, Options.DirectorySeparator.Value);
         }
 
-        var dictionary = new Dictionary<string, object>
+        jsonWriter.WriteString(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Path)), path);
+
+        if (Options.WriteType)
         {
-            [ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Path))] = path,
-            [ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Type))] = entry.Type,
-        };
+            jsonWriter.WriteString(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Type)), entry.Type.ToString());
+        }
 
         if (Options.WriteHash && entry.Hash != null)
         {
-            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Hash))] = entry.HashHex!;
+            jsonWriter.WriteString(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.Hash)), entry.HashHex);
 
             if (Options.WriteHashAlgorithm && entry.HashAlgorithm.HasValue)
             {
-                dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.HashAlgorithm))] = entry.HashAlgorithm.Value.ToEnumMemberValue();
+                jsonWriter.WriteString(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.HashAlgorithm)), entry.HashAlgorithm.Value.ToEnumMemberValue());
             }
         }
 
         if (Options.WriteCreatedTime && entry.CreatedTime.HasValue)
         {
-            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.CreatedTime))] = entry.CreatedTime.Value;
+            jsonWriter.WriteString(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.CreatedTime)), entry.CreatedTime.Value.ToString("o"));
         }
 
         if (Options.WriteLastModifiedTime && entry.LastModifiedTime.HasValue)
         {
-            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.LastModifiedTime))] = entry.LastModifiedTime.Value;
+            jsonWriter.WriteString(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.LastModifiedTime)), entry.LastModifiedTime.Value.ToString("o"));
         }
 
         if (Options.WriteFileSize && entry.FileSize.HasValue)
         {
-            dictionary[ToCamelCase(nameof(DirMetaSnapshotEntrySchema.FileSize))] = entry.FileSize.Value;
+            jsonWriter.WriteNumber(ToCamelCase(nameof(DirMetaSnapshotEntrySchema.FileSize)), entry.FileSize.Value);
         }
 
-        return dictionary;
+        jsonWriter.WriteEndObject();
     }
 
     private static string ToCamelCase(string a)

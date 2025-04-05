@@ -259,13 +259,8 @@ public class DirMetaSnapshotJsonWriterTest
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-            });
-
-        if (result == null)
-        {
-            throw new ArgumentException("Text could not be deserialized to snapshot.", nameof(text));
-        }
-
+            })
+            ?? throw new ArgumentException("Text could not be deserialized to snapshot.", nameof(text));
         return result;
     }
 }

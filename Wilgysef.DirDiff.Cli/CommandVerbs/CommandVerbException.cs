@@ -6,12 +6,12 @@ internal class CommandVerbException : Exception
 
     public string? Detail { get; }
 
-    public CommandVerbException(int returnCode, string message) : base(message)
+    public CommandVerbException(int returnCode, string message, Exception? innerException = null) : base(message, innerException)
     {
         ReturnCode = returnCode;
     }
 
-    public CommandVerbException(int returnCode, string message, string detail) : base(message)
+    public CommandVerbException(int returnCode, string message, string detail, Exception? innerException = null) : base(message, innerException)
     {
         ReturnCode = returnCode;
         Detail = detail;
